@@ -1,0 +1,869 @@
+.container {
+  padding: 24rpx;
+  background-color: #f5f5f7;
+  min-height: 100vh;
+}
+
+/* 搜索区域样式 */
+.search-section {
+  display: flex;
+  margin-bottom: 24rpx;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  padding: 16rpx 20rpx;
+  margin-right: 16rpx;
+  background-color: #f2f2f7;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}
+
+.search-btn {
+  background-color: #0071e3;
+  color: white;
+  padding: 12rpx 24rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  border: none;
+  min-width: 120rpx;
+}
+
+/* 筛选标签区域 */
+.filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.filter-tag {
+  display: flex;
+  align-items: center;
+  background-color: #f2f2f7;
+  padding: 12rpx 16rpx;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  color: #0071e3;
+}
+
+.tag-close {
+  margin-left: 8rpx;
+  font-size: 28rpx;
+  color: #86868b;
+  font-weight: bold;
+}
+
+/* 查询区域样式 */
+.query-section {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.query-item {
+  margin-bottom: 20rpx;
+}
+
+.query-label {
+  font-size: 28rpx;
+  color: #86868b;
+  margin-bottom: 10rpx;
+}
+
+.query-input-wrapper {
+  height: 88rpx;
+  position: relative;
+}
+
+.query-input {
+  height: 88rpx;
+  background-color: #f5f5f7;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 28rpx;
+  color: #1d1d1f;
+}
+
+.query-btn-area {
+  margin-top: 30rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.query-btn {
+  width: 80%;
+  height: 88rpx;
+  background-color: #0071e3;
+  color: #ffffff;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 表格容器样式调整，支持滚动 */
+.flow-table-container {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.03); /* 更柔和的阴影 */
+  overflow: hidden;
+  margin-bottom: 24rpx;
+  max-height: 800rpx; /* 控制最大高度，超出部分可滚动 */
+  white-space: nowrap; /* 防止表格内容换行 */
+  min-width: 100%; /* 确保可以横向滚动 */
+  width: 100%;
+  -webkit-overflow-scrolling: touch; /* 增加滑动惯性 */
+  padding-bottom: 180rpx; /* 底部预留空间，避免被底部操作区域遮挡 */
+}
+
+/* 美化滚动条 */
+::-webkit-scrollbar {
+  width: 6rpx;
+  height: 6rpx;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 3rpx;
+}
+
+::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* 表格标题 - 苹果风格 */
+.table-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  text-align: center;
+  padding: 24rpx 0;
+  color: #1d1d1f;
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.1); /* 更细、更淡的分隔线 */
+  margin-bottom: 4rpx; /* 添加间距 */
+}
+
+/* 表格行 - 苹果风格 */
+.table-row {
+  display: flex;
+  min-width: 800rpx; /* 确保横向内容不会因为太长而断开 */
+  border-bottom: 1rpx solid #f5f5f7;
+  background-color: #ffffff;
+}
+
+.table-header .table-row {
+  background-color: #f5f5f7;
+  font-weight: 500;
+  border-bottom: 0.5px solid rgba(60,60,67,0.1);
+}
+
+/* 表格单元格 - 苹果风格 */
+.table-cell {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  font-size: 20rpx;
+  font-weight: 500;
+  min-width: 120rpx;
+  width: 120rpx;
+  padding: 0 16rpx 0 0;
+}
+
+.table-cell:last-child {
+  border-right: none;
+}
+
+/* 日期单元格 */
+.date-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140rpx;
+  width: 140rpx;
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 20rpx;
+  font-weight: 500;
+  padding: 0;
+}
+
+/* 工厂单元格 */
+.factory-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* 将内容靠右显示 */
+  min-width: 120rpx;
+  width: 120rpx;
+  box-sizing: border-box;
+  text-align: right;
+  font-size: 20rpx;
+  font-weight: 500;
+  padding-right: 20rpx;
+}
+
+.cell-content {
+  text-align: right; /* 将文本靠右对齐 */
+}
+
+/* 人员单元格 - 改为工厂单元格，右对齐 */
+.person-cell {
+  min-width: 90rpx; /* 减小最小宽度 */
+  width: 10%;
+  flex-shrink: 0;
+  text-align: right; /* 靠右对齐 */
+  padding-right: 16rpx; /* 增加右边距 */
+  font-size: 20rpx; /* 确保字体足够小 */
+}
+
+/* 发出/收回分组 - 苹果风格 */
+.table-cell-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 0.5px solid rgba(60, 60, 67, 0.1); /* 更细、更淡的分隔线 */
+}
+
+.send-group {
+  background-color: rgba(0, 122, 255, 0.02); /* 苹果蓝色背景 */
+}
+
+.receive-group {
+  background-color: rgba(52, 199, 89, 0.02); /* 苹果绿色背景 */
+}
+
+/* 分组标题 - 苹果风格 */
+.table-group-title {
+  padding: 12rpx; /* 减小内边距 */
+  text-align: center;
+  font-size: 24rpx; /* 减小字体大小 */
+  font-weight: 500;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.1); /* 更细、更淡的分隔线 */
+}
+
+.table-header .table-group-title {
+  color: #007AFF;
+  font-size: 22rpx;
+  font-weight: 500;
+  background-color: #f5f5f7;
+  padding: 10rpx 0;
+  border-bottom: 0.5px solid rgba(60,60,67,0.1);
+  text-align: center;
+}
+
+.table-header .send-group .table-group-title {
+  color: #007AFF;
+}
+.table-header .receive-group .table-group-title {
+  color: #34C759;
+}
+
+.factory-header-cell {
+  text-align: right;
+  padding-right: 16rpx;
+  font-size: 20rpx;
+  background-color: #f5f5f7;
+  border-bottom: 0.5px solid rgba(60,60,67,0.1);
+}
+
+/* 产品信息 - 苹果风格 */
+.product-info {
+  padding: 10rpx 12rpx;
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.08);
+}
+
+.product-info:last-child {
+  border-bottom: none;
+}
+
+.product-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.product-text {
+  font-size: 22rpx;
+  color: #1d1d1f;
+  margin-bottom: 4rpx;
+}
+
+.quantity-text {
+  font-size: 20rpx;
+  color: #86868b;
+}
+
+.empty-cell {
+  padding: 12rpx;
+  color: #c7c7cc;
+  font-style: italic;
+  font-size: 20rpx; /* 减小字体大小 */
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70rpx; /* 减小高度 */
+}
+
+/* 工序分隔行 - 优化 */
+.process-separator {
+  height: 12rpx; /* 略微减小高度 */
+  background-color: #f5f5f7;
+  border-top: 0.5px solid rgba(60, 60, 67, 0.1); /* 更细、更淡的分隔线 */
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.1); /* 更细、更淡的分隔线 */
+}
+
+/* 工序标题行 - 修复左滑断层 */
+.process-title-row {
+  position: relative;
+  min-width: 800rpx; /* 确保至少与表格行的最小宽度一致 */
+  width: 100%;
+  background-color: #f2f2f7;
+  z-index: 10;
+  padding: 12rpx 0;
+  white-space: nowrap; /* 防止标题换行 */
+  display: flex; /* 使用flex布局 */
+  align-items: center; /* 垂直居中 */
+}
+
+/* 工序标题 - 优化 */
+.process-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  padding: 0 20rpx;
+  line-height: 1.4;
+}
+
+/* 交替行背景色 - 新增 */
+.table-row:nth-child(even) {
+  background-color: rgba(249, 249, 251, 0.5);
+}
+
+/* 空状态提示 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+  text-align: center;
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  margin-top: 24rpx;
+}
+
+.empty-icon {
+  width: 160rpx;
+  height: 160rpx;
+  opacity: 0.3;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #86868b;
+  line-height: 1.6;
+}
+
+/* 筛选弹窗样式 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.modal-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 600rpx;
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  z-index: 1001;
+  overflow: hidden;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  border-bottom: 1px solid #e5e5ea;
+}
+
+.modal-header text {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #1d1d1f;
+}
+
+.close-btn {
+  font-size: 40rpx;
+  color: #86868b;
+  line-height: 1;
+}
+
+.modal-content {
+  padding: 24rpx 32rpx;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.form-group {
+  margin-bottom: 24rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #86868b;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.form-input {
+  height: 88rpx;
+  background-color: #f5f5f7;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 28rpx;
+  color: #1d1d1f;
+}
+
+.picker-arrow {
+  width: 16rpx;
+  height: 16rpx;
+  border-right: 2rpx solid #86868b;
+  border-bottom: 2rpx solid #86868b;
+  transform: rotate(45deg);
+}
+
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.date-picker-value {
+  flex: 1;
+  height: 88rpx;
+  background-color: #f5f5f7;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 28rpx;
+  color: #1d1d1f;
+}
+
+.date-separator {
+  font-size: 28rpx;
+  color: #86868b;
+  margin: 0 8rpx;
+}
+
+.placeholder {
+  color: #86868b;
+}
+
+.modal-footer {
+  display: flex;
+  padding: 24rpx 32rpx;
+  border-top: 1px solid #e5e5ea;
+  justify-content: space-between;
+}
+
+.btn {
+  width: 48%;
+  height: 88rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: 500;
+}
+
+.cancel-btn {
+  background-color: #f5f5f7;
+  color: #1d1d1f;
+}
+
+.confirm-btn {
+  background-color: #0071e3;
+  color: #ffffff;
+}
+
+/* 货品选择弹窗样式 */
+.product-search-box {
+  margin-bottom: 16rpx;
+}
+
+.product-search-input {
+  height: 72rpx;
+  background-color: #f5f5f7;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.product-list {
+  max-height: 50vh;
+}
+
+.product-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1px solid #e5e5ea;
+}
+
+.product-item:last-child {
+  border-bottom: none;
+}
+
+.product-image {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 8rpx;
+  margin-right: 16rpx;
+  background-color: #f5f5f7;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-code {
+  font-size: 28rpx;
+  color: #1d1d1f;
+  margin-bottom: 4rpx;
+  font-weight: 500;
+}
+
+.product-name {
+  font-size: 24rpx;
+  color: #86868b;
+}
+
+.product-check {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 2rpx solid #c7c7cc;
+  position: relative;
+}
+
+.product-check.checked {
+  background-color: #0071e3;
+  border-color: #0071e3;
+}
+
+.product-check.checked::before {
+  content: "";
+  position: absolute;
+  width: 20rpx;
+  height: 10rpx;
+  top: 12rpx;
+  left: 8rpx;
+  border-left: 2rpx solid #fff;
+  border-bottom: 2rpx solid #fff;
+  transform: rotate(-45deg);
+}
+
+.empty-product-list {
+  text-align: center;
+  padding: 48rpx 0;
+  font-size: 28rpx;
+  color: #86868b;
+}
+
+/* 底部操作按钮区域 */
+.bottom-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #ffffff;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+  padding: 20rpx;
+  box-sizing: border-box;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20rpx;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 30rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #ffffff;
+  border: none;
+  line-height: 1.2;
+}
+
+.export-image-btn {
+  background-color: #007AFF;
+}
+
+.export-excel-btn {
+  background-color: #34C759;
+}
+
+.btn-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 10rpx;
+}
+
+.image-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M19,5v14H5V5H19m0-2H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3L19,3z'/%3E%3Cpath d='M14.14,11.86l-3,3.87L9,13.14L6,17h12L14.14,11.86z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.excel-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M14,2H6C4.9,2,4,2.9,4,4v16c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V8L14,2z M6,20V4h7v5h5v11H6z M16,11h-2v2h2v2h-2v2h-2v-2h-2v-2h2v-2h-2V9h2v2h2V9h2V11z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 30rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1d1d1f;
+  background-color: #f5f5f7;
+  line-height: 1.2;
+}
+
+.back-icon {
+  width: 24rpx;
+  height: 24rpx;
+  margin-right: 10rpx;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231d1d1f'%3E%3Cpath d='M20,11H7.83l5.59-5.59L12,4l-8,8l8,8l1.41-1.41L7.83,13H20V11z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+/* 流水摘要模块样式 */
+.summary-section {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.summary-header {
+  margin-bottom: 20rpx;
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.1);
+  padding-bottom: 16rpx;
+}
+
+.summary-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.summary-block {
+  margin-bottom: 24rpx;
+}
+
+.summary-subtitle {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1d1d1f;
+  margin-bottom: 16rpx;
+}
+
+.summary-table {
+  width: 100%;
+  border-radius: 12rpx;
+  overflow: hidden;
+  border: 0.5px solid rgba(60, 60, 67, 0.1);
+}
+
+.summary-table-header {
+  display: flex;
+  background-color: #f5f5f7;
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.1);
+}
+
+.summary-th {
+  flex: 1;
+  padding: 12rpx 8rpx;
+  font-size: 24rpx;
+  color: #86868b;
+  text-align: center;
+  font-weight: 500;
+}
+
+.summary-table-body {
+  background-color: #ffffff;
+}
+
+.summary-tr {
+  display: flex;
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.1);
+}
+
+.summary-tr:last-child {
+  border-bottom: none;
+}
+
+.summary-td {
+  flex: 1;
+  padding: 12rpx 8rpx;
+  font-size: 24rpx;
+  color: #1d1d1f;
+  text-align: center;
+}
+
+.summary-td.highlight {
+  color: #ff3b30;
+  font-weight: 500;
+}
+
+.summary-th-group {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  border-left: 0.5px solid rgba(60, 60, 67, 0.1);
+  border-right: 0.5px solid rgba(60, 60, 67, 0.1);
+}
+
+.summary-th-group-title {
+  padding: 8rpx 0;
+  text-align: center;
+  font-size: 24rpx;
+  color: #86868b;
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.1);
+}
+
+.summary-th-row {
+  display: flex;
+}
+
+.summary-scroll-view {
+  max-height: 400rpx;
+}
+
+.factory-summary-table {
+  min-width: 800rpx;
+}
+
+.factory-th, .process-th {
+  min-width: 120rpx;
+}
+
+.quantity-th, .weight-th {
+  min-width: 80rpx;
+}
+
+.loss-th, .fee-th {
+  min-width: 100rpx;
+}
+
+.summary-empty {
+  padding: 24rpx;
+  text-align: center;
+  color: #86868b;
+  font-size: 24rpx;
+}
+
+.total-summary {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-top: 24rpx;
+  background-color: #f9f9fb;
+  border-radius: 12rpx;
+  padding: 16rpx;
+}
+
+.total-item {
+  flex: 1;
+  min-width: 200rpx;
+  text-align: center;
+  margin: 8rpx 0;
+}
+
+.total-label {
+  font-size: 24rpx;
+  color: #86868b;
+  margin-right: 8rpx;
+}
+
+.total-value {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1d1d1f;
+}
+
+.total-value.highlight {
+  color: #ff3b30;
+}
+
+/* 工序组背景颜色 */
+.process-group-1 {
+  background-color: rgba(242, 242, 247, 0.5);
+}
+
+.process-group-2 {
+  background-color: rgba(242, 242, 247, 0.3);
+}
+
+.process-group-3 {
+  background-color: rgba(242, 242, 247, 0.7);
+}
+
+.process-group-4 {
+  background-color: rgba(175, 82, 222, 0.03);
+}

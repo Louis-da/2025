@@ -1,0 +1,55 @@
+/**
+ * 格式化产品信息
+ */
+function formatProducts(products) {
+  if (!products || products.length === 0) {
+    return '无';
+  }
+  
+  if (typeof products === 'string') {
+    return products;
+  }
+  
+  return products.map(function(p) {
+    var details = [];
+    if (p.productNo) details.push(p.productNo);
+    if (p.color) details.push(p.color);
+    if (p.size) details.push(p.size);
+    return details.join(' ');
+  }).join('、');
+}
+
+/**
+ * 格式化日期
+ */
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  var date = getDate(dateStr);
+  return date.getFullYear() + '-' + 
+         padZero(date.getMonth() + 1) + '-' + 
+         padZero(date.getDate()) + ' ' + 
+         padZero(date.getHours()) + ':' + 
+         padZero(date.getMinutes());
+}
+
+/**
+ * 数字补零
+ */
+function padZero(num) {
+  return num < 10 ? '0' + num : '' + num;
+}
+
+/**
+ * 格式化流水类型
+ */
+function formatType(type) {
+  if (type === 'send') return '发出';
+  if (type === 'receive') return '收回';
+  return type;
+}
+
+module.exports = {
+  formatProducts: formatProducts,
+  formatDate: formatDate,
+  formatType: formatType
+}; 

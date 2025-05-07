@@ -1,0 +1,154 @@
+<view class="page-bg">
+  <!-- 导航选项卡 -->
+  <view class="card tabs-card">
+    <view class="tabs">
+      <view class="tab {{activeTab === 'send' ? 'active' : ''}}" bindtap="switchTab" data-tab="send">发出单</view>
+      <view class="tab {{activeTab === 'receive' ? 'active' : ''}}" bindtap="switchTab" data-tab="receive">收回单</view>
+    </view>
+  </view>
+
+  <!-- 报表入口 -->
+  <view class="card report-card">
+    <view class="report-entry">
+      <view class="report-item" bindtap="navigateToFlowTable">
+        <image class="report-icon" src="/images/ui/flow-table.svg" mode="aspectFit"></image>
+        <view class="report-text">收发流水表</view>
+      </view>
+      <view class="report-item" bindtap="navigateToStatement">
+        <image class="report-icon" src="/images/ui/statement.svg" mode="aspectFit"></image>
+        <view class="report-text">对账单</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="card search-card">
+    <view class="search-container">
+      <view class="search-box">
+        <view class="search-icon">🔍</view>
+        <input class="search-input" placeholder="搜索单号、工厂" bindinput="inputSearch" value="{{searchQuery}}" confirm-type="search" />
+        <view class="search-clear" bindtap="clearSearch" wx:if="{{searchQuery}}">✕</view>
+      </view>
+      <view class="filter-btn" bindtap="openFilter">
+        <image class="filter-icon" src="/images/ui/filter.svg" mode="aspectFit"></image>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 订单列表 -->
+  <view class="card order-list-card">
+    <scroll-view class="order-list" scroll-y enable-flex>
+      <view wx:if="{{orders.length === 0}}" class="empty-list">
+        <image class="empty-icon" src="/images/ui/empty.svg" mode="aspectFit"></image>
+        <view class="empty-text">暂无数据</view>
+      </view>
+      <view wx:else class="list">
+        <view wx:for="{{orders}}" wx:key="id" class="order-item-wrapper" wx:if="{{item.status !== 'canceled' || showCanceled}}">
+          <view class="order-item" bindtap="viewOrderDetail" data-id="{{item.id}}">
+            <view class="order-header">
+              <view class="order-no-small-gray">{{item.orderNo || '无单号'}}</view>
+              <view class="order-status" wx:if="{{item.status === 'canceled'}}">已作废</view>
+              <view class="share-icon share-icon-purple" catchtap="handleShare" data-id="{{item.id}}" data-type="{{activeTab}}" wx:if="{{item.status !== 'canceled'}}">
+                <image src="/images/ui/share.svg" mode="aspectFit"></image>
+              </view>
+            </view>
+            <view class="order-factory">{{item.factoryName || '未知工厂'}} <text wx:if="{{item.process}}">- {{item.process}}</text></view>
+            <view class="order-details">
+              <view class="detail-item">
+                <view class="detail-label">重量</view>
+                <view class="detail-value">{{item.totalWeight || item.weight || 0}}kg</view>
+              </view>
+              <view class="detail-item">
+                <view class="detail-label">数量</view>
+                <view class="detail-value">{{item.totalQuantity || item.quantity || 0}}</view>
+              </view>
+              <view class="detail-item" wx:if="{{item.fee && activeTab === 'receive'}}">
+                <view class="detail-label">工费</view>
+                <view class="detail-value">¥{{item.fee}}</view>
+              </view>
+            </view>
+            <view class="order-footer">
+              <view class="order-staff">制单：{{item.staff || '未知'}}</view>
+              <view class="order-date">{{item.date || '无日期'}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 新增按钮 -->
+  <view class="add-button" bindtap="navigateToAdd">
+    <view class="add-icon">+</view>
+  </view>
+</view>
+
+<!-- 筛选弹窗 -->
+<view class="filter-modal {{showFilter ? 'filter-show' : ''}}">
+  <view class="filter-overlay" bindtap="closeFilter"></view>
+  <view class="filter-content">
+    <view class="filter-header">
+      <view class="filter-title">筛选条件</view>
+      <view class="filter-close" bindtap="closeFilter">✕</view>
+    </view>
+    <view class="filter-body">
+      <!-- 日期范围 -->
+      <view class="filter-section">
+        <view class="filter-label">日期范围</view>
+        <view class="date-range">
+          <picker mode="date" value="{{filterStartDate}}" bindchange="onStartDateChange">
+            <view class="date-picker">{{filterStartDate || '开始日期'}}</view>
+          </picker>
+          <view class="date-separator">至</view>
+          <picker mode="date" value="{{filterEndDate}}" bindchange="onEndDateChange">
+            <view class="date-picker">{{filterEndDate || '结束日期'}}</view>
+          </picker>
+        </view>
+      </view>
+      
+      <!-- 工厂选择 -->
+      <view class="filter-section">
+        <view class="filter-label">工厂</view>
+        <picker bindchange="onFactoryChange" value="{{filterFactoryIndex}}" range="{{factoryOptions}}" range-key="name">
+          <view class="filter-picker {{filterFactoryIndex > 0 ? 'has-value' : ''}}">
+            {{filterFactoryIndex > 0 ? factoryOptions[filterFactoryIndex].name : '选择工厂'}}
+          </view>
+        </picker>
+      </view>
+      
+      <!-- 工序选择 -->
+      <view class="filter-section">
+        <view class="filter-label">工序</view>
+        <picker bindchange="onProcessChange" value="{{filterProcessIndex}}" range="{{processOptions}}" range-key="name">
+          <view class="filter-picker {{filterProcessIndex > 0 ? 'has-value' : ''}}">
+            {{filterProcessIndex > 0 ? processOptions[filterProcessIndex].name : '选择工序'}}
+          </view>
+        </picker>
+      </view>
+      
+      <!-- 货号输入 -->
+      <view class="filter-section">
+        <view class="filter-label">货号</view>
+        <input class="filter-input" placeholder="输入货号" bindinput="onProductCodeInput" value="{{filterProductCode}}" />
+      </view>
+      
+      <!-- 状态选择 -->
+      <view class="filter-section">
+        <view class="filter-label">状态</view>
+        <picker bindchange="onStatusChange" value="{{filterStatusIndex}}" range="{{statusOptions}}">
+          <view class="filter-picker">
+            {{statusOptions[filterStatusIndex]}}
+          </view>
+        </picker>
+      </view>
+    </view>
+    
+    <view class="filter-footer">
+      <button class="filter-reset" bindtap="resetFilter">重置</button>
+      <button class="filter-apply" bindtap="applyFilter">确定</button>
+    </view>
+  </view>
+</view>
+
+<!-- 新增canvas用于绘制分享图片 -->
+<canvas type="2d" id="shareCanvas" style="width: 1100px; height: 1900px; position: fixed; left: -9999px; top: -9999px;"></canvas>

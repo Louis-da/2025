@@ -1,0 +1,699 @@
+/* .container 已被全局样式替代 */
+
+/* 移除全局 button 样式覆盖 */
+/* button {
+  background-color: #07c160;
+  color: white;
+  padding: 10rpx 20rpx;
+  margin: 5rpx;
+} */
+
+/* 移除自定义添加按钮样式 */
+/* .add-btn, .add-btn-text, .add-btn-hint */
+
+/* 移除模态框相关样式 */
+/* .edit-modal */
+
+/* .product-manage-container (未使用) */
+
+/* 头部搜索样式 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  background-color: #ffffff;
+  border-bottom: 0.5rpx solid #e5e5ea;
+  position: sticky;
+  top: 0;
+  z-index: 99;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+/* 搜索框 */
+.search-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 30rpx;
+  background-color: #ffffff;
+  border-bottom: 0.5rpx solid #e5e5ea;
+}
+
+.search-input {
+  display: flex;
+  align-items: center;
+  background-color: rgba(242, 242, 247, 0.8);
+  border-radius: 40rpx;
+  padding: 10rpx 20rpx;
+  flex: 1;
+}
+
+.search-input input {
+  flex: 1;
+  height: 70rpx;
+  font-size: 28rpx;
+  padding-left: 10rpx;
+}
+
+.search-input icon {
+  margin-right: 10rpx;
+}
+
+.clear-icon {
+  font-size: 36rpx;
+  color: #8e8e93;
+  padding: 0 10rpx;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  color: #8e8e93;
+}
+
+.loading-spinner {
+  width: 64rpx;
+  height: 64rpx;
+  border: 6rpx solid #f3f3f3;
+  border-top: 6rpx solid #007aff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 28rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  color: #8e8e93;
+}
+
+.empty-icon {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  margin-bottom: 30rpx;
+}
+
+.mt-4 {
+  margin-top: 40rpx;
+}
+
+/* 货品列表 */
+.product-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12rpx 24rpx;
+}
+
+.list-item {
+  margin-bottom: 16rpx;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  background-color: #ffffff;
+  box-shadow: 0 1rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.list-item-content {
+  flex: 1;
+  display: flex;
+  padding-right: 16rpx;
+}
+
+.product-image {
+  width: 120rpx;
+  height: 120rpx;
+  margin-right: 24rpx;
+  border-radius: 8rpx;
+  overflow: hidden;
+  background-color: #f5f5f7;
+}
+
+.product-image image {
+  width: 100%;
+  height: 100%;
+}
+
+.product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.product-no {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #1d1d1f;
+  margin-bottom: 8rpx;
+}
+
+.product-name {
+  font-size: 26rpx;
+  color: #86868b;
+  margin-bottom: 8rpx;
+}
+
+.product-attributes {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 24rpx;
+  color: #86868b;
+}
+
+.product-attributes text {
+  margin-right: 16rpx;
+}
+
+.list-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 120rpx;
+}
+
+/* 标签样式 */
+.tag {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  margin-right: 16rpx;
+  margin-bottom: 16rpx;
+  position: relative;
+}
+
+.tag-success {
+  background-color: rgba(7, 193, 96, 0.1);
+  color: #07c160;
+}
+
+.tag-gray {
+  background-color: rgba(142, 142, 147, 0.1);
+  color: #8e8e93;
+}
+
+/* 标签颜色 */
+.tag-blue {
+  background-color: rgba(0, 122, 255, 0.1);
+  color: #007aff;
+}
+
+.tag-green {
+  background-color: rgba(52, 199, 89, 0.1);
+  color: #34c759;
+}
+
+.tag-orange {
+  background-color: rgba(255, 149, 0, 0.1);
+  color: #ff9500;
+}
+
+/* 按钮样式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  border-radius: 8rpx;
+  padding: 12rpx 24rpx;
+  box-sizing: border-box;
+}
+
+.btn-primary {
+  background-color: #007aff;
+  color: #ffffff;
+}
+
+.btn-light {
+  background-color: rgba(142, 142, 147, 0.12);
+  color: #8e8e93;
+}
+
+.btn-danger {
+  background-color: rgba(255, 59, 48, 0.1);
+  color: #ff3b30;
+}
+
+.btn-success {
+  background-color: rgba(7, 193, 96, 0.1);
+  color: #07c160;
+}
+
+.btn-rounded {
+  border-radius: 100rpx;
+}
+
+.btn-small {
+  font-size: 24rpx;
+  padding: 6rpx 16rpx;
+}
+
+/* 圆形浮动按钮 */
+.floating-button {
+  position: fixed;
+  bottom: 40rpx;
+  right: 40rpx;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background-color: #007aff;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6rpx 16rpx rgba(0, 122, 255, 0.2);
+  z-index: 99;
+}
+
+.plus-icon {
+  font-size: 60rpx;
+  font-weight: 300;
+}
+
+/* 弹窗遮罩 */
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+}
+
+/* 底部抽屉优化 */
+.drawer {
+  position: fixed;
+  width: 100%;
+  background: #ffffff;
+  z-index: 101;
+  transition: all 0.3s ease;
+}
+
+.drawer-bottom {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 28rpx 28rpx 0 0;
+  transform: translateY(100%);
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
+  max-height: 92vh; /* 限制最大高度 */
+}
+
+.drawer-show {
+  transform: translateY(0);
+  animation: slideInUp 0.25s forwards cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 36rpx 36rpx 30rpx;
+  border-bottom: 0.5rpx solid rgba(229, 229, 234, 0.7);
+}
+
+.drawer-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.drawer-close {
+  font-size: 44rpx;
+  color: #8e8e93;
+  width: 66rpx;
+  height: 66rpx;
+  line-height: 66rpx;
+  text-align: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  margin-right: -10rpx;
+}
+
+.drawer-close:active {
+  background-color: rgba(142, 142, 147, 0.1);
+}
+
+/* 表单组样式优化 */
+.drawer-body {
+  padding: 32rpx 36rpx 40rpx;
+  max-height: 80vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.form-group {
+  margin-bottom: 36rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #1d1d1f;
+  margin-bottom: 14rpx;
+  letter-spacing: 0.2rpx;
+}
+
+.required:after {
+  content: ' *';
+  color: #ff3b30;
+  font-weight: normal;
+}
+
+/* 表单输入框优化 */
+.form-control, .selector-input {
+  width: 100%;
+  height: 90rpx;
+  background-color: rgba(242, 242, 247, 0.8);
+  border-radius: 14rpx;
+  padding: 0 24rpx;
+  font-size: 32rpx;
+  color: #1d1d1f;
+  border: 1rpx solid transparent;
+  transition: all 0.2s;
+}
+
+.form-control:focus, .selector-input:active {
+  background-color: rgba(242, 242, 247, 1);
+  border-color: rgba(0, 122, 255, 0.3);
+}
+
+.form-control::placeholder, .placeholder {
+  color: #8e8e93;
+}
+
+.form-helper {
+  font-size: 24rpx;
+  color: #8e8e93;
+  margin-top: 10rpx;
+  line-height: 1.4;
+}
+
+/* 文本区域样式优化 */
+.form-textarea {
+  width: 100%;
+  height: 160rpx;
+  background-color: rgba(242, 242, 247, 0.8);
+  border-radius: 14rpx;
+  padding: 20rpx 24rpx;
+  box-sizing: border-box;
+  font-size: 30rpx;
+  color: #1d1d1f;
+  border: 1rpx solid transparent;
+  transition: all 0.2s;
+}
+
+.form-textarea:focus {
+  background-color: rgba(242, 242, 247, 1);
+  border-color: rgba(0, 122, 255, 0.3);
+}
+
+/* 抽屉底部按钮区域 */
+.drawer-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding: 30rpx 36rpx calc(30rpx + env(safe-area-inset-bottom));
+  border-top: 0.5rpx solid rgba(229, 229, 234, 0.7);
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: sticky;
+  bottom: 0;
+}
+
+.drawer-footer .btn {
+  flex: 1;
+  height: 96rpx;
+  font-size: 34rpx;
+  border-radius: 16rpx;
+  transition: opacity 0.2s;
+}
+
+.drawer-footer .btn:active {
+  opacity: 0.85;
+}
+
+.cancel-btn {
+  background-color: rgba(142, 142, 147, 0.12);
+  color: #8e8e93;
+}
+
+.confirm-btn {
+  font-weight: 500;
+}
+
+/* 标签和选择器样式优化 */
+.selected-items {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 16rpx;
+  gap: 16rpx;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  margin-right: 12rpx;
+  margin-bottom: 12rpx;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.tag-close {
+  margin-left: 8rpx;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: #8e8e93;
+  padding: 0;
+  transition: all 0.2s;
+}
+
+.tag-close:active {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* 选择器输入框优化 */
+.selector-input {
+  width: 100%;
+  height: 90rpx;
+  background-color: rgba(242, 242, 247, 0.8);
+  border-radius: 14rpx;
+  border: 1rpx solid transparent;
+  font-size: 32rpx;
+  color: #1d1d1f;
+  padding: 0 24rpx;
+  margin-bottom: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.selector-input .placeholder {
+  color: #8e8e93;
+}
+
+.selector-arrow {
+  width: 36rpx;
+  height: 36rpx;
+  background-color: transparent;
+  position: relative;
+}
+
+.selector-arrow:after {
+  content: '';
+  display: block;
+  width: 16rpx;
+  height: 16rpx;
+  border-right: 2rpx solid #8e8e93;
+  border-bottom: 2rpx solid #8e8e93;
+  transform: rotate(45deg);
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+}
+
+/* 通知提示区域优化 */
+.drawer-notice {
+  display: flex;
+  align-items: flex-start;
+  background-color: rgba(0, 122, 255, 0.08);
+  padding: 16rpx 20rpx;
+  border-radius: 14rpx;
+  margin-top: 24rpx;
+}
+
+.notice-icon {
+  font-size: 32rpx;
+  color: #007aff;
+  margin-right: 12rpx;
+  line-height: 1.2;
+}
+
+.notice-text {
+  font-size: 26rpx;
+  color: #007aff;
+  line-height: 1.5;
+  flex: 1;
+}
+
+/* 图片上传区域优化 */
+.image-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 12rpx;
+}
+
+.image-item {
+  width: calc((100% - 32rpx) / 3);
+  height: 200rpx;
+  position: relative;
+  border-radius: 14rpx;
+  overflow: hidden;
+  background-color: rgba(242, 242, 247, 0.8);
+}
+
+.uploaded-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx dashed #c7c7cc;
+  box-sizing: border-box;
+}
+
+.upload-icon {
+  font-size: 48rpx;
+  color: #8e8e93;
+  font-weight: 300;
+  line-height: 1;
+  margin-bottom: 12rpx;
+}
+
+.upload-text {
+  font-size: 24rpx;
+  color: #8e8e93;
+}
+
+.image-delete {
+  position: absolute;
+  top: 6rpx;
+  right: 6rpx;
+  width: 44rpx;
+  height: 44rpx;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  z-index: 2;
+}
+
+/* 暗黑模式适配增强 */
+@media (prefers-color-scheme: dark) {
+  .drawer-bottom {
+    background-color: #1c1c1e;
+    box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.3);
+  }
+  
+  .drawer-header, .drawer-footer {
+    border-color: rgba(70, 70, 70, 0.5);
+  }
+  
+  .drawer-title, .form-label {
+    color: #f5f5f7;
+  }
+  
+  .form-control, .form-textarea, .selector-input {
+    background-color: rgba(40, 40, 40, 0.8);
+    color: #f5f5f7;
+    border-color: transparent;
+  }
+  
+  .form-control:focus, .form-textarea:focus, .selector-input:active {
+    background-color: rgba(45, 45, 45, 1);
+    border-color: rgba(10, 132, 255, 0.4);
+  }
+  
+  .drawer-footer {
+    background-color: rgba(28, 28, 30, 0.92);
+  }
+  
+  .cancel-btn {
+    background-color: rgba(80, 80, 85, 0.2);
+    color: #98989f;
+  }
+  
+  .image-item {
+    background-color: #2c2c2e;
+  }
+  
+  .image-add {
+    border-color: #48484a;
+  }
+  
+  .upload-icon, .upload-text {
+    color: #98989f;
+  }
+}

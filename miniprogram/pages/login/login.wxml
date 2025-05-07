@@ -1,0 +1,32 @@
+<view class="container">
+  <view class="logo-section">
+    <image class="logo" src="/images/ui/my-logo.png" mode="aspectFit"></image>
+    <view class="app-name">云收发</view>
+    <view class="app-slogan">高效、简洁的收发流程管理工具</view>
+  </view>
+
+  <view class="form-container">
+    <view class="form-item">
+      <view class="input-label">组织ID</view>
+      <input class="input-field" type="text" bindinput="inputOrgId" value="{{orgId}}" />
+    </view>
+
+    <view class="form-item">
+      <view class="input-label">用户名</view>
+      <input class="input-field" type="text" bindinput="inputUsername" value="{{username}}" />
+    </view>
+
+    <view class="form-item">
+      <view class="input-label">密码</view>
+      <input class="input-field" type="password" bindinput="inputPassword" value="{{password}}" />
+    </view>
+
+    <button class="login-btn" bindtap="login" hover-class="button-hover">登录</button>
+
+    <view class="help-link" bindtap="forgotPassword">帮助忘记密码?</view>
+  </view>
+
+  <view class="footer">
+    <view class="copyright">© {{currentYear}} 收发管理 保留所有权利</view>
+  </view>
+</view>

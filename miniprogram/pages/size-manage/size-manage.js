@@ -1,0 +1,362 @@
+// pages/size-manage/size-manage.js
+const app = getApp();
+const api = require('../../utils/api');
+try {
+  // 尝试导入util模块，如果失败，使用内部定义的函数
+  const { showToast, showLoading, hideLoading, showModal } = require('../../utils/util');
+} catch (error) {
+  console.error('无法加载util.js', error);
+}
+
+// 定义本地工具函数，以防utils/util.js无法加载
+const localShowToast = (title, icon = 'none') => {
+  wx.showToast({
+    title: title,
+    icon: icon
+  });
+};
+
+const localShowLoading = (title = '加载中') => {
+  wx.showLoading({
+    title: title,
+    mask: true
+  });
+};
+
+const localHideLoading = () => {
+  wx.hideLoading();
+};
+
+const localShowModal = (title, content, showCancel = true) => {
+  return new Promise((resolve, reject) => {
+    wx.showModal({
+      title: title,
+      content: content,
+      showCancel: showCancel,
+      success(res) {
+        if (res.confirm) {
+          resolve(true);
+        } else if (res.cancel) {
+          resolve(false);
+        }
+      },
+      fail(err) {
+        reject(err);
+      }
+    });
+  });
+};
+
+// 使用本地函数或导入的函数
+const toast = typeof showToast !== 'undefined' ? showToast : localShowToast;
+const loading = typeof showLoading !== 'undefined' ? showLoading : localShowLoading;
+const hideLoad = typeof hideLoading !== 'undefined' ? hideLoading : localHideLoading;
+const modal = typeof showModal !== 'undefined' ? showModal : localShowModal;
+
+Page({
+
+  /**
+   * 页面的初始数据
+   */
+  data: {
+    filteredSizes: [], // 过滤后的尺码列表
+    searchText: '', // 搜索文本
+    isLoading: true, // 加载状态
+    showModal: false, // 是否显示弹窗
+    modalType: 'add', // 弹窗类型：add-添加, edit-编辑
+    formData: { // 表单数据
+      name: '',
+      order: ''
+    },
+    currentEditId: '' // 当前编辑的尺码ID
+  },
+
+  /**
+   * 生命周期函数--监听页面加载
+   */
+  onLoad: function(options) {
+    console.log('尺码管理页面加载');
+    this.fetchSizeList();
+  },
+
+  /**
+   * 页面相关事件处理函数--监听用户下拉动作
+   */
+  onPullDownRefresh: function() {
+    this.fetchSizeList(() => {
+      wx.stopPullDownRefresh();
+    });
+  },
+
+  /**
+   * 获取尺码列表
+   */
+  fetchSizeList: function(callback) {
+    this.setData({ isLoading: true });
+    wx.showNavigationBarLoading();
+    const orgId = wx.getStorageSync('orgId') || 'org1';
+    api.request('/sizes', 'GET', { orgId })
+      .then(res => {
+        console.log('api.request返回的res', res); // 新增日志
+        // 直接用res.data
+        const sizeData = Array.isArray(res.data) ? res.data : [];
+        console.log('sizeData', sizeData); // 打印后端返回的原始数据
+        // 字段映射
+        const mappedSizes = sizeData.map(item => ({
+          ...item,
+          id: item._id,
+          orderNum: item.orderNum
+        }));
+        console.log('mappedSizes', mappedSizes); // 打印映射后的数据
+        // 排序
+        const sortedSizes = mappedSizes.sort((a, b) => (a.orderNum ?? 999) - (b.orderNum ?? 999));
+        console.log('filteredSizes', sortedSizes); // 打印最终用于渲染的数据
+        this.setData({
+          filteredSizes: sortedSizes,
+          isLoading: false
+        });
+      })
+      .catch(err => {
+        console.error('获取尺码数据请求失败', err);
+        this.setData({
+          filteredSizes: [],
+          isLoading: false
+        });
+        toast('获取尺码数据失败');
+      })
+      .finally(() => {
+        wx.hideNavigationBarLoading();
+        if (callback && typeof callback === 'function') {
+          callback();
+        }
+      });
+  },
+
+  /**
+   * 防止滑动穿透
+   */
+  preventTouchMove: function() {
+    return false;
+  },
+
+  /**
+   * 显示添加尺码弹窗
+   */
+  showAddModal: function() {
+    // 计算新的排序值：获取现有尺码最大排序值 + 1
+    const newOrder = this.data.filteredSizes.length > 0 
+      ? Math.max(...this.data.filteredSizes.map(s => s.orderNum || 0)) + 1 
+      : 1;
+      
+    this.setData({
+      showModal: true,
+      modalType: 'add',
+      formData: {
+        name: '',
+        order: newOrder
+      }
+    });
+  },
+
+  /**
+   * 显示编辑尺码弹窗
+   */
+  showEditModal: function(e) {
+    const size = e.currentTarget.dataset.size;
+    if (size) {
+      this.setData({
+        showModal: true,
+        modalType: 'edit',
+        currentEditId: size.id,
+        formData: {
+          name: size.name,
+          order: size.orderNum
+        }
+      });
+    }
+  },
+
+  /**
+   * 关闭弹窗
+   */
+  hideModal: function() {
+    this.setData({
+      showModal: false
+    });
+  },
+
+  /**
+   * 处理尺码名称输入
+   */
+  onNameInput: function(e) {
+    this.setData({
+      'formData.name': e.detail.value
+    });
+  },
+
+  /**
+   * 处理显示顺序输入
+   */
+  onOrderInput: function(e) {
+    this.setData({
+      'formData.order': e.detail.value
+    });
+  },
+
+  /**
+   * 提交表单
+   */
+  submitForm: function() {
+    const { modalType, formData, currentEditId } = this.data;
+    const { name, order } = formData;
+    
+    if (!name.trim()) {
+      toast('请输入尺码名称');
+      return;
+    }
+    
+    if (!order || isNaN(Number(order))) {
+      toast('请输入正确的显示顺序');
+      return;
+    }
+    
+    // 检查尺码名称是否已存在
+    const nameExists = this.data.filteredSizes.some(size => {
+      if (modalType === 'edit' && size._id === currentEditId) {
+        return false; // 排除当前编辑的尺码
+      }
+      return size.name.toLowerCase() === name.trim().toLowerCase();
+    });
+    
+    if (nameExists) {
+      toast('尺码名称已存在，请使用其他名称');
+      return;
+    }
+    
+    if (modalType === 'add') {
+      this.addSize();
+    } else {
+      this.updateSize();
+    }
+  },
+
+  /**
+   * 添加尺码
+   */
+  addSize: function() {
+    const { name, order } = this.data.formData;
+    
+    loading('添加中');
+    
+    // 使用真实API添加尺码
+    const orgId = wx.getStorageSync('orgId') || 'org1';
+    api.request('/sizes', 'POST', {
+      orgId,
+      name: name.trim(),
+      orderNum: Number(order),
+      status: 1
+    })
+      .then(res => {
+        this.fetchSizeList();
+        this.setData({ showModal: false });
+        toast('添加成功', 'success');
+      })
+      .catch(err => {
+        console.error('添加尺码失败', err);
+        toast('添加失败，请检查网络');
+      })
+      .finally(() => {
+        hideLoad();
+      });
+  },
+
+  /**
+   * 更新尺码
+   */
+  updateSize: function() {
+    const { currentEditId, formData } = this.data;
+    const { name, order } = formData;
+    
+    loading('更新中');
+    
+    // 使用真实API更新尺码
+    const orgId = wx.getStorageSync('orgId') || 'org1';
+    api.request(`/sizes/${currentEditId}`, 'PUT', {
+      orgId,
+      name: name.trim(),
+      orderNum: Number(order)
+    })
+      .then(res => {
+        this.fetchSizeList();
+        this.setData({ showModal: false });
+        toast('更新成功', 'success');
+      })
+      .catch(err => {
+        console.error('更新尺码失败', err);
+        toast('更新失败，请检查网络');
+      })
+      .finally(() => {
+        hideLoad();
+      });
+  },
+
+  /**
+   * 切换尺码状态
+   */
+  toggleStatus: function(e) {
+    const id = e.currentTarget.dataset.id;
+    const status = e.currentTarget.dataset.status;
+    const newStatus = status === 1 ? 0 : 1;
+    const statusText = newStatus === 1 ? '启用' : '禁用';
+    
+    modal('确认操作', `确定要${statusText}此尺码吗？`)
+      .then(res => {
+        if (res) {
+          loading(`${statusText}中`);
+          
+          // 使用真实API更新状态
+          const orgId = wx.getStorageSync('orgId') || 'org1';
+          api.request(`/sizes/${id}/status`, 'PUT', {
+            orgId,
+            status: newStatus
+          })
+            .then(res => {
+              this.fetchSizeList();
+              toast(`${statusText}成功`, 'success');
+            })
+            .catch(err => {
+              console.error('更新状态失败', err);
+              toast('操作失败，请检查网络');
+            })
+            .finally(() => {
+              hideLoad();
+            });
+        }
+      })
+      .catch(err => {
+        console.error('操作失败:', err);
+        toast('操作失败，请重试');
+      });
+  },
+
+  /**
+   * 复制文本到剪贴板
+   */
+  copyValue: function(e) {
+    const value = e.currentTarget.dataset.value;
+    wx.setClipboardData({
+      data: value,
+      success: function() {
+        toast('复制成功', 'success');
+      }
+    });
+  },
+
+  /**
+   * 生命周期函数--监听页面显示
+   */
+  onShow: function () {
+    // 页面显示时刷新数据
+    this.fetchSizeList();
+  }
+});

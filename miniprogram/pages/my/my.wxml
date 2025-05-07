@@ -1,0 +1,116 @@
+<view class="container">
+  <!-- 会员信息（左上角，超小） -->
+  <view class="mini-membership-info">
+    <view class="mini-info-row">
+      <text class="mini-label">会员类型: </text>
+      <text class="mini-value">{{membershipType || '标准版'}}</text>
+    </view>
+    <view class="mini-info-row">
+      <text class="mini-label">剩余: </text>
+      <text class="mini-value {{remainingDays < 30 ? 'warning' : ''}}">
+        {{remainingDays || 0}}天{{remainingHours || 0}}时
+      </text>
+    </view>
+    <view class="mini-info-row">
+      <text class="mini-label">到期: </text>
+      <text class="mini-value">{{expiryDate || '暂无'}}</text>
+    </view>
+  </view>
+  
+  <!-- 头像居中 -->
+  <view class="centered-avatar-section">
+    <view class="avatar-container" bindtap="showEditProfile">
+      <image class="avatar" src="{{avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+      <view class="avatar-edit-hint show-hint">
+        <view class="edit-hint-text">点击编辑</view>
+      </view>
+    </view>
+    
+    <view class="user-info">
+      <view class="username">{{username || '未知用户'}}</view>
+      <view class="role-tag">{{role || '普通用户'}}</view>
+    </view>
+  </view>
+  
+  <!-- 组织信息（位于头像下方） -->
+  <view class="org-info-section">
+    <view class="org-info-item">
+      <text class="org-info-label">公司名称</text>
+      <text class="org-info-value">{{companyName || '未设置公司名称'}}</text>
+    </view>
+    
+    <view class="org-info-item">
+      <text class="org-info-label">组织ID</text>
+      <text class="org-info-value">{{orgId || '未知组织'}}</text>
+    </view>
+    
+    <view class="org-info-item">
+      <text class="org-info-label">创建时间</text>
+      <text class="org-info-value">{{creationDate || '暂无数据'}}</text>
+    </view>
+    
+    <view class="org-info-item">
+      <text class="org-info-label">使用天数</text>
+      <text class="org-info-value">{{usageDays || 0}} 天</text>
+    </view>
+  </view>
+  
+  <!-- 操作区域 -->
+  <view class="action-area">
+    <button class="logout-btn" bindtap="logout">退出登录</button>
+  </view>
+  
+  <!-- 编辑个人资料弹窗 -->
+  <view class="edit-modal" wx:if="{{showEditModal}}">
+    <view class="edit-modal-content">
+      <view class="edit-modal-header">
+        <text class="edit-modal-title">编辑个人资料</text>
+        <view class="edit-modal-close" bindtap="closeEditModal">×</view>
+      </view>
+      
+      <view class="edit-modal-body">
+        <!-- 头像选择 -->
+        <view class="edit-avatar-section">
+          <image class="edit-avatar" src="{{editData.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+          <button class="change-avatar-btn" bindtap="chooseNewAvatar">更换头像</button>
+        </view>
+        
+        <!-- 信息编辑 -->
+        <view class="edit-form">
+          <view class="form-item">
+            <text class="form-label">公司名称</text>
+            <input class="form-input" value="{{editData.companyName}}" data-field="companyName" bindinput="onInputChange" placeholder="请输入公司名称" />
+          </view>
+          
+          <!-- 密码修改区域切换 -->
+          <view class="password-toggle" bindtap="togglePasswordSection">
+            <text>{{showPasswordSection ? '取消修改密码' : '修改密码'}}</text>
+          </view>
+          
+          <!-- 密码修改区域 -->
+          <block wx:if="{{showPasswordSection}}">
+            <view class="form-item">
+              <text class="form-label">原密码</text>
+              <input class="form-input" password="true" value="{{editData.oldPassword}}" data-field="oldPassword" bindinput="onInputChange" placeholder="请输入原密码" />
+            </view>
+            
+            <view class="form-item">
+              <text class="form-label">新密码</text>
+              <input class="form-input" password="true" value="{{editData.newPassword}}" data-field="newPassword" bindinput="onInputChange" placeholder="请输入新密码" />
+            </view>
+            
+            <view class="form-item">
+              <text class="form-label">确认密码</text>
+              <input class="form-input" password="true" value="{{editData.confirmPassword}}" data-field="confirmPassword" bindinput="onInputChange" placeholder="请再次输入新密码" />
+            </view>
+          </block>
+        </view>
+      </view>
+      
+      <view class="edit-modal-footer">
+        <button class="cancel-btn" bindtap="closeEditModal">取消</button>
+        <button class="save-btn" bindtap="saveProfile" loading="{{submitting}}">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

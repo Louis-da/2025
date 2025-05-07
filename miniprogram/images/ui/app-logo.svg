@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
+  <!-- 云朵花边圆章（12瓣，圆润，Apple风格） -->
+  <path
+    d="
+      M90,20
+      C108,10 126,10 144,20
+      C164,32 170,52 160,72
+      C170,92 164,112 144,124
+      C126,134 108,134 90,144
+      C72,134 54,134 36,124
+      C16,112 10,92 20,72
+      C10,52 16,32 36,20
+      C54,10 72,10 90,20
+      Z
+    "
+    fill="none"
+    stroke="#FF3B1F"
+    stroke-width="8"
+    stroke-linejoin="round"
+    style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.04));"
+  />
+  <!-- 中间对勾（Apple风格，圆润、比例协调） -->
+  <polyline
+    points="60,100 85,125 125,75"
+    fill="none"
+    stroke="#FF3B1F"
+    stroke-width="12"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.06));"
+  />
+</svg> 

@@ -1,0 +1,296 @@
+<view class="container">
+  <!-- 修改基础信息section，只保留工厂和工序信息 -->
+  <view class="section info-section" wx:if="{{mode === 'view'}}">
+    <!-- 第一行：工厂和工序 -->
+    <view class="combined-row">
+      <view class="combined-item">
+        <view class="item-label">工厂</view>
+        <view class="item-value">{{selectedFactory.name || '-'}}</view>
+      </view>
+      <view class="combined-item">
+        <view class="item-label">工序</view>
+        <view class="item-value">{{selectedProcess || '-'}}</view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 编辑模式下保留原有的基础信息区域，但移除标题，将工厂和工序放在同一行 -->
+  <view class="section info-section" wx:if="{{mode !== 'view'}}">
+    <view class="form-row">
+      <view class="form-col">
+        <view class="form-label required">工厂</view>
+        <picker bindchange="selectFactory" range="{{factories}}" range-key="name" disabled="{{mode === 'view'}}">
+          <view class="form-value {{selectedFactory ? '' : 'placeholder'}}">
+            {{selectedFactory ? selectedFactory.name : '选择工厂'}}
+            <view class="picker-arrow" wx:if="{{mode !== 'view'}}"></view>
+          </view>
+        </picker>
+      </view>
+      <view class="form-col">
+        <view class="form-label required">工序</view>
+        <picker bindchange="selectProcess" range="{{processes}}">
+          <view class="form-value {{selectedProcess ? '' : 'placeholder'}}">
+            {{selectedProcess || '请选择'}}
+            <view class="picker-arrow"></view>
+          </view>
+        </picker>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">货品信息</view>
+    
+    <view class="product-action-bar product-action-bar-centered" wx:if="{{mode !== 'view'}}">
+      <button class="add-product-btn" bindtap="showProductSelect">添加货品</button>
+    </view>
+    
+    <!-- 货品列表 -->
+    <view class="product-list">
+      <block wx:if="{{selectedProducts && selectedProducts.length > 0}}">
+        <view class="product-item" wx:for="{{selectedProducts}}" wx:key="index">
+          <view class="product-info">
+            <image class="product-image" src="{{item.imageUrl}}" mode="aspectFill"></image>
+            <view class="product-details">
+              <view class="product-code">货号: {{item.productNo}}</view>
+              <view class="product-name">{{item.name}}</view>
+              
+              <!-- 颜色和尺码在同一行 - 采用简洁的标签样式 -->
+              <view class="product-tags">
+                <view class="product-tag" wx:if="{{item.color}}">
+                  <text class="tag-name">颜色:</text>
+                  <text class="tag-value">{{item.color}}</text>
+                </view>
+                <view class="product-tag" wx:if="{{item.size}}">
+                  <text class="tag-name">尺码:</text>
+                  <text class="tag-value">{{item.size}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+          
+          <view class="product-controls">
+            <view class="quantity-weight">
+              <view class="control-item">
+                <text class="control-label required">数量:</text>
+                <input wx:if="{{mode !== 'view'}}" class="control-input" type="digit" value="{{item.quantity}}" bindinput="bindQuantityInput" data-index="{{index}}" />
+                <view wx:else class="control-value">{{item.quantity}}</view>
+              </view>
+              <view class="control-item">
+                <text class="control-label">重量(kg):</text>
+                <input wx:if="{{mode !== 'view'}}" class="control-input" type="digit" value="{{item.weight}}" bindinput="bindWeightInput" data-index="{{index}}" />
+                <view wx:else class="control-value">{{item.weight}}</view>
+              </view>
+            </view>
+            
+            <view class="product-actions" wx:if="{{mode !== 'view'}}">
+              <button class="btn-same-product" bindtap="addSameProduct" data-index="{{index}}">
+                <view class="btn-icon">+</view>
+              </button>
+              <button class="btn-small btn-danger" bindtap="deleteProduct" data-index="{{index}}">-</button>
+            </view>
+          </view>
+        </view>
+      </block>
+      
+      <view wx:else class="no-products">
+        <text>暂无货品，请添加</text>
+      </view>
+    </view>
+    
+    <!-- 货品总计 -->
+    <view class="product-totals">
+      <view class="total-item">
+        <text>总数量: {{totalQuantity || 0}}</text>
+      </view>
+      <view class="total-item">
+        <text>总重量: {{totalWeight || 0}} kg</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <!-- 添加制单人和制单时间信息在备注栏上方，无论何种模式都显示 -->
+    <view class="creator-info">
+      <text class="creator-info-text">制单人:{{staff || '-'}} 制单时间:{{date || '-'}}</text>
+    </view>
+    
+    <view class="form-group">
+      <view class="form-label">备注</view>
+      <view class="form-value" wx:if="{{mode === 'view'}}">
+        {{remark || '无'}}
+        <!-- 查看模式下显示已上传的照片 -->
+        <view class="remark-photos" wx:if="{{remarkPhotos && remarkPhotos.length > 0}}">
+          <image 
+            wx:for="{{remarkPhotos}}" 
+            wx:key="index" 
+            src="{{item}}" 
+            mode="aspectFill" 
+            class="remark-photo" 
+            bindtap="previewImage" 
+            data-url="{{item}}" 
+            data-urls="{{remarkPhotos}}"
+          ></image>
+        </view>
+      </view>
+      
+      <!-- 编辑模式下的备注文本和照片上传 -->
+      <block wx:else>
+        <textarea class="form-textarea" placeholder="输入备注信息" bindinput="inputRemark" value="{{remark}}" />
+        
+        <view class="remark-photo-upload">
+          <view class="photo-list">
+            <view 
+              class="photo-item" 
+              wx:for="{{remarkPhotos}}" 
+              wx:key="index"
+            >
+              <image src="{{item}}" mode="aspectFill" class="photo-preview"></image>
+              <view class="photo-delete" bindtap="deleteRemarkPhoto" data-index="{{index}}">×</view>
+            </view>
+            
+            <view class="photo-upload-btn" bindtap="chooseRemarkPhoto" wx:if="{{remarkPhotos.length < 3}}">
+              <view class="upload-icon">+</view>
+              <view class="upload-text">照片</view>
+            </view>
+          </view>
+          <view class="photo-tip">最多上传3张照片</view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view class="footer-actions">
+    <button class="btn-primary" bindtap="submitOrder" wx:if="{{mode !== 'view'}}">{{mode === 'edit' ? '保存订单' : '保存'}}</button>
+    <button class="btn-default" bindtap="cancelOrder" wx:if="{{mode === 'view' && orderStatus !== 'canceled'}}">作废订单</button>
+    <button class="btn-default" bindtap="navigateBack">返回</button>
+  </view>
+</view>
+
+<!-- 货品选择弹窗 -->
+<view class="product-modal {{showProductModal ? 'show' : ''}}" wx:if="{{showProductModal}}">
+  <view class="modal-mask" bindtap="hideProductSelect"></view>
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">选择货品</text>
+      <text class="modal-close" bindtap="hideProductSelect">×</text>
+    </view>
+    
+    <view class="modal-search">
+      <input placeholder="搜索货品编号或名称" value="{{productSearchKeyword}}" bindinput="searchProducts" />
+    </view>
+    
+    <scroll-view class="modal-body" scroll-y="true">
+      <view wx:if="{{filteredProducts.length === 0}}" class="empty-search">
+        <view class="empty-text">未找到相关货品</view>
+      </view>
+      <view wx:else class="product-select-list">
+        <view class="card list-item-override" wx:for="{{filteredProducts}}" wx:key="id" bindtap="selectProduct" data-index="{{index}}">
+          <view class="list-item-content">
+            <image class="list-item-image" src="{{item.imageUrl || '/images/default-product.png'}}" mode="aspectFill"></image>
+            <view class="list-item-details">
+              <view class="list-item-code">{{item.productNo}}</view>
+              <view class="list-item-name">{{item.name}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+
+<!-- 货品确认添加弹窗 -->
+<view class="product-confirm-modal {{selectedProductTemp ? 'show' : ''}}" wx:if="{{selectedProductTemp}}">
+  <view class="modal-mask" bindtap="hideProductSelect"></view>
+  <view class="modal-content">
+    <view class="modal-header">
+      <text class="modal-title">添加货品</text>
+      <text class="modal-close" bindtap="hideProductSelect">×</text>
+    </view>
+    
+    <view class="modal-body">
+      <view class="selected-product">
+        <image class="product-image" src="{{selectedProductTemp.imageUrl}}" mode="aspectFill"></image>
+        <view class="product-details">
+          <view class="product-code">货号: {{selectedProductTemp.productNo}}</view>
+          <view class="product-name">{{selectedProductTemp.name}}</view>
+        </view>
+      </view>
+      
+      <view class="product-edit-form">
+        <!-- 颜色和尺码放在同一行 -->
+        <view class="form-row">
+          <!-- 颜色选择 -->
+          <view class="form-col" wx:if="{{selectedProductTemp.colorOptions && selectedProductTemp.colorOptions.length > 0}}">
+            <text class="edit-form-label {{tempWeight && parseFloat(tempWeight) > 0 ? '' : 'required'}}">颜色</text>
+            <picker bindchange="bindColorChange" value="{{selectedProductTemp.colorOptions.indexOf(selectedColorTemp)}}" range="{{selectedProductTemp.colorOptions}}">
+              <view class="edit-form-value {{selectedColorTemp ? '' : 'placeholder'}}">
+                {{selectedColorTemp || '请选择颜色'}}
+                <view class="picker-arrow"></view>
+              </view>
+            </picker>
+          </view>
+          
+          <!-- 尺码选择 -->
+          <view class="form-col" wx:if="{{selectedProductTemp.sizeOptions && selectedProductTemp.sizeOptions.length > 0}}">
+            <text class="edit-form-label {{tempWeight && parseFloat(tempWeight) > 0 ? '' : 'required'}}">尺码</text>
+            <picker bindchange="bindSizeChange" value="{{selectedProductTemp.sizeOptions.indexOf(selectedSizeTemp)}}" range="{{selectedProductTemp.sizeOptions}}">
+              <view class="edit-form-value {{selectedSizeTemp ? '' : 'placeholder'}}">
+                {{selectedSizeTemp || '请选择尺码'}}
+                <view class="picker-arrow"></view>
+              </view>
+            </picker>
+          </view>
+        </view>
+
+        <!-- 数量和重量放在同一行 -->
+        <view class="form-row">
+          <!-- 数量输入 -->
+          <view class="form-col">
+            <text class="edit-form-label {{tempWeight && parseFloat(tempWeight) > 0 ? '' : 'required'}}">数量</text>
+            <input class="quantity-input" type="digit" placeholder="请输入数量" bindinput="bindTempQuantityInput" value="{{tempQuantity}}" focus/>
+          </view>
+
+          <!-- 重量输入 -->
+          <view class="form-col">
+            <text class="edit-form-label">重量(kg)</text>
+            <input class="weight-input" type="digit" placeholder="请输入重量" bindinput="bindTempWeightInput" value="{{tempWeight}}"/>
+          </view>
+        </view>
+      </view>
+      
+      <view class="modal-actions">
+        <!-- 添加并继续按钮改为+号图标按钮，居中显示 -->
+        <view class="btn-add-continue" hover-class="btn-hover" bindtap="addSelectedProductAndContinue">+</view>
+        <!-- 确认添加和取消按钮采用全宽样式 -->
+        <button class="btn-primary full-width-btn" hover-class="btn-hover" bindtap="addSelectedProduct">确认添加</button>
+        <button class="btn-default full-width-btn" hover-class="btn-hover" bindtap="hideProductSelect">取消</button>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 导出图片时的隐藏canvas -->
+<canvas type="2d" id="shareCanvas" style="width: {{canvasWidth}}px; height: {{canvasHeight}}px; position: fixed; top: -9999px;" id="shareCanvas"></canvas>
+
+<!-- 图片分享弹窗 -->
+<view class="modal-mask" wx:if="{{showShareModalFlag}}" bindtap="hideShareModal" catchtouchmove="preventTouchMove"></view>
+<view class="modal-dialog share-dialog" wx:if="{{showShareModalFlag}}">
+  <view class="modal-header">
+    <text>发出单分享</text>
+    <view class="close-btn" bindtap="hideShareModal">×</view>
+  </view>
+  
+  <view class="modal-content">
+    <view class="share-preview">
+      <image class="share-image" src="{{shareImagePath}}" mode="widthFix"></image>
+    </view>
+    <view class="share-tips">单据已完成，请选择保存图片或分享给好友</view>
+  </view>
+  
+  <view class="modal-footer">
+    <button class="btn cancel-btn" bindtap="hideShareModal">返回</button>
+    <button class="btn save-btn" bindtap="saveImageToAlbum">保存图片</button>
+    <button class="btn confirm-btn" open-type="share">分享给好友</button>
+  </view>
+</view>

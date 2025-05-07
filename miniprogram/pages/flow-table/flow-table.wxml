@@ -1,0 +1,353 @@
+<wxs src="./formatters.wxs" module="formatters" />
+<view class="container">
+  <!-- 查询条件区域 -->
+  <view class="query-section">
+    <!-- 货品选择 -->
+    <view class="query-item">
+      <view class="query-label">货品</view>
+      <view class="query-input-wrapper" bindtap="showProductSelector">
+        <view class="query-input {{selectedProduct ? '' : 'placeholder'}}">
+          {{selectedProduct || '选择货品'}}
+        </view>
+        <view class="picker-arrow"></view>
+      </view>
+    </view>
+    
+    <!-- 工厂选择 -->
+    <view class="query-item">
+      <view class="query-label">工厂</view>
+      <view class="query-input-wrapper">
+        <picker bindchange="selectFactory" range="{{factories}}" range-key="name">
+          <view class="query-input {{selectedFactory ? '' : 'placeholder'}}">
+            {{selectedFactory || '选择工厂'}}
+            <view class="picker-arrow"></view>
+          </view>
+        </picker>
+      </view>
+    </view>
+    
+    <!-- 时间范围选择 -->
+    <view class="query-item">
+      <view class="query-label">开始时间</view>
+      <view class="query-input-wrapper">
+        <picker mode="date" bindchange="selectStartDate" value="{{dateRange.start}}">
+          <view class="query-input {{dateRange.start ? '' : 'placeholder'}}">
+            {{dateRange.start || '选择开始日期'}}
+            <view class="picker-arrow"></view>
+          </view>
+        </picker>
+      </view>
+    </view>
+    
+    <!-- 时间范围选择 -->
+    <view class="query-item">
+      <view class="query-label">结束时间</view>
+      <view class="query-input-wrapper">
+        <picker mode="date" bindchange="selectEndDate" value="{{dateRange.end}}">
+          <view class="query-input {{dateRange.end ? '' : 'placeholder'}}">
+            {{dateRange.end || '结束日期'}}
+            <view class="picker-arrow"></view>
+          </view>
+        </picker>
+      </view>
+    </view>
+    
+    <!-- 查询按钮 -->
+    <view class="query-btn-area">
+      <button class="query-btn" bindtap="fetchFlowTable">查询</button>
+    </view>
+  </view>
+  
+  <!-- 筛选条件展示区 -->
+  <view wx:if="{{hasFilter}}" class="filter-tags">
+    <view class="filter-tag" wx:if="{{selectedProduct}}">
+      <text>货品: {{selectedProduct}}</text>
+      <text class="tag-close" data-type="product" bindtap="clearFilter">×</text>
+    </view>
+    <view class="filter-tag" wx:if="{{selectedFactory}}">
+      <text>工厂: {{selectedFactory}}</text>
+      <text class="tag-close" data-type="factory" bindtap="clearFilter">×</text>
+    </view>
+    <view class="filter-tag" wx:if="{{dateRange.start}}">
+      <text>时间: {{dateRange.start}} 至 {{dateRange.end || '今天'}}</text>
+      <text class="tag-close" data-type="date" bindtap="clearFilter">×</text>
+    </view>
+  </view>
+  
+  <!-- 流水摘要模块 -->
+  <view wx:if="{{flowTable.length > 0}}" class="summary-section">
+    <view class="summary-header">
+      <text class="summary-title">流水摘要</text>
+    </view>
+    
+    <!-- 按工序汇总 -->
+    <view class="summary-block">
+      <view class="summary-subtitle">按工序汇总</view>
+      <view class="summary-table">
+        <view class="summary-table-header">
+          <view class="summary-th">工序</view>
+          <view class="summary-th">发出重量(kg)</view>
+          <view class="summary-th">收回重量(kg)</view>
+          <view class="summary-th">损耗率</view>
+        </view>
+        <view class="summary-table-body">
+          <block wx:for="{{processSummary}}" wx:key="process">
+            <view class="summary-tr">
+              <view class="summary-td">{{item.process}}</view>
+              <view class="summary-td">{{item.sendWeight || 0}}</view>
+              <view class="summary-td">{{item.receiveWeight || 0}}</view>
+              <view class="summary-td {{item.lossRate > 5 ? 'highlight' : ''}}">{{item.lossRate}}%</view>
+            </view>
+          </block>
+          <view wx:if="{{processSummary.length === 0}}" class="summary-empty">
+            <text>暂无工序汇总数据</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 按工厂汇总 -->
+    <view class="summary-block">
+      <view class="summary-subtitle">按工厂汇总</view>
+      <scroll-view class="summary-scroll-view" scroll-x="true" scroll-y="true">
+        <view class="summary-table factory-summary-table">
+          <view class="summary-table-header">
+            <view class="summary-th factory-th">工厂</view>
+            <view class="summary-th process-th">工序</view>
+            <view class="summary-th-group">
+              <view class="summary-th-group-title">发出</view>
+              <view class="summary-th-row">
+                <view class="summary-th quantity-th">数量</view>
+                <view class="summary-th weight-th">重量</view>
+              </view>
+            </view>
+            <view class="summary-th-group">
+              <view class="summary-th-group-title">收回</view>
+              <view class="summary-th-row">
+                <view class="summary-th quantity-th">数量</view>
+                <view class="summary-th weight-th">重量</view>
+              </view>
+            </view>
+            <view class="summary-th loss-th">损耗率</view>
+            <view class="summary-th fee-th">工费</view>
+          </view>
+          <view class="summary-table-body">
+            <!-- 使用工厂名称分组，给不同工序组添加不同背景色 - 使用计算好的groupIndex -->
+            <block wx:for="{{factorySummary}}" wx:key="index" wx:for-index="index" wx:for-item="item">
+              <view class="summary-tr process-group-{{item.groupIndex + 1}}">
+                <view class="summary-td factory-td">{{item.factory}}</view>
+                <view class="summary-td process-td">{{item.process || '织机'}}</view>
+                <view class="summary-td quantity-td">{{item.sendQuantity || 0}}</view>
+                <view class="summary-td weight-td">{{item.sendWeight || 0}}</view>
+                <view class="summary-td quantity-td">{{item.receiveQuantity || 0}}</view>
+                <view class="summary-td weight-td">{{item.receiveWeight || 0}}</view>
+                <view class="summary-td loss-td {{item.lossRate > 5 ? 'highlight' : ''}}">{{item.lossRate}}%</view>
+                <view class="summary-td fee-td">{{item.fee || 0}}</view>
+              </view>
+            </block>
+            <view wx:if="{{factorySummary.length === 0}}" class="summary-empty">
+              <text>暂无工厂汇总数据</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+    
+    <!-- 合计摘要 -->
+    <view class="total-summary">
+      <view class="total-item">
+        <text class="total-label">总发出重量:</text>
+        <text class="total-value">{{totalSendWeight || 0}} kg</text>
+      </view>
+      <view class="total-item">
+        <text class="total-label">总收回重量:</text>
+        <text class="total-value">{{totalReceiveWeight || 0}} kg</text>
+      </view>
+      <view class="total-item">
+        <text class="total-label">总损耗率:</text>
+        <text class="total-value {{totalLossRate > 5 ? 'highlight' : ''}}">{{totalLossRate || 0}}%</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 表格区域 - 优化滚动和结构 -->
+  <view class="table-container-wrapper">
+    <view id="export-area">
+      <!-- 有数据时显示表格 -->
+      <block wx:if="{{flowTable.length > 0}}">
+        <scroll-view class="flow-table-container" scroll-y="true" scroll-x="true" id="flow-table-content" enhanced="true" show-scrollbar="true" bounces="true" enable-flex="true">
+          <view class="table-title">收发流水</view>
+          <!-- 表头 -->
+          <view class="table-header">
+            <view class="table-row">
+              <view class="table-cell date-cell">日期</view>
+              <view class="table-cell-group send-group">
+                <view class="table-group-title">发出</view>
+                <view class="table-cell factory-cell">工厂</view>
+              </view>
+              <view class="table-cell-group receive-group">
+                <view class="table-group-title">收回</view>
+                <view class="table-cell factory-cell">工厂</view>
+              </view>
+              <view class="table-cell date-cell">日期</view>
+            </view>
+          </view>
+          <!-- 表格内容 -->
+          <view class="table-body">
+            <block wx:for="{{formattedFlowData}}" wx:key="index" wx:for-index="index">
+              <!-- 工序分组标题 - 优化为全宽 -->
+              <block wx:if="{{index === 0 || item.process !== formattedFlowData[index-1].process}}">
+                <view class="process-title-row">
+                  <view class="process-title">{{item.process}}</view>
+                </view>
+              </block>
+              <view class="table-row">
+                <view class="table-cell date-cell">{{item.sendDate || ''}}</view>
+                <!-- 发出信息 -->
+                <view class="table-cell-group send-group">
+                  <block wx:if="{{item.sendInfo.length > 0}}">
+                    <block wx:for="{{item.sendInfo}}" wx:for-item="sendItem" wx:key="index">
+                      <view class="product-info">
+                        <view class="product-row">
+                          <text class="product-text">{{sendItem.color}} {{sendItem.size}} {{sendItem.weight}}kg</text>
+                          <text class="quantity-text" wx:if="{{sendItem.quantity}}">数量: {{sendItem.quantity}}</text>
+                        </view>
+                      </view>
+                    </block>
+                  </block>
+                  <view wx:else class="empty-cell"></view>
+                </view>
+                <view class="table-cell factory-cell">{{item.factory || ''}}</view>
+                <!-- 收回信息 -->
+                <view class="table-cell-group receive-group">
+                  <block wx:if="{{item.receiveInfo.length > 0}}">
+                    <block wx:for="{{item.receiveInfo}}" wx:for-item="receiveItem" wx:key="index">
+                      <view class="product-info">
+                        <view class="product-row">
+                          <text class="product-text">{{receiveItem.color}} {{receiveItem.size}} {{receiveItem.weight}}kg</text>
+                          <text class="quantity-text" wx:if="{{receiveItem.quantity}}">数量: {{receiveItem.quantity}}</text>
+                        </view>
+                      </view>
+                    </block>
+                  </block>
+                  <view wx:else class="empty-cell"></view>
+                </view>
+                <view class="table-cell factory-cell">{{item.factory || ''}}</view>
+                <view class="table-cell date-cell">{{item.receiveDate || ''}}</view>
+              </view>
+            </block>
+          </view>
+        </scroll-view>
+      </block>
+      
+      <!-- 空状态 -->
+      <view wx:if="{{!flowTable || flowTable.length === 0}}" class="empty-state">
+        <image class="empty-icon" src="/images/ui/empty.svg" mode="aspectFit"></image>
+        <view class="empty-text">未找到相关流水记录</view>
+        <view class="empty-text">请尝试更换查询条件</view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 底部操作按钮区域 -->
+  <view class="bottom-actions">
+    <view wx:if="{{flowTable.length > 0}}" class="action-buttons">
+      <button class="action-btn export-image-btn" bindtap="exportAsImage">
+        <view class="btn-icon image-icon"></view>
+        <text>导出图片</text>
+      </button>
+      <button class="action-btn export-excel-btn" bindtap="exportAsExcel">
+        <view class="btn-icon excel-icon"></view>
+        <text>导出表格</text>
+      </button>
+    </view>
+    
+    <!-- 新增返回收发管理按钮 -->
+    <view class="back-button" bindtap="backToSendReceive">
+      <view class="back-icon"></view>
+      <text>返回收发管理</text>
+    </view>
+  </view>
+</view>
+
+<!-- 货品选择弹窗 -->
+<view class="modal-mask" wx:if="{{showProductSelectorFlag}}" bindtap="hideProductSelector" catchtouchmove="preventTouchMove"></view>
+<view class="modal-dialog product-selector-dialog" wx:if="{{showProductSelectorFlag}}">
+  <view class="modal-header">
+    <text>选择货品</text>
+    <view class="close-btn" bindtap="hideProductSelector">×</view>
+  </view>
+  
+  <view class="modal-content">
+    <view class="product-search-box">
+      <input class="search-input product-search-input" placeholder="搜索货品" bindinput="searchProducts" value="{{productSearchKeyword}}" />
+    </view>
+    
+    <scroll-view class="product-list" scroll-y="true">
+      <view wx:if="{{productList.length === 0}}" class="empty-product-list">
+        <text>未找到相关货品</text>
+      </view>
+      <view wx:else class="product-items">
+        <view class="product-item" wx:for="{{productList}}" wx:key="id" bindtap="selectProduct" data-product="{{item}}">
+          <image class="product-image" src="{{item.imageUrl || '/images/ui/default-product.png'}}" mode="aspectFill"></image>
+          <view class="product-info">
+            <view class="product-code">{{item.productNo}}</view>
+            <view class="product-name">{{item.name}}</view>
+          </view>
+          <view class="product-check {{selectedProductId === item.id ? 'checked' : ''}}"></view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+  
+  <view class="modal-footer">
+    <button class="btn cancel-btn" bindtap="hideProductSelector">取消</button>
+    <button class="btn confirm-btn" bindtap="hideProductSelector">确认</button>
+  </view>
+</view>
+
+<!-- 导出图片时的隐藏canvas -->
+<canvas canvas-id="shareCanvas" style="width: {{canvasWidth}}px; height: {{canvasHeight}}px; position: fixed; top: -9999px;" id="shareCanvas"></canvas>
+
+<!-- 图片分享弹窗 -->
+<view class="modal-mask" wx:if="{{showShareModalFlag}}" bindtap="hideShareModal" catchtouchmove="preventTouchMove"></view>
+<view class="modal-dialog share-dialog" wx:if="{{showShareModalFlag}}">
+  <view class="modal-header">
+    <text>分享图片</text>
+    <view class="close-btn" bindtap="hideShareModal">×</view>
+  </view>
+  
+  <view class="modal-content">
+    <view class="share-preview">
+      <image class="share-image" src="{{shareImagePath}}" mode="widthFix"></image>
+    </view>
+    <view class="share-tips">图片已保存到相册，可直接分享给好友</view>
+  </view>
+  
+  <view class="modal-footer">
+    <button class="btn cancel-btn" bindtap="hideShareModal">关闭</button>
+    <button class="btn confirm-btn" open-type="share">分享给好友</button>
+  </view>
+</view>
+
+<!-- Excel表格分享弹窗 -->
+<view class="modal-mask" wx:if="{{showExcelShareModalFlag}}" bindtap="hideExcelShareModal" catchtouchmove="preventTouchMove"></view>
+<view class="modal-dialog share-dialog" wx:if="{{showExcelShareModalFlag}}">
+  <view class="modal-header">
+    <text>分享表格文件</text>
+    <view class="close-btn" bindtap="hideExcelShareModal">×</view>
+  </view>
+  
+  <view class="modal-content">
+    <view class="excel-share-preview">
+      <view class="excel-icon"></view>
+      <view class="excel-filename">{{selectedProduct || productNo || '货品'}}_收发流水表.xlsx</view>
+    </view>
+    <view class="share-tips">表格已保存到本地，可直接分享给好友</view>
+  </view>
+  
+  <view class="modal-footer">
+    <button class="btn cancel-btn" bindtap="hideExcelShareModal">关闭</button>
+    <button class="btn confirm-btn excel-share-btn" open-type="share">分享给好友</button>
+  </view>
+</view>

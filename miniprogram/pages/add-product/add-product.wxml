@@ -1,0 +1,108 @@
+<view class="container">
+  <view class="card">
+    <view class="section-title">货品图片</view>
+    
+    <view class="image-uploader" bindtap="onChooseImage">
+      <image wx:if="{{tempImageUrl}}" src="{{tempImageUrl}}" mode="aspectFill" class="uploaded-image"></image>
+      <view wx:else class="upload-placeholder">
+        <image src="/images/icon-upload.png" mode="aspectFit"></image>
+        <text>点击上传图片</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">基本信息</view>
+    
+    <view class="form-item">
+      <text class="form-label form-label-override required">货号</text>
+      <input class="form-input" placeholder="请输入货号" value="{{product.productNo}}" bindinput="onInputChange" data-field="productNo"/>
+    </view>
+    
+    <view class="form-item">
+      <text class="form-label form-label-override">名称</text>
+      <input class="form-input" placeholder="请输入货品名称" value="{{product.name}}" bindinput="onInputChange" data-field="name"/>
+    </view>
+    
+    <view class="form-item">
+      <text class="form-label form-label-override">建档日期</text>
+      <picker mode="date" value="{{product.createDate}}" bindchange="onDateChange">
+        <view class="form-input picker-override">
+          <text class="{{product.createDate ? 'picker-text' : 'picker-placeholder'}}">{{product.createDate || '请选择日期'}}</text>
+          <view class="arrow"></view>
+        </view>
+      </picker>
+    </view>
+  </view>
+  
+  <view class="card">
+    <view class="section-title">规格属性</view>
+    
+    <view class="form-item">
+      <text class="form-label form-label-override">颜色</text>
+      <view class="multi-selector">
+        <view class="selected-items">
+          <view wx:for="{{colorArray}}" wx:key="index" class="tag tag-blue selected-tag-override">
+            {{item}}
+            <text class="tag-close" catchtap="removeColor" data-index="{{index}}">×</text>
+          </view>
+        </view>
+        <view class="selector-action" bindtap="showColorSelector">
+          <text class="{{colorArray.length > 0 ? '' : 'placeholder'}}">{{colorArray.length > 0 ? '添加颜色' : '请添加颜色'}}</text>
+          <view class="add-icon">+</view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="form-item">
+      <text class="form-label form-label-override">尺码</text>
+      <view class="multi-selector">
+        <view class="selected-items">
+          <view wx:for="{{sizeArray}}" wx:key="index" class="tag tag-green selected-tag-override">
+            {{item}}
+            <text class="tag-close" catchtap="removeSize" data-index="{{index}}">×</text>
+          </view>
+        </view>
+        <view class="selector-action" bindtap="showSizeSelector">
+          <text class="{{sizeArray.length > 0 ? '' : 'placeholder'}}">{{sizeArray.length > 0 ? '添加尺码' : '请添加尺码'}}</text>
+          <view class="add-icon">+</view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="form-item">
+      <text class="form-label form-label-override">工序</text>
+      <view class="multi-selector">
+        <view class="selected-items">
+          <view wx:for="{{processArray}}" wx:key="index" class="tag tag-orange selected-tag-override">
+            {{item}}
+            <text class="tag-close" catchtap="removeProcess" data-index="{{index}}">×</text>
+          </view>
+        </view>
+        <view class="selector-action" bindtap="showProcessSelector">
+          <text class="{{processArray.length > 0 ? '' : 'placeholder'}}">{{processArray.length > 0 ? '添加工序' : '请添加工序'}}</text>
+          <view class="add-icon">+</view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <view class="card">
+    <view class="section-title">附加信息</view>
+    
+    <view class="form-item">
+      <text class="form-label form-label-override">备注</text>
+      <textarea class="remark-input form-input" placeholder="请输入备注信息" value="{{product.remark}}" bindinput="onInputChange" data-field="remark"></textarea>
+    </view>
+    
+    <view class="form-item">
+      <text class="form-label form-label-override">状态</text>
+      <switch checked="{{product.status}}" bindchange="onStatusChange" color="#0071e3"/>
+    </view>
+  </view>
+  
+  <view class="btn-group">
+    <button class="btn btn-secondary form-btn-override" bindtap="onCancel">取消</button>
+    <button class="btn btn-primary form-btn-override" bindtap="onSave">保存</button>
+  </view>
+</view> 

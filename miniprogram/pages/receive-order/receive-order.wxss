@@ -1,0 +1,1767 @@
+/* 清理 WXSS 文件，移除大量自定义样式，适配新的 WXML 结构和全局样式 */
+
+/* .container 已被全局样式替代 */
+/* .loading-container 已移除 */
+
+/* .section 已被全局 .card 替代 */
+/* .section-title 保留基本样式，调整颜色和 margin */
+.section-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  margin-bottom: 20rpx;
+  color: #1d1d1f; /* 统一颜色 */
+  display: flex;
+  align-items: center;
+}
+
+.section-title::before {
+  content: "";
+  display: block;
+  width: 8rpx;
+  height: 28rpx;
+  background-color: #0071e3; /* 改为全局主色 */
+  margin-right: 12rpx;
+  border-radius: 4rpx;
+}
+
+/* 移除旧的 .form-row, .form-label, .form-input */
+
+/* Picker 样式 */
+.picker-override {
+  display: flex; 
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 20rpx; 
+  box-sizing: border-box; 
+}
+
+.picker-override.picker-placeholder {
+  color: #999;
+}
+
+.arrow {
+  width: 16rpx;
+  height: 16rpx;
+  border-right: 3rpx solid #ccc;
+  border-bottom: 3rpx solid #ccc;
+  transform: rotate(45deg);
+  margin-left: 10rpx;
+}
+
+/* 工厂和工序同行布局 */
+.factory-process-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 32rpx;
+}
+
+.factory-col {
+  flex: 1;
+}
+
+.process-col {
+  flex: 1;
+}
+
+/* 产品列表样式 */
+.product-list {
+  margin-top: 20rpx;
+}
+
+.product-item {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  padding: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.product-info {
+  display: flex;
+  margin-bottom: 16rpx;
+}
+
+.product-image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 8rpx;
+  background-color: #f5f5f7;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.product-details {
+  flex: 1;
+}
+
+.product-name {
+  font-size: 24rpx;
+  color: #86868b;
+  margin-bottom: 4rpx;
+}
+
+.product-code {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 8rpx;
+}
+
+.product-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 4rpx;
+}
+
+.product-tag {
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f7;
+  border-radius: 6rpx;
+  padding: 4rpx 8rpx;
+  font-size: 22rpx;
+}
+
+.tag-name {
+  color: #86868b;
+  margin-right: 4rpx;
+}
+
+.tag-value {
+  color: #1d1d1f;
+}
+
+.product-controls {
+  margin-top: 12rpx;
+}
+
+.quantity-weight {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.control-item {
+  display: flex;
+  align-items: center;
+  margin-right: 24rpx;
+}
+
+.control-label {
+  font-size: 26rpx;
+  color: #86868b;
+  margin-right: 8rpx;
+  white-space: nowrap;
+}
+
+.control-input {
+  width: 100rpx;
+  height: 56rpx;
+  border: 1rpx solid #d1d1d6;
+  border-radius: 8rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #1d1d1f;
+}
+
+.control-value {
+  font-size: 26rpx;
+  color: #1d1d1f;
+}
+
+.product-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16rpx;
+}
+
+.btn-same-product {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rpx;
+  width: 48rpx;
+  height: 48rpx;
+  background-color: rgba(0, 113, 227, 0.1);
+  border-radius: 24rpx;
+  border: none;
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #0071e3;
+}
+
+.btn-icon {
+  display: none;
+}
+
+.btn-text {
+  font-size: 32rpx;
+  margin: 0;
+  line-height: 1;
+}
+
+.btn-small {
+  width: 48rpx;
+  height: 48rpx;
+  padding: 0;
+  font-size: 32rpx;
+  font-weight: bold;
+  line-height: 42rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+.btn-danger {
+  background-color: rgba(255, 59, 48, 0.1);
+  color: #ff3b30;
+}
+
+.no-products {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #8e8e93;
+  font-size: 28rpx;
+}
+
+.product-totals {
+  display: flex;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-top: 1rpx solid #e5e5ea;
+  margin-top: 16rpx;
+  align-items: center;
+}
+
+.total-item {
+  font-size: 24rpx;
+  color: #1d1d1f;
+  font-weight: 500;
+  flex: 1;
+  text-align: center;
+}
+
+.total-item:first-child {
+  text-align: left;
+}
+
+.total-item:last-child {
+  text-align: right;
+}
+
+/* === Product Confirm Modal Styles (REVISED Bottom Sheet - Ensure Full Width) === */
+.product-confirm-modal .modal-content {
+  width: 100% !important; /* Use !important to override conflicts */
+  max-width: 100% !important;
+  border-radius: 16rpx 16rpx 0 0; 
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  top: auto !important;
+  transform: translateY(100%); 
+  transition: transform 0.3s ease-out;
+  max-height: 85vh; 
+  background-color: #ffffff; 
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1); 
+  z-index: 1102; /* Ensure it's above mask */
+}
+
+.product-confirm-modal.show .modal-content {
+  transform: translateY(0); 
+}
+
+/* Mask should cover everything */
+.product-confirm-modal .modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1101; /* Below content, above page */
+}
+
+/* Unify Picker and Input Background and Height */
+.product-edit-form .edit-form-value, /* Picker container */
+.product-edit-form input /* All input fields */ {
+  background-color: #f7f7fa !important; 
+  border: 1rpx solid #f7f7fa; 
+  height: 88rpx !important; /* Keep the increased height */
+  border-radius: 10rpx;
+  padding: 0 20rpx; 
+  font-size: 28rpx;
+  box-sizing: border-box;
+  display: flex; 
+  align-items: center; 
+  width: 100%; 
+}
+
+/* Ensure picker text is left-aligned */
+.product-edit-form .edit-form-value {
+  justify-content: flex-start;
+}
+
+/* Style for the standalone price group and input */
+.product-edit-form .price-group {
+  margin-bottom: 20rpx; /* Maintain spacing */
+}
+
+.product-edit-form .full-width-input {
+  width: 100% !important; /* Ensure full width */
+  /* Inherit height, background, border etc. from the general input rule */
+}
+
+/* === Button Layout Adjustments === */
+.product-confirm-modal .modal-actions {
+  /* Keep existing padding, border-top, gap */
+  /* Buttons are already stacked vertically by flex-direction: column */
+}
+
+/* Ensure confirm button is blue */
+.product-confirm-modal .btn-primary {
+  background-color: #007aff;
+  color: #fff;
+  border: none;
+  order: 1;
+}
+
+/* Style the plus button */
+.product-confirm-modal .btn-add-continue {
+  width: 70rpx; /* Slightly larger */
+  height: 70rpx;
+  border-radius: 50%; /* Circle */
+  background-color: #f2f2f7;
+  color: #007aff; 
+  border: 1rpx solid #e5e5ea;
+  box-shadow: none;
+  font-size: 45rpx; /* Adjust size */
+  font-weight: 300;
+  order: 2;
+  /* display: flex, align-items, justify-content already applied */
+}
+
+/* Style the cancel button */
+.product-confirm-modal .btn-default {
+  background-color: #ffffff;
+  color: #007aff;
+  border: 1rpx solid #007aff; /* Match image style */
+  order: 3;
+}
+
+/* === End Product Confirm Modal Styles === */
+
+/* Remove or comment out old/conflicting styles below if necessary */
+/* Example: 
+.product-confirm-modal .some-old-style { display: none; } 
+*/
+
+/* 移除旧的总计样式 */
+.total-amount-override {
+  color: #ff3b30; /* 红色强调 */
+  font-weight: 600;
+}
+
+/* 移除旧的 .submit-btn */
+.submit-btn-override {
+  margin-top: 40rpx;
+  width: 100%;
+}
+
+/* 移除所有旧的模态框样式 */
+
+/* --- 新的简化模态框样式 --- */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  visibility: hidden;
+  transition: visibility 0.3s;
+}
+
+.modal.show {
+  visibility: visible;
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.modal.show .modal-mask {
+  opacity: 1;
+}
+
+.modal-content-override {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  max-height: 85vh; /* 限制最大高度 */
+  background-color: #ffffff;
+  border-radius: 24rpx 24rpx 0 0;
+  transform: translateY(100%);
+  transition: transform 0.3s;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.modal.show .modal-content-override {
+  transform: translateY(0);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f5f5f7;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.modal-close {
+  font-size: 36rpx;
+  color: #86868b;
+  padding: 10rpx;
+}
+
+.modal-search {
+  padding: 12rpx;
+  border-bottom: 1rpx solid #e5e5ea;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 30rpx 30rpx; 
+}
+
+/* 货品选择列表 */
+.product-select-list .list-item-override {
+  margin-bottom: 16rpx;
+  padding: 16rpx;
+}
+
+.list-item-content {
+  display: flex;
+  align-items: center;
+}
+
+.list-item-image {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 8rpx;
+  margin-right: 20rpx;
+  background-color: #f5f5f7;
+}
+
+.list-item-details {
+  flex: 1;
+}
+
+.list-item-name {
+  font-size: 26rpx;
+  color: #86868b;
+  margin-bottom: 4rpx;
+}
+
+.list-item-code {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 4rpx;
+}
+
+/* 确认添加弹窗 */
+.selected-product-display {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.product-edit-form .form-label {
+  /* width: auto; */
+  margin-bottom: 8rpx;
+}
+
+.product-edit-form .required::after { /* 沿用全局 required 样式? */
+  /* content: '*'; 
+  color: red;
+  margin-left: 4rpx; */
+}
+
+.form-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx 24rpx;
+  margin-bottom: 16rpx;
+}
+
+.form-row-grid .form-item {
+  margin-bottom: 0;
+}
+
+.modal-actions-override {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 两列按钮 */
+  gap: 20rpx;
+  margin-top: 30rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #f5f5f7;
+}
+
+.modal-actions-override .btn {
+  width: 100%;
+}
+
+.modal-actions-override .btn-cancel-override {
+  grid-column: span 2; /* 取消按钮占满一行 */
+}
+
+/* 苹果风格全局背景 */
+.apple-bg {
+  min-height: 100vh;
+  background: #f7f7fa;
+  padding: 24rpx 0 120rpx 0;
+}
+
+/* 为第一个卡片增加额外的顶部边距 */
+.apple-bg > .apple-card:first-child {
+  margin-top: 20rpx;
+}
+
+/* 卡片分组 */
+.apple-card {
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.04);
+  margin: 0 32rpx 32rpx 32rpx;
+  padding: 32rpx 28rpx 24rpx 28rpx;
+}
+
+/* 标题区 */
+.apple-header {
+  background: #fff;
+  padding: 0 32rpx 24rpx 32rpx;
+  border-radius: 0 0 24rpx 24rpx;
+  margin-bottom: 24rpx;
+}
+.apple-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #1d1d1f;
+  text-align: center;
+  margin: 0 0 8rpx 0;
+}
+
+/* 主按钮 */
+.apple-btn-main {
+  background: #007aff;
+  color: #fff;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  padding: 24rpx 0;
+  margin-top: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,122,255,0.08);
+  border: none;
+}
+
+/* 副按钮 */
+.apple-btn-sub {
+  background: #f2f2f7;
+  color: #007aff;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  margin-top: 16rpx;
+  border: none;
+}
+
+/* 输入框、picker统一圆角 */
+.apple-input {
+  background: #f7f7fa;
+  border-radius: 12rpx;
+  border: 1rpx solid #e5e5ea;
+  padding: 20rpx 24rpx;
+  font-size: 30rpx;
+  color: #1d1d1f;
+  margin-top: 8rpx;
+  margin-bottom: 8rpx;
+}
+.apple-input.placeholder {
+  color: #b0b0b8;
+}
+
+/* 货品卡片 */
+.apple-product-card {
+  display: flex;
+  background: #f9f9fb;
+  border-radius: 18rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.03);
+  margin-bottom: 24rpx;
+  padding: 16rpx;
+}
+
+.product-left-col {
+  margin-right: 20rpx;
+}
+
+.product-image {
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 12rpx;
+  object-fit: cover;
+  background: #f2f2f7;
+}
+
+.product-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 产品名称和工价同行布局 */
+.product-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6rpx;
+}
+
+.product-name {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #86868b;
+  flex: 1;
+  margin-right: 12rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.price-container {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.price-label {
+  font-size: 24rpx;
+  color: #86868b;
+  margin-right: 4rpx;
+}
+
+.price-input {
+  width: 80rpx !important;
+  height: 50rpx !important;
+  padding: 4rpx 8rpx !important;
+  margin: 0 4rpx 0 0 !important;
+  text-align: right;
+  font-size: 26rpx !important;
+  background: #fff !important;
+}
+
+.price-value {
+  font-size: 26rpx;
+  color: #007aff;
+  font-weight: 500;
+  margin-right: 4rpx;
+}
+
+.price-unit {
+  font-size: 22rpx;
+  color: #86868b;
+}
+
+.product-code {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 8rpx;
+}
+
+/* 优化搜索框样式 */
+.search-input-container {
+  display: flex;
+  align-items: center;
+  background: #f2f2f7;
+  border-radius: 16rpx;
+  padding: 10rpx 20rpx;
+  margin: 0 16rpx;
+  border: 1rpx solid #e5e5ea;
+}
+
+.search-icon {
+  color: #8e8e93;
+  font-size: 32rpx;
+  margin-right: 8rpx;
+}
+
+.search-input {
+  flex: 1;
+  height: 60rpx;
+  font-size: 28rpx;
+  color: #1d1d1f;
+  border: none;
+  background: transparent;
+}
+
+.modal-search {
+  padding: 12rpx;
+  border-bottom: 1rpx solid #e5e5ea;
+}
+
+.product-tags {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
+}
+.product-tag {
+  background: #f2f2f7;
+  border-radius: 8rpx;
+  padding: 4rpx 12rpx;
+  font-size: 24rpx;
+  color: #007aff;
+}
+.quantity-weight {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 8rpx;
+}
+.control-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.control-label {
+  font-size: 26rpx;
+  color: #86868b;
+}
+.control-input {
+  width: 80rpx;
+  background: #fff;
+  border-radius: 8rpx;
+  border: 1rpx solid #e5e5ea;
+  padding: 8rpx 12rpx;
+  font-size: 28rpx;
+  color: #1d1d1f;
+}
+.product-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 12rpx;
+}
+
+/* 底部操作区 */
+.apple-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  box-shadow: 0 -2rpx 16rpx rgba(0,0,0,0.04);
+  padding: 24rpx 32rpx 32rpx 32rpx;
+  display: flex;
+  gap: 24rpx;
+  z-index: 99;
+}
+
+/* 适配弹窗、picker等控件的圆角和主色 */
+.picker-arrow {
+  border: solid #b0b0b8;
+  border-width: 0 4rpx 4rpx 0;
+  display: inline-block;
+  padding: 6rpx;
+  margin-left: 8rpx;
+  transform: rotate(45deg);
+}
+
+/* 备注输入框优化 */
+.form-textarea.apple-input {
+  min-height: 80rpx;
+  resize: none;
+}
+
+/* 其它细节可根据实际效果微调 */
+
+/* 备注图片功能样式 */
+.remark-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+.remark-image-item {
+  position: relative;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background: #f2f2f7;
+}
+.remark-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16rpx;
+}
+.remark-image-delete {
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  width: 32rpx;
+  height: 32rpx;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 32rpx;
+  font-size: 28rpx;
+  z-index: 2;
+}
+.remark-image-add {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 16rpx;
+  background: #e5e5ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b0b0b8;
+  font-size: 48rpx;
+  cursor: pointer;
+}
+
+/* === Product Select Modal Styles (Optimized) === */
+
+/* Make the modal full width */
+.product-modal .modal-content {
+  width: 100%; /* Set width to full screen */
+  max-width: 100%; /* Ensure it can reach full width */
+  border-radius: 16rpx 16rpx 0 0; /* Keep top radius, remove bottom for bottom sheet style */
+  position: fixed; /* Change position to fixed */
+  bottom: 0; /* Align to bottom */
+  left: 0;
+  top: auto; /* Override previous top alignment */
+  transform: translateY(100%); /* Initial state off-screen */
+  transition: transform 0.3s ease-out; /* Add transition */
+  max-height: 75vh; /* Adjust max height for bottom sheet */
+  /* Remove transform: translate(-50%, -50%) if it exists from previous styles */
+}
+
+/* Style for when the modal is shown */
+.product-modal.show .modal-content {
+  transform: translateY(0); /* Slide up */
+}
+
+/* Ensure modal mask covers the screen */
+.product-modal .modal-mask {
+  /* Existing mask styles should be okay */
+}
+
+/* Adjust modal body padding if necessary */
+.product-modal .modal-body {
+  padding: 10rpx 0 20rpx; /* Reduce top/bottom padding */
+}
+
+/* Style the product selection list container */
+.product-select-list {
+  padding: 0 20rpx; /* Adjust horizontal padding */
+}
+
+/* Style individual list items (cards) */
+.product-select-list .list-item-override {
+  padding: 12rpx 16rpx; /* Reduce item padding */
+  margin-bottom: 12rpx; /* Reduce space between items */
+  border-radius: 12rpx; /* Apple-style radius */
+  background-color: #f9f9fb; /* Lighter background for item */
+  border: none; /* Remove border */
+  box-shadow: none; /* Remove individual shadow, modal has shadow */
+  display: flex; /* Ensure flex layout */
+  align-items: center; /* Center vertically */
+}
+
+/* Adjust item content layout */
+.list-item-content {
+  display: flex;
+  align-items: center;
+  width: 100%; /* Ensure content takes full width */
+}
+
+/* Make the image smaller */
+.list-item-image {
+  width: 80rpx; /* Smaller image */
+  height: 80rpx;
+  border-radius: 8rpx; /* Consistent radius */
+  margin-right: 16rpx; /* Adjust spacing */
+  background-color: #e5e5ea; /* Placeholder color */
+  flex-shrink: 0;
+}
+
+/* Style the details section */
+.list-item-details {
+  flex: 1; /* Allow details to take remaining space */
+  overflow: hidden; /* Prevent text overflow issues */
+}
+
+/* Make product code smaller and lighter */
+.list-item-code {
+  font-size: 24rpx; /* Smaller font */
+  color: #8e8e93; /* Lighter color */
+  margin-bottom: 4rpx; /* Reduce spacing */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Adjust product name style */
+.list-item-name {
+  font-size: 28rpx; /* Slightly smaller font */
+  color: #1d1d1f; /* Standard dark text */
+  font-weight: 400; /* Regular weight */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ensure modal header/search/empty state styles are consistent */
+.product-modal .modal-header {
+  padding: 24rpx 30rpx; /* Adjust padding */
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.product-modal .modal-title {
+  font-size: 32rpx; /* Standard title size */
+  font-weight: 600;
+}
+
+.product-modal .modal-close {
+  /* Standard close button style */
+}
+
+.product-modal .modal-search {
+  padding: 16rpx 30rpx; /* Adjust search padding */
+}
+
+.product-modal .search-input-container {
+  /* Consistent search bar style */
+}
+
+.product-modal .search-input {
+  height: 64rpx; /* Adjust search input height */
+}
+
+.product-modal .empty-search {
+  padding: 40rpx 0; /* Adjust empty state padding */
+}
+
+.product-modal .empty-text {
+  font-size: 26rpx; /* Adjust empty state text size */
+}
+
+/* === End Product Select Modal Styles === */
+
+/* 支付方式和金额 */
+.payment-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end; /* 底部对齐 */
+}
+
+.payment-method-col {
+  flex: 1;
+  margin-right: 20rpx;
+}
+
+.payment-amount-col {
+  width: 200rpx; /* 根据需要调整宽度 */
+}
+
+.payment-amount-input {
+  text-align: right;
+}
+
+.picker-arrow {
+  border: solid #ccc;
+  border-width: 0 2rpx 2rpx 0;
+  display: inline-block;
+  padding: 5rpx;
+  transform: rotate(45deg);
+  margin-left: 10rpx;
+  vertical-align: middle;
+}
+
+/* 勾选式支付方式 */
+.payment-methods-row {
+  display: flex;
+  align-items: center;
+}
+
+.payment-label {
+  flex-shrink: 0;
+  margin-bottom: 0 !important;
+  margin-right: 20rpx;
+  font-size: 26rpx;
+}
+
+.payment-methods-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+/* 新增 single-line 样式 */
+.payment-methods-container.single-line {
+  flex-wrap: nowrap; /* 强制不换行 */
+  overflow-x: auto; /* 如果内容超出则允许横向滚动 */
+  padding-bottom: 8rpx; /* 为滚动条预留一点空间 */
+  gap: 10rpx; /* 缩小间距 */
+}
+
+.payment-method-item {
+  display: flex; 
+  align-items: center;
+  padding: 8rpx 12rpx;
+  background-color: #f8f8fa;
+  border-radius: 8rpx;
+  border: 1px solid #e5e5ea;
+  flex-shrink: 0; /* 防止项目被压缩 */
+}
+
+.payment-method-item.active {
+  background-color: #ebf5ff;
+  border-color: #4e86ff;
+}
+
+.payment-method-checkbox {
+  width: 20rpx; /* 适当调整 checkbox 大小 */
+  height: 20rpx;
+  margin-right: 6rpx;
+}
+
+.checkbox-inner {
+  width: 10rpx; /* 调整内部圆点大小 */
+  height: 10rpx;
+}
+
+.payment-method-name {
+  font-size: 22rpx; /* 确保名称字体也缩小 */
+  color: #333;
+}
+
+/* 支付金额样式 */
+.payment-amount-container {
+  position: relative;
+  margin-top: 20rpx;
+}
+
+.payment-amount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.payment-input-wrapper {
+  position: relative;
+  flex: 1;
+  margin-right: 20rpx;
+  display: flex;
+  align-items: center;
+}
+
+.payment-amount-input {
+  padding-right: 100rpx;
+  text-align: right;
+  font-size: 30rpx;
+  font-weight: 500;
+  width: 100%;
+  box-sizing: border-box;
+  height: 120rpx; /* 与balance-info总高度匹配 */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.payment-amount-label {
+  position: absolute;
+  bottom: 4rpx;
+  right: 20rpx;
+  font-size: 22rpx;
+  color: #f04142;
+  font-weight: 400;
+}
+
+.balance-info {
+  min-width: 240rpx;
+  font-size: 22rpx;
+  color: #86868b;
+  background-color: #f8f8fa;
+  border-radius: 8rpx;
+  padding: 12rpx 16rpx;
+  height: 96rpx; /* 显式设置高度，不含边框 */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.factory-balance,
+.remain-balance {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4rpx 0;
+  line-height: 36rpx; /* 控制行高 */
+}
+
+.balance-label {
+  color: #86868b;
+  margin-right: 10rpx;
+}
+
+.balance-value {
+  font-weight: 500;
+  color: #333;
+}
+
+.balance-value.negative {
+  color: #f04142;
+}
+
+/* 货品添加弹窗 */
+.payment-amount-input-small {
+  width: 180rpx;
+  font-size: 26rpx;
+  height: 70rpx;
+  padding: 0 12rpx;
+}
+
+.order-amount-summary {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 180rpx;
+  margin-left: 24rpx;
+  gap: 8rpx;
+}
+.order-amount-item {
+  display: flex;
+  align-items: center;
+}
+.order-amount-label {
+  color: #86868b;
+  font-size: 24rpx;
+  margin-right: 8rpx;
+}
+.order-amount-value {
+  color: #1d1d1f;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+.order-amount-value.negative {
+  color: #f04142;
+}
+
+/* 微型按钮样式 */
+.mini-btn {
+  font-size: 24rpx;
+  padding: 8rpx 16rpx;
+  height: 60rpx;
+  line-height: 44rpx;
+  width: 160rpx; /* 添加固定宽度使按钮变短 */
+  margin: 0 auto; /* 使按钮居中 */
+}
+
+/* 简化版按钮（无图标） */
+.simple-btn {
+  font-size: 28rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  min-width: 160rpx;
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 支付方式小标签 */
+.small-label {
+  font-size: 24rpx;
+}
+
+.small-method {
+  font-size: 22rpx; /* 进一步缩小字体 */
+  padding: 6rpx 10rpx; /* 调整内边距 */
+  height: 46rpx; /* 调整高度 */
+  line-height: 34rpx;
+}
+
+.payment-amount-input-small {
+  font-size: 28rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+}
+
+/* 调整支付模块样式 */
+.payment-methods-row {
+  margin-bottom: 20rpx;
+}
+
+/* 订单元数据样式调整 */
+.order-meta {
+  margin-top: 24rpx;
+  margin-bottom: 24rpx;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 24rpx;
+}
+
+.order-meta-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.order-meta-item {
+  display: flex;
+  align-items: center;
+  font-size: 22rpx;
+  margin-right: 20rpx;
+}
+
+.meta-label {
+  color: #6e6e73;
+  font-weight: 500;
+  margin-right: 8rpx;
+  font-size: 22rpx;
+}
+
+.meta-value {
+  color: #1d1d1f;
+  font-weight: 400;
+  font-size: 22rpx;
+}
+
+.payment-methods-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+/* 工厂和工序信息样式 */
+.form-value {
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 20rpx;
+  background-color: #ffffff;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+}
+
+.form-value.placeholder {
+  color: #999999;
+}
+
+.form-label.required:after {
+  content: '*';
+  color: #ff3b30;
+  margin-left: 4rpx;
+}
+
+/* 添加分享相关样式 */
+.modal-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 85%;
+  max-width: 650rpx;
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  z-index: 1001;
+  overflow: hidden;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.2);
+}
+
+.share-dialog .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  border-bottom: 1px solid #e5e5ea;
+}
+
+.share-dialog .modal-header text {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #1d1d1f;
+}
+
+.share-dialog .close-btn {
+  font-size: 40rpx;
+  color: #86868b;
+  line-height: 1;
+}
+
+.share-dialog .modal-content {
+  padding: 24rpx 32rpx;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.share-preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.share-image {
+  width: 100%;
+  max-height: 800rpx;
+}
+
+.share-tips {
+  text-align: center;
+  font-size: 26rpx;
+  color: #86868b;
+  margin: 16rpx 0;
+}
+
+.share-dialog .modal-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 24rpx 32rpx;
+  border-top: 1px solid #e5e5ea;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.share-dialog .btn {
+  width: 30%;
+  height: 88rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.share-dialog .cancel-btn {
+  background-color: #f5f5f7;
+  color: #1d1d1f;
+}
+
+.share-dialog .save-btn {
+  background-color: #34c759;
+  color: #ffffff;
+}
+
+.share-dialog .confirm-btn {
+  background-color: #0071e3;
+  color: #ffffff;
+}
+
+.preventTouchMove {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 产品选择弹窗样式优化 */
+.product-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 1000;
+}
+
+.product-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+}
+
+.modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 650rpx;
+  max-height: 80vh;
+  background-color: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  z-index: 1002;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  padding: 30rpx;
+  border-bottom: 1px solid #e5e5ea;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 500;
+  color: #000;
+}
+
+.modal-close {
+  font-size: 40rpx;
+  color: #8e8e93;
+  cursor: pointer;
+}
+
+.modal-search {
+  padding: 20rpx 30rpx;
+  border-bottom: 1px solid #e5e5ea;
+}
+
+.search-input-container {
+  display: flex;
+  align-items: center;
+  background-color: #f2f2f7;
+  border-radius: 10rpx;
+  padding: 10rpx 20rpx;
+}
+
+.search-icon {
+  margin-right: 10rpx;
+  color: #8e8e93;
+}
+
+.search-input {
+  flex: 1;
+  height: 72rpx;
+  font-size: 28rpx;
+  background-color: transparent;
+}
+
+.modal-body {
+  flex: 1;
+  max-height: 60vh;
+  padding: 10rpx 0;
+  overflow-y: auto;
+}
+
+.product-select-list {
+  padding: 0 30rpx;
+}
+
+.product-select-list .card {
+  margin: 20rpx 0;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e5ea;
+}
+
+.list-item-content {
+  display: flex;
+  align-items: center;
+}
+
+.list-item-image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 8rpx;
+  background-color: #f2f2f7;
+  margin-right: 20rpx;
+}
+
+.list-item-details {
+  flex: 1;
+}
+
+.list-item-code {
+  font-size: 28rpx;
+  color: #8e8e93;
+  margin-bottom: 8rpx;
+}
+
+.list-item-name {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #000;
+}
+
+.empty-search {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 0;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  color: #8e8e93;
+  text-align: center;
+}
+
+/* 产品确认弹窗样式优化 */
+.product-confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 1100;
+}
+
+.product-confirm-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.product-confirm-modal .modal-content {
+  width: 90%;
+  max-width: 650rpx;
+  max-height: 85vh;
+}
+
+.selected-product {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1px solid #e5e5ea;
+}
+
+.selected-product .product-image {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 8rpx;
+  margin-right: 20rpx;
+  background-color: #f2f2f7;
+}
+
+.selected-product .product-details {
+  flex: 1;
+}
+
+.selected-product .product-code {
+  font-size: 28rpx;
+  color: #8e8e93;
+  margin-bottom: 8rpx;
+}
+
+.selected-product .product-name {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #000;
+}
+
+.product-edit-form {
+  padding: 20rpx 30rpx;
+}
+
+.form-row {
+  display: flex;
+  margin-bottom: 30rpx;
+}
+
+.form-col {
+  flex: 1;
+  margin-right: 20rpx;
+}
+
+.form-col:last-child {
+  margin-right: 0;
+}
+
+.edit-form-label {
+  display: block;
+  font-size: 28rpx;
+  color: #8e8e93;
+  margin-bottom: 10rpx;
+}
+
+.edit-form-label.required::after {
+  content: '*';
+  color: #ff3b30;
+  margin-left: 6rpx;
+}
+
+.edit-form-value {
+  height: 80rpx;
+  padding: 0 20rpx;
+  border: 1px solid #e5e5ea;
+  border-radius: 10rpx;
+  font-size: 30rpx;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.edit-form-value.placeholder {
+  color: #8e8e93;
+}
+
+.picker-arrow {
+  position: absolute;
+  right: 20rpx;
+  width: 0;
+  height: 0;
+  border-left: 10rpx solid transparent;
+  border-right: 10rpx solid transparent;
+  border-top: 10rpx solid #8e8e93;
+}
+
+input.quantity-input, input.weight-input, input.price-input {
+  height: 80rpx;
+  padding: 0 20rpx;
+  border: 1px solid #e5e5ea;
+  border-radius: 10rpx;
+  font-size: 30rpx;
+}
+
+.modal-actions {
+  padding: 20rpx 30rpx 30rpx; /* Adjusted padding */
+  display: flex; /* Use flex for button layout */
+  flex-direction: column; /* Stack buttons vertically */
+  align-items: center; /* Center items horizontally */
+  gap: 16rpx; /* Space between buttons */
+  border-top: 1rpx solid #f0f0f0; /* Separator line */
+  margin-top: 10rpx;
+}
+
+.btn-add-continue {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background-color: #007aff;
+  color: #fff;
+  font-size: 50rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.full-width-btn {
+  width: 100%;
+  height: 90rpx;
+  margin-bottom: 20rpx;
+  border-radius: 10rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30rpx;
+}
+
+button.btn-primary {
+  background-color: #007aff;
+  color: #fff;
+  border: none;
+}
+
+button.btn-default {
+  background-color: #ffffff;
+  color: #007aff;
+  border: 1rpx solid #007aff; /* Blue border */
+}
+
+.btn-hover {
+  opacity: 0.8;
+}
+
+/* 工厂和工序标签样式 */
+.form-label {
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.form-label.required:after {
+  content: '*';
+  color: #ff3b30;
+  margin-left: 4rpx;
+}
+
+/* 支付方式标签 */
+.payment-label.small-label {
+  font-size: 20rpx; /* 进一步缩小标签字体 */
+}
+
+/* 支付方式选项 */
+.small-method {
+  font-size: 20rpx; /* 进一步缩小选项字体 */
+  padding: 5rpx 8rpx; /* 微调内边距 */
+  height: 42rpx; /* 调整高度 */
+  line-height: 32rpx; /* 调整行高 */
+}
+
+.payment-method-name {
+  font-size: 20rpx; /* 确保名称字体也缩小 */
+  color: #333;
+}
+
+.payment-method-checkbox {
+  width: 18rpx; /* 稍微缩小 checkbox */
+  height: 18rpx;
+  margin-right: 5rpx;
+}
+
+.checkbox-inner {
+  width: 8rpx; /* 缩小内部圆点 */
+  height: 8rpx;
+}

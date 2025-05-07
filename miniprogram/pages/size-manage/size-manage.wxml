@@ -1,0 +1,109 @@
+<!--pages/size-manage/size-manage.wxml-->
+<view class="container with-bg">
+  <view class="header">
+    <text class="title">尺码管理</text>
+    <view class="btn btn-primary btn-rounded add-btn" bindtap="showAddModal">添加尺码</view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{isLoading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 空状态提示 -->
+  <view class="empty-state" wx:elif="{{filteredSizes.length === 0}}">
+    <image class="empty-icon" src="/images/icons/empty-state.png" mode="aspectFit"></image>
+    <text class="empty-text">{{searchValue ? '没有找到相关尺码' : '暂无尺码数据'}}</text>
+    <view class="btn btn-primary btn-rounded mt-4" bindtap="showAddModal">添加尺码</view>
+  </view>
+
+  <!-- 尺码列表 -->
+  <view class="list" wx:elif="{{filteredSizes && filteredSizes.length > 0}}">
+    <block wx:for="{{filteredSizes}}" wx:key="{{item.id}}">
+      <view class="list-item {{item.status === 0 ? 'disabled' : ''}}">
+        <view class="list-item-content" bindtap="showEditModal" data-size="{{item}}">
+          <view class="list-item-title">{{item.name}}</view>
+        </view>
+        <view class="list-item-right">
+          <view class="tag {{item.status === 1 ? 'tag-success' : 'tag-gray'}}">
+            {{item.status === 1 ? '启用' : '停用'}}
+          </view>
+          <view 
+            class="btn btn-small btn-danger mt-2" 
+            wx:if="{{item.status === 1}}"
+            bindtap="toggleStatus" 
+            data-id="{{item.id}}" 
+            data-status="{{item.status}}"
+            style="font-size:22rpx;padding:8rpx 20rpx;min-width:60rpx;"
+          >停用</view>
+          <view 
+            class="btn btn-small btn-success mt-2" 
+            wx:if="{{item.status === 0}}"
+            bindtap="enableSize" 
+            data-id="{{item.id}}" 
+            style="font-size:22rpx;padding:8rpx 20rpx;min-width:60rpx;"
+          >启用</view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 添加尺码弹窗 -->
+  <view class="mask" catchtouchmove="preventTouchMove" wx:if="{{showModal && modalType === 'add'}}" bindtap="hideModal"></view>
+  <view class="drawer drawer-bottom {{showModal && modalType === 'add' ? 'drawer-show' : ''}}" wx:if="{{showModal && modalType === 'add'}}">
+    <view class="drawer-header">
+      <text class="drawer-title">添加新尺码</text>
+      <view class="drawer-close" bindtap="hideModal">×</view>
+    </view>
+    <view class="drawer-body">
+      <view class="form-group">
+        <text class="form-label">尺码名称</text>
+        <input class="form-control" 
+               placeholder="请输入尺码名称" 
+               value="{{formData.name}}" 
+               maxlength="20" 
+               bindinput="onNameInput" 
+               focus="{{showModal && modalType === 'add'}}"/>
+        <text class="form-helper">名称需唯一，最多输入20个字符</text>
+      </view>
+      <view class="drawer-notice">
+        <text class="notice-icon">ⓘ</text>
+        <text class="notice-text">尺码名称添加后将用于产品和订单分类</text>
+      </view>
+    </view>
+    <view class="drawer-footer">
+      <view class="btn btn-light btn-rounded cancel-btn" bindtap="hideModal">取消</view>
+      <view class="btn btn-primary btn-rounded confirm-btn" bindtap="submitForm">保存</view>
+    </view>
+  </view>
+
+  <!-- 编辑尺码弹窗 -->
+  <view class="mask" catchtouchmove="preventTouchMove" wx:if="{{showModal && modalType === 'edit'}}" bindtap="hideModal"></view>
+  <view class="drawer drawer-bottom {{showModal && modalType === 'edit' ? 'drawer-show' : ''}}" wx:if="{{showModal && modalType === 'edit'}}">
+    <view class="drawer-header">
+      <text class="drawer-title">编辑尺码</text>
+      <view class="drawer-close" bindtap="hideModal">×</view>
+    </view>
+    <view class="drawer-body">
+      <view class="form-group">
+        <text class="form-label">尺码名称</text>
+        <input class="form-control" 
+               placeholder="请输入尺码名称" 
+               value="{{formData.name}}" 
+               maxlength="20" 
+               bindinput="onNameInput" 
+               focus="{{showModal && modalType === 'edit'}}"/>
+        <text class="form-helper">名称需唯一，最多输入20个字符</text>
+      </view>
+      <view class="drawer-notice">
+        <text class="notice-icon">ⓘ</text>
+        <text class="notice-text">修改名称后将同步更新关联的产品和订单</text>
+      </view>
+    </view>
+    <view class="drawer-footer">
+      <view class="btn btn-light btn-rounded cancel-btn" bindtap="hideModal">取消</view>
+      <view class="btn btn-primary btn-rounded confirm-btn" bindtap="submitForm">更新</view>
+    </view>
+  </view>
+</view>

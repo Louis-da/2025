@@ -1,0 +1,198 @@
+<view class="container with-bg">
+  <!-- 头部区域 -->
+  <view class="header">
+    <text class="title">货品管理</text>
+  </view>
+  
+  <!-- 搜索框 -->
+  <view class="search-box">
+    <view class="search-input">
+      <icon type="search" size="14" color="#8e8e93"></icon>
+      <input 
+        type="text" 
+        placeholder="搜索货号或货品名称" 
+        value="{{searchValue}}"
+        confirm-type="search"
+        bindconfirm="onSearch"
+        bindinput="onSearchInput"
+      />
+      <view class="clear-icon" wx:if="{{searchValue}}" bindtap="clearSearch">×</view>
+    </view>
+  </view>
+  
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+  
+  <!-- 空状态 -->
+  <view class="empty-state" wx:elif="{{products !== null && products.length === 0}}">
+    <image class="empty-icon" src="/images/icons/empty-state.png" mode="aspectFit"></image>
+    <text class="empty-text">{{searchValue ? '没有找到相关货品' : '暂无货品信息'}}</text>
+    <view class="btn btn-primary btn-rounded mt-4" bindtap="showAddModal">添加货品</view>
+  </view>
+  
+  <!-- 产品列表 -->
+  <view class="product-list" wx:elif="{{products !== null && products.length > 0}}">
+    <view class="list-item" wx:for="{{products}}" wx:key="id">
+      <view class="list-item-content" bindtap="editProduct" data-index="{{index}}">
+        <view class="product-image">
+          <image src="{{item.image}}" mode="aspectFill" wx:if="{{item.image}}"></image>
+          <image src="/images/default-product.png" mode="aspectFill" wx:else></image>
+        </view>
+        <view class="product-info">
+          <view class="product-no">{{item.productNo}}</view>
+          <view class="product-name">{{item.name}}</view>
+          <view class="product-attributes" wx:if="{{item.colors || item.sizes}}">
+            <text wx:if="{{item.colors}}">颜色: {{item.colors}}</text>
+            <text wx:if="{{item.sizes}}">尺码: {{item.sizes}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="list-item-right">
+        <view class="tag {{item.status == 1 ? 'tag-success' : 'tag-gray'}}">
+          {{item.status == 1 ? '已启用' : '已禁用'}}
+        </view>
+        <view class="btn btn-small {{item.status == 1 ? 'btn-danger' : 'btn-success'}} mt-2" 
+              bindtap="toggleStatus" 
+              data-index="{{index}}">
+          {{item.status == 1 ? '禁用' : '启用'}}
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 圆形添加按钮 -->
+  <view class="floating-button" bindtap="showAddModal">
+    <view class="plus-icon">+</view>
+  </view>
+  
+  <!-- 添加货品弹窗 -->
+  <view class="mask" catchtouchmove="preventTouchMove" wx:if="{{showModal}}" bindtap="hideModal"></view>
+  <view class="drawer drawer-bottom {{showModal ? 'drawer-show' : ''}}" wx:if="{{showModal}}">
+    <view class="drawer-header">
+      <text class="drawer-title">添加新货品</text>
+      <view class="drawer-close" bindtap="hideModal">×</view>
+    </view>
+    <view class="drawer-body">
+      <!-- 图片上传 -->
+      <view class="form-group">
+        <text class="form-label">货品图片</text>
+        <view class="image-uploader-container">
+          <!-- 已上传图片列表 -->
+          <view class="image-grid">
+            <view wx:for="{{formData.imageList}}" wx:key="index" class="image-item">
+              <image src="{{item}}" mode="aspectFill" class="uploaded-image" bindtap="previewImage" data-index="{{index}}"></image>
+              <view class="image-delete" catchtap="deleteImage" data-index="{{index}}">×</view>
+            </view>
+            
+            <!-- 添加图片按钮，当图片数量小于9时显示 -->
+            <view class="image-item image-add" bindtap="onChooseImage" wx:if="{{formData.imageList.length < 9}}">
+              <text class="upload-icon">+</text>
+              <text class="upload-text">{{formData.imageList.length > 0 ? '' : '添加图片'}}</text>
+            </view>
+          </view>
+          <text class="form-helper">最多上传9张图片</text>
+        </view>
+      </view>
+      
+      <!-- 货号 -->
+      <view class="form-group">
+        <text class="form-label required">货号</text>
+        <input class="form-control" 
+               placeholder="请输入货号" 
+               value="{{formData.productNo}}" 
+               maxlength="30" 
+               bindinput="onProductNoInput"
+               focus="{{showModal}}"/>
+        <text class="form-helper">货号必须唯一，最多输入30个字符</text>
+      </view>
+      
+      <!-- 货品名称 -->
+      <view class="form-group">
+        <text class="form-label">货品名称</text>
+        <input class="form-control" 
+               placeholder="请输入货品名称" 
+               value="{{formData.name}}" 
+               maxlength="50" 
+               bindinput="onNameInput"/>
+        <text class="form-helper">最多输入50个字符</text>
+      </view>
+      
+      <!-- 颜色选择 -->
+      <view class="form-group">
+        <text class="form-label">颜色</text>
+        <picker bindchange="onColorPickerChange" range="{{allColors}}">
+          <view class="selector-input">
+            <text class="{{formData.colorArray.length > 0 ? '' : 'placeholder'}}">{{formData.colorArray.length > 0 ? '已选择' + formData.colorArray.length + '个颜色' : '点击选择颜色'}}</text>
+            <view class="selector-arrow"></view>
+          </view>
+        </picker>
+        
+        <view class="selected-items" wx:if="{{formData.colorArray.length > 0}}">
+          <view wx:for="{{formData.colorArray}}" wx:key="index" class="tag tag-blue">
+            {{item}}
+            <text class="tag-close" catchtap="removeColor" data-index="{{index}}">×</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 尺码选择 -->
+      <view class="form-group">
+        <text class="form-label">尺码</text>
+        <picker bindchange="onSizePickerChange" range="{{allSizes}}">
+          <view class="selector-input">
+            <text class="{{formData.sizeArray.length > 0 ? '' : 'placeholder'}}">{{formData.sizeArray.length > 0 ? '已选择' + formData.sizeArray.length + '个尺码' : '点击选择尺码'}}</text>
+            <view class="selector-arrow"></view>
+          </view>
+        </picker>
+        
+        <view class="selected-items" wx:if="{{formData.sizeArray.length > 0}}">
+          <view wx:for="{{formData.sizeArray}}" wx:key="index" class="tag tag-green">
+            {{item}}
+            <text class="tag-close" catchtap="removeSize" data-index="{{index}}">×</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 工序选择 -->
+      <view class="form-group">
+        <text class="form-label">工序</text>
+        <picker bindchange="onProcessPickerChange" range="{{allProcesses}}">
+          <view class="selector-input">
+            <text class="{{formData.processArray.length > 0 ? '' : 'placeholder'}}">{{formData.processArray.length > 0 ? '已选择' + formData.processArray.length + '个工序' : '点击选择工序'}}</text>
+            <view class="selector-arrow"></view>
+          </view>
+        </picker>
+        
+        <view class="selected-items" wx:if="{{formData.processArray.length > 0}}">
+          <view wx:for="{{formData.processArray}}" wx:key="index" class="tag tag-orange">
+            {{item}}
+            <text class="tag-close" catchtap="removeProcess" data-index="{{index}}">×</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 备注 -->
+      <view class="form-group">
+        <text class="form-label">备注</text>
+        <textarea class="form-textarea" 
+                  placeholder="请输入备注信息" 
+                  value="{{formData.remark}}" 
+                  bindinput="onRemarkInput"
+                  maxlength="200"/>
+        <text class="form-helper">最多输入200个字符</text>
+      </view>
+      
+      <view class="drawer-notice">
+        <text class="notice-icon">ⓘ</text>
+        <text class="notice-text">货号必须唯一，创建后可编辑更多详细信息</text>
+      </view>
+    </view>
+    <view class="drawer-footer">
+      <view class="btn btn-light btn-rounded cancel-btn" bindtap="hideModal">取消</view>
+      <view class="btn btn-primary btn-rounded confirm-btn" bindtap="quickAddProduct">创建</view>
+    </view>
+  </view>
+</view>

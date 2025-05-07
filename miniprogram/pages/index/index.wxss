@@ -1,0 +1,274 @@
+/**index.wxss**/
+.page-bg {
+  background-color: #f5f5f7;
+  min-height: 100vh;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  margin-bottom: 24rpx;
+  overflow: hidden;
+}
+
+/* 今日数据卡片 */
+.stats-card {
+  padding: 32rpx;
+}
+
+.stats-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 24rpx;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+}
+
+.stats-item {
+  text-align: center;
+  padding: 20rpx;
+  background: #f5f5f7;
+  border-radius: 12rpx;
+  width: 45%;
+}
+
+.stats-label {
+  font-size: 28rpx;
+  color: #86868b;
+  margin-bottom: 8rpx;
+}
+
+.stats-value {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 4rpx;
+}
+
+.stats-count {
+  font-size: 24rpx;
+  color: #86868b;
+}
+
+/* 报表查询卡片 */
+.report-card {
+  padding: 32rpx;
+}
+
+.report-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 24rpx;
+}
+
+.report-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.report-item {
+  width: 48%;
+  background: #f5f5f7;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.report-item:active {
+  background: #e5e5e7;
+  transform: scale(0.98);
+}
+
+.report-icon {
+  width: 64rpx;
+  height: 64rpx;
+  margin-bottom: 16rpx;
+}
+
+.report-label {
+  font-size: 28rpx;
+  color: #1d1d1f;
+  font-weight: 500;
+}
+
+/* 订单类型切换 */
+.tabs-card {
+  padding: 24rpx;
+}
+
+.tabs {
+  display: flex;
+  background: #f5f5f7;
+  border-radius: 12rpx;
+  padding: 4rpx;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 30rpx;
+  color: #86868b;
+  border-radius: 10rpx;
+  transition: all 0.3s ease;
+}
+
+.tab.active {
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.tab[data-tab="sent"].active {
+  background: #34C759;
+}
+
+.tab[data-tab="received"].active {
+  background: #007AFF;
+}
+
+/* 搜索栏 */
+.search-card {
+  padding: 24rpx;
+}
+
+.search-container {
+  background: #f5f5f7;
+  border-radius: 12rpx;
+  padding: 16rpx 24rpx;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 10rpx;
+  padding: 16rpx 20rpx;
+}
+
+.search-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 16rpx;
+  opacity: 0.6;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #1d1d1f;
+}
+
+.filter-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-left: 16rpx;
+  opacity: 0.6;
+}
+
+/* 订单列表 */
+.order-list-card {
+  padding: 24rpx;
+}
+
+.order-list {
+  height: calc(100vh - 800rpx);
+}
+
+.order-item-card {
+  background: #ffffff;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.order-id {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.order-factory {
+  font-size: 28rpx;
+  color: #86868b;
+}
+
+.order-details {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+  padding: 16rpx 0;
+  border-top: 1rpx solid #f5f5f7;
+  border-bottom: 1rpx solid #f5f5f7;
+}
+
+.detail-pair {
+  display: flex;
+  align-items: center;
+}
+
+.detail-pair .label {
+  font-size: 26rpx;
+  color: #86868b;
+  margin-right: 8rpx;
+}
+
+.detail-pair .value {
+  font-size: 26rpx;
+  color: #1d1d1f;
+  font-weight: 500;
+}
+
+.order-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 24rpx;
+  color: #86868b;
+}
+
+/* 新增按钮 */
+.add-button {
+  position: fixed;
+  right: 40rpx;
+  bottom: 160rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background: #007AFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(0, 122, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.add-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 4rpx 12rpx rgba(0, 122, 255, 0.15);
+}
+
+.add-button::after {
+  content: "+";
+  color: #ffffff;
+  font-size: 48rpx;
+  font-weight: 300;
+  line-height: 1;
+}

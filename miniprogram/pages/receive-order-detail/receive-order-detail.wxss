@@ -1,0 +1,213 @@
+/* 清理 WXSS 文件，适配新的 WXML 结构和全局样式 */
+
+/* .container 已被全局样式替代 */
+/* 移除未使用的 .nav-bar 相关样式 */
+/* 移除旧的 .loading-container, .empty-state */
+
+.nav-back-btn-override {
+  margin-top: 30rpx;
+}
+
+/* 顶部卡片 */
+.order-header-card {
+  position: relative; /* 为了选项按钮定位 */
+  padding-bottom: 10rpx; /* 微调 padding */
+}
+
+.order-header-card .form-item {
+  margin-bottom: 10rpx;
+}
+
+.order-header-card .form-label {
+  width: 120rpx; /* 固定标签宽度 */
+}
+
+/* 选项按钮 */
+.options-btn-override {
+  position: absolute;
+  right: 20rpx;
+  top: 20rpx;
+  width: 60rpx;
+  height: 60rpx;
+  padding: 0;
+  line-height: 60rpx;
+  border-radius: 50%;
+}
+
+/* 移除旧的 .section, .section-title */
+/* 保留 section-title 基本样式 */
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 16rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+/* 移除旧的 .info-row, .info-label, .info-value */
+/* 使用 .form-item, .form-label, .form-input-static */
+.info-section .form-label {
+  width: 160rpx;
+}
+
+.remark-override {
+  white-space: pre-wrap; /* 保留换行 */
+  line-height: 1.6;
+}
+
+/* 移除旧的 .product-section, .product-list, .product-item 及其内部样式 */
+.product-item-override {
+  margin-bottom: 24rpx;
+  padding: 20rpx;
+}
+
+.product-item-content {
+  display: flex;
+  align-items: center;
+  position: relative; /* for edit button */
+}
+
+.product-image {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 8rpx;
+  margin-right: 20rpx;
+  background-color: #f5f5f7;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1d1d1f;
+  margin-bottom: 8rpx;
+}
+
+.product-attributes {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.attribute {
+  font-size: 24rpx;
+  color: #86868b;
+  margin-right: 16rpx;
+}
+
+.edit-btn-override {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 8rpx 16rpx;
+  font-size: 24rpx;
+}
+
+/* 全局 divider 样式 (如果 app.wxss 没有定义) */
+.divider {
+  height: 1rpx;
+  background-color: #f0f0f0;
+  width: 100%;
+  margin: 20rpx 0;
+}
+
+.product-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 两列 */
+  gap: 10rpx 20rpx;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+}
+
+.detail-label {
+  color: #86868b;
+  font-size: 24rpx;
+  width: 100rpx; /* 固定宽度 */
+}
+
+.detail-value {
+  color: #1d1d1f;
+  font-size: 24rpx;
+  flex: 1;
+}
+
+.detail-value.price {
+  color: #ff3b30;
+  font-weight: 500;
+}
+
+/* 移除旧的 .total-section, .total-row, .total-label, .total-value, .highlight */
+.total-section .form-label {
+  width: 160rpx;
+}
+
+.highlight-override .form-label,
+.highlight-override .form-input-static {
+  font-weight: 600;
+}
+
+.total-amount-override {
+  color: #ff3b30;
+  font-weight: 600;
+}
+
+/* 移除旧的 .footer-actions, .action-btn, .cancel-btn, .complete-btn, .pay-btn, .no-actions-tip */
+.footer-actions-override {
+  padding: 30rpx;
+  margin-top: 20rpx; 
+  background-color: #fff; /* 添加背景以便区分 */
+  border-top: 1rpx solid #f0f0f0;
+  display: flex;
+  justify-content: flex-end; /* 按钮靠右 */
+  gap: 20rpx;
+}
+
+.action-btn-override {
+  flex: 1; /* 让按钮平分空间? 或固定宽度? */
+  max-width: 250rpx; /* 限制最大宽度 */
+}
+
+.no-actions-tip {
+  width: 100%;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 26rpx;
+}
+
+/* 字体图标 */
+@font-face {
+  font-family: 'iconfont';
+  src: url('data:font/woff2;charset=utf-8;base64,d09GMgABAAAAAAOQAA0AAAAABzQAAAM0AAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP0ZGVE0cGh4GYACCShEICoJYgmILCgABNgIkAxQEIAWFCAczG7IHyA4HHpIZFGwcNTOyH9hNZq5nEZYcPxZSjyeqOsVNHiLhJG5i5/Lw3xr7du/MfCOUQEIlKI6R1USCIUjUJmcjBdJYJJLKBKmKNW/JzW0CQAAdxQAfSq+ZJrXbdQDQAB80yMTzAAD4Af/9Hv5tfNYHO+kAjA4DsENMgkn3EkSvHPKUjfaWdlzbpRyAvMUPAPAE0AcgAwDo55P+GbAM8C2AGyAGgJZ+NJMYQTJtMgsyi5SZkfnJouRQ2BrA+YOJJ6XCZYJEUAgHAC1JRcAzKkFLsG8y2jPraTzHcYSYZYv/88L4Ac+2YO/dP/34hHzB/Ke43P3/fO+Fq2/dUjUNWiQkKhqGJiiLNB1dEPWMHGmh9oE2bWPDpkF4lhaFChAESgIa/Pfh4/mzZSG+rD/XnZ/WBjdOvQmwpLDi8h8Tv01QJKXKMu2QvlpZ7R/0N9c8JDZaMLPgXRvLtqBF6xrNnLYKUjgBGPd4lv6Ysj8aKrSHK1oNf5i1dW2j6bOX+Z1AvDTMO7HLnzxR0Mw/scbpX4k9bq3S0fKv3YVjc9XK08Offt03e8YNPx72Jw56eqeexVSZuirLsNdxQRVWueLq7JrtLnpHAJL/JwAgACJA7AIQ4ZEDYJzGlQFzCNwC5wQIQhQmCApwEKf5sIRoPCwjhog1CHwIu1+HxPgVNkBhZAB1NtsAQYJ6QZCgxRBENNwRmcLhOKcQAGCZlCVZTLIsi19mjXadVacm1S1V1Vk9y/NKNe+5Ut2rdJeJKd2WUqWmbJfzB/FHb+c9tZ7bvJ8/Pg97U3qG0xOrdDdWqXKt6j0FAEADVAGmAQAHaD5jT5K5JCMRrHGxUmm1BoBuZwNAs63iASyAOD3GAYD+NP4hAGQBTExgAAAGAHLDmyTe4FEAcAFYCnKAZl1nALoBAPDBN7TvTQBNAoAJhQgAIAAQHMEkDQDQOdAV4OsUkAE+AsEpZEDgP1ACQNYJpgAgNFsHAgAQnG5BUjsKGQCcAEaEQwFAiQgDgLycdAHQ+4INAHyowQXnLJ5Z5Pu0uTnm/EFtds40B8wxy5xvkFIgDLNLtAKhDzYJm0RyTCAAgCUjAFJUgAARHmEVcMwHkMwxo2EcWDNHCIBTOABTAAQPBTQJHBHBDuqmtBDSMWfDgSvE8YCWrHC7uMPrDrU5yvEJAEZkFgnHEoBXpFVyCIrAl0nqmhMJHGCFtQjZt6hXHENUE0bEAcI3Q3KMgKdZUgzHgDRCJxygn0uJ7WmAqxg3z7sFmxpBGJ90KoHg+y0Lyd5F04OlVb4I/gVKcAnw3g5sVQOTFAA9BBLPfLCvyEHIXiZuYUyEkWBc3EV0LUTnfpQCk7OQoxgkDnAAUJwkbIhxDgAA') format('woff2');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 36rpx;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-back:before {
+  content: "\e6b2";
+}
+
+.icon-more:before {
+  content: "\e8c4";
+}
+
+.icon-edit:before {
+  content: "\e67e";
+} 
+
+.order-no-small-gray {
+  font-size: 24rpx;
+  color: #86868b;
+  font-weight: 400;
+} 

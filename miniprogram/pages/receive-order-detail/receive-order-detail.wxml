@@ -1,0 +1,139 @@
+<view class="container">
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <image class="loading-icon" src="/images/loading.gif"></image>
+    <text class="loading-text">加载订单信息中...</text>
+  </view>
+
+  <!-- 订单不存在 -->
+  <view class="empty-state" wx:elif="{{!order && !loading}}">
+    <image class="empty-icon" src="/images/order-not-found.png"></image>
+    <view class="empty-text">找不到订单信息</view>
+    <button class="btn btn-secondary nav-back-btn-override" bindtap="onNavBack">返回列表</button>
+  </view>
+
+  <!-- 订单详情内容 -->
+  <block wx:if="{{order && !loading}}">
+    <!-- 顶部信息与状态 -->
+    <view class="card order-header-card">
+      <view class="form-item">
+        <text class="form-label">单据号</text>
+        <text class="order-no-small-gray">{{order.orderNo}}</text>
+      </view>
+      <view class="form-item">
+        <text class="form-label">状态</text>
+        <view class="form-input-static">
+          <view class="tag {{order.status === 'pending' ? 'tag-orange' : (order.status === 'completed' ? 'tag-blue' : (order.status === 'paid' ? 'tag-green' : (order.status === 'cancelled' ? 'tag-red' : 'tag-grey')))}}">
+            <text wx:if="{{order.status === 'pending'}}">待处理</text>
+            <text wx:elif="{{order.status === 'completed'}}">已完成</text>
+            <text wx:elif="{{order.status === 'cancelled'}}">已取消</text>
+            <text wx:elif="{{order.status === 'paid'}}">已支付</text>
+            <text wx:else>未知状态</text>
+          </view>
+        </view>
+      </view>
+      <button class="btn btn-secondary btn-icon options-btn-override" bindtap="showOptions">...</button>
+    </view>
+
+    <!-- 基本信息 -->
+    <view class="card info-section">
+      <view class="section-title">基本信息</view>
+      <view class="form-item">
+        <text class="form-label">加工厂:</text>
+        <text class="form-input-static">{{order.factoryName}}</text>
+      </view>
+      <view class="form-item">
+        <text class="form-label">工艺流程:</text>
+        <text class="form-input-static">{{order.processName}}</text>
+      </view>
+      <view class="form-item">
+        <text class="form-label">创建时间:</text>
+        <text class="form-input-static">{{order.createTime}}</text>
+      </view>
+      <view class="form-item" wx:if="{{order.remark}}">
+        <text class="form-label">备注信息:</text>
+        <text class="form-input-static remark-override">{{order.remark}}</text>
+      </view>
+    </view>
+
+    <!-- 产品信息 -->
+    <view class="card product-section">
+      <view class="section-title">产品信息</view>
+      <view class="product-list">
+        <view class="card product-item-override" wx:for="{{order.products}}" wx:key="id">
+          <view class="product-item-content">
+            <image class="product-image" src="{{item.imageUrl || '/images/product-placeholder.png'}}"></image>
+            <view class="product-info">
+              <view class="product-name">{{item.name}}</view>
+              <view class="product-attributes">
+                <view class="attribute">颜色: {{item.color}}</view>
+                <view class="attribute">尺码: {{item.size}}</view>
+              </view>
+            </view>
+            <button class="btn btn-secondary btn-sm edit-btn-override" wx:if="{{canEdit}}" data-id="{{item.id}}" bindtap="editProduct">编辑</button>
+          </view>
+          <view class="divider"></view>
+          <view class="product-details-grid">
+            <view class="detail-item">
+              <text class="detail-label">单价:</text>
+              <text class="detail-value">¥{{item.price}}</text>
+            </view>
+            <view class="detail-item">
+              <text class="detail-label">数量:</text>
+              <text class="detail-value">{{item.quantity}}件</text>
+            </view>
+            <view class="detail-item">
+              <text class="detail-label">重量:</text>
+              <text class="detail-value">{{item.weight}}kg</text>
+            </view>
+            <view class="detail-item">
+              <text class="detail-label">金额:</text>
+              <text class="detail-value price">¥{{item.totalPrice}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 订单总计 -->
+    <view class="card total-section">
+      <view class="section-title">订单总计</view>
+      <view class="form-item">
+        <text class="form-label">产品总数:</text>
+        <text class="form-input-static">{{order.totalQuantity}}件</text>
+      </view>
+      <view class="form-item">
+        <text class="form-label">总重量:</text>
+        <text class="form-input-static">{{order.totalWeight}}kg</text>
+      </view>
+      <view class="form-item highlight-override">
+        <text class="form-label">总金额:</text>
+        <text class="form-input-static total-amount-override">¥{{order.totalAmount}}</text>
+      </view>
+    </view>
+
+    <!-- 底部按钮区域 -->
+    <view class="footer-actions footer-actions-override">
+      <!-- 订单状态为待处理时显示取消和完成按钮 -->
+      <block wx:if="{{order.status === 'pending'}}">
+        <button class="btn btn-danger action-btn-override" bindtap="cancelOrder">取消订单</button>
+        <button class="btn btn-primary action-btn-override" bindtap="completeOrder">完成订单</button>
+      </block>
+      
+      <!-- 订单状态为已完成时显示支付按钮 -->
+      <block wx:if="{{order.status === 'completed'}}">
+        <button class="btn btn-primary action-btn-override" bindtap="payOrder">支付订单</button>
+      </block>
+      
+      <!-- 订单已取消状态下不显示操作按钮 -->
+      <view class="no-actions-tip text-secondary" wx:if="{{order.status === 'cancelled'}}">
+        该订单已取消，无法执行操作
+      </view>
+      
+      <!-- 订单已支付状态下显示提示 -->
+      <view class="no-actions-tip text-secondary" wx:if="{{order.status === 'paid'}}">
+        该订单已支付完成
+      </view>
+    </view>
+  </block>
+</view> 

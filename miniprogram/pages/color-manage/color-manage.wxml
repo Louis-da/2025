@@ -1,0 +1,115 @@
+<view class="container with-bg">
+  <view class="header">
+    <text class="title">颜色管理</text>
+    <view class="btn btn-primary btn-rounded add-btn" bindtap="showAddModal">添加颜色</view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{isLoading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 空状态提示 -->
+  <view class="empty-state" wx:elif="{{colorList !== null && colorList.length === 0}}">
+    <image class="empty-icon" src="/images/icons/empty-state.png" mode="aspectFit"></image>
+    <text class="empty-text">暂无颜色数据</text>
+    <view class="btn btn-primary btn-rounded mt-4" bindtap="showAddModal">添加颜色</view>
+  </view>
+
+  <!-- 颜色列表 -->
+  <view class="list" wx:elif="{{colorList && colorList.length > 0}}">
+    <block wx:for="{{colorList}}" wx:key="{{item._id || item.id}}">
+      <view class="list-item {{item.status === 0 ? 'disabled' : ''}}">
+        <view class="list-item-content" bindtap="showEditModal" data-color="{{item}}">
+          <view class="list-item-title">{{item.name}}</view>
+        </view>
+        <view class="list-item-right">
+          <view class="tag {{item.status === 1 ? 'tag-success' : 'tag-gray'}}">
+            {{item.status === 1 ? '启用' : '停用'}}
+          </view>
+          <view 
+            class="btn btn-small btn-danger mt-2" 
+            wx:if="{{item.status === 1}}"
+            bindtap="disableColor" 
+            data-id="{{item._id || item.id}}" 
+            style="font-size:22rpx;padding:8rpx 20rpx;min-width:60rpx;"
+          >停用</view>
+          <view 
+            class="btn btn-small btn-success mt-2" 
+            wx:if="{{item.status === 0}}"
+            bindtap="enableColor" 
+            data-id="{{item._id || item.id}}" 
+            style="font-size:22rpx;padding:8rpx 20rpx;min-width:60rpx;"
+          >启用</view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 添加颜色弹窗 -->
+  <view class="mask" catchtouchmove="preventTouchMove" wx:if="{{showAddColorModal}}" bindtap="hideModal"></view>
+  <view class="drawer drawer-bottom {{showAddColorModal ? 'drawer-show' : ''}}" wx:if="{{showAddColorModal}}">
+    <view class="drawer-header">
+      <text class="drawer-title">添加新颜色</text>
+      <view class="drawer-close" bindtap="hideModal">×</view>
+    </view>
+    <view class="drawer-body">
+      <view class="form-group">
+        <text class="form-label">颜色名称</text>
+        <input class="form-control" 
+               placeholder="请输入颜色名称" 
+               value="{{newColor.name}}" 
+               maxlength="20" 
+               bindinput="handleInputChange" 
+               data-field="name"
+               focus="{{showAddColorModal}}"/>
+        <text class="form-helper">名称需唯一，最多输入20个字符</text>
+      </view>
+      <view class="drawer-notice">
+        <text class="notice-icon">ⓘ</text>
+        <text class="notice-text">颜色名称添加后将用于产品和订单分类</text>
+      </view>
+    </view>
+    <view class="drawer-footer">
+      <view class="btn btn-light btn-rounded cancel-btn" bindtap="hideModal">取消</view>
+      <view class="btn btn-primary btn-rounded confirm-btn" bindtap="saveColor">保存</view>
+    </view>
+  </view>
+
+  <!-- 编辑颜色弹窗 -->
+  <view class="mask" catchtouchmove="preventTouchMove" wx:if="{{showEditColorModal}}" bindtap="hideModal"></view>
+  <view class="drawer drawer-bottom {{showEditColorModal ? 'drawer-show' : ''}}" wx:if="{{showEditColorModal}}">
+    <view class="drawer-header">
+      <text class="drawer-title">编辑颜色</text>
+      <view class="drawer-close" bindtap="hideModal">×</view>
+    </view>
+    <view class="drawer-body">
+      <view class="form-group">
+        <text class="form-label">颜色名称</text>
+        <input class="form-control" 
+               placeholder="请输入颜色名称" 
+               value="{{editingColor.name}}" 
+               maxlength="20" 
+               bindinput="handleEditInputChange" 
+               data-field="name"
+               focus="{{showEditColorModal}}"/>
+        <text class="form-helper">名称需唯一，最多输入20个字符</text>
+      </view>
+      <view class="drawer-notice">
+        <text class="notice-icon">ⓘ</text>
+        <text class="notice-text">修改名称后将同步更新关联的产品和订单</text>
+      </view>
+    </view>
+    <view class="drawer-footer">
+      <view 
+        class="btn btn-small btn-danger" 
+        wx:if="{{editingColor.status === 1}}"
+        bindtap="disableColorFromEdit"
+        style="margin-right:auto;font-size:22rpx;padding:8rpx 20rpx;min-width:60rpx;"
+      >停用</view>
+      <view class="btn btn-light btn-rounded cancel-btn" bindtap="hideModal">取消</view>
+      <view class="btn btn-primary btn-rounded confirm-btn" bindtap="updateColor">更新</view>
+    </view>
+  </view>
+</view> 

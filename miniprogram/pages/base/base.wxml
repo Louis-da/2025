@@ -1,0 +1,70 @@
+<view class="container">
+  <view class="header">
+    <text class="title">基础管理</text>
+    <text class="subtitle">管理货品、工厂和属性</text>
+  </view>
+  
+  <view class="card-container">
+    <view class="section-title">业务实体</view>
+    <view class="card" bindtap="navigateToProductManage">
+      <view class="card-content">
+        <view class="icon product-icon">📦</view>
+        <view class="card-info">
+          <text class="card-title">货品管理</text>
+          <text class="card-desc">管理货号、款式和规格</text>
+        </view>
+      </view>
+      <view class="card-arrow">〉</view>
+    </view>
+    
+    <view class="card" bindtap="navigateToFactoryManage">
+      <view class="card-content">
+        <view class="icon factory-icon">🏭</view>
+        <view class="card-info">
+          <text class="card-title">工厂管理</text>
+          <text class="card-desc">管理生产工厂和联系人</text>
+        </view>
+      </view>
+      <view class="card-arrow">〉</view>
+    </view>
+  </view>
+  
+  <view class="card-container">
+    <view class="section-title">商品属性</view>
+    <view class="card" bindtap="navigateToColorManage">
+      <view class="card-content">
+        <view class="icon color-icon">🎨</view>
+        <view class="card-info">
+          <text class="card-title">颜色管理</text>
+          <text class="card-desc">管理产品颜色选项</text>
+        </view>
+      </view>
+      <view class="card-arrow">〉</view>
+    </view>
+    
+    <view class="card" bindtap="navigateToSizeManage">
+      <view class="card-content">
+        <view class="icon size-icon">📏</view>
+        <view class="card-info">
+          <text class="card-title">尺码管理</text>
+          <text class="card-desc">管理产品尺码规格</text>
+        </view>
+      </view>
+      <view class="card-arrow">〉</view>
+    </view>
+  </view>
+  
+  <view class="card-container">
+    <view class="section-title">生产流程</view>
+    <view class="card" bindtap="navigateToProcessManage">
+      <view class="card-content">
+        <view class="icon process-icon">⚙️</view>
+        <view class="card-info">
+          <text class="card-title">工序管理</text>
+          <text class="card-desc">管理生产流程和工序</text>
+        </view>
+      </view>
+      <view class="card-arrow">〉</view>
+    </view>
+  </view>
+</view>

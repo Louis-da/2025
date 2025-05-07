@@ -1,0 +1,97 @@
+<!--miniprogram/pages/index/index.wxml-->
+<view class="page-bg">
+  <!-- 今日数据 -->
+  <view class="card stats-card">
+    <view class="stats-title">今日数据</view>
+    <view class="stats-row">
+      <view class="stats-item">
+        <view class="stats-label">发出</view>
+        <view class="stats-value">0kg</view>
+        <view class="stats-count">0单</view>
+      </view>
+      <view class="stats-item">
+        <view class="stats-label">收回</view>
+        <view class="stats-value">0kg</view>
+        <view class="stats-count">0单</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 报表查询 -->
+  <view class="card report-card">
+    <view class="report-title">报表查询</view>
+    <view class="report-row">
+      <view class="report-item">
+        <image class="report-icon" src="/images/icons/flow-table-icon.png" mode="aspectFit"/>
+        <view class="report-label">收发流水表</view>
+      </view>
+      <view class="report-item">
+        <image class="report-icon" src="/images/icons/statement-icon.png" mode="aspectFit"/>
+        <view class="report-label">对账单</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 订单类型切换 -->
+  <view class="card tabs-card">
+    <view class="tabs">
+      <view class="tab {{activeTab === 'sent' ? 'active' : ''}}" bindtap="switchTab" data-tab="sent">发出单</view>
+      <view class="tab {{activeTab === 'received' ? 'active' : ''}}" bindtap="switchTab" data-tab="received">收回单</view>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="card search-card">
+    <view class="search-container">
+      <view class="search-box">
+        <image class="search-icon" src="/images/icons/search-icon.png" mode="aspectFit"/>
+        <input class="search-input" placeholder="搜索单号、工厂" />
+        <image class="filter-icon" src="/images/icons/filter-icon.png" mode="aspectFit"/>
+      </view>
+    </view>
+  </view>
+
+  <!-- 订单列表 -->
+  <view class="card order-list-card">
+    <scroll-view scroll-y class="order-list">
+      <!-- 发出单列表 -->
+      <block wx:if="{{activeTab === 'sent'}}">
+        <view class="order-item-card" wx:for="{{sendList}}" wx:key="id">
+          <view class="order-header">
+            <text class="order-id">#{{item.orderNo}}</text>
+            <text class="order-factory">{{item.factoryName}}</text>
+          </view>
+          <view class="order-details">
+            <view class="detail-pair"><text class="label">重量</text><text class="value">{{item.weight}}kg</text></view>
+            <view class="detail-pair"><text class="label">数量</text><text class="value">{{item.quantity}}</text></view>
+          </view>
+          <view class="order-footer">
+            <text class="order-creator">制单: {{item.staff}}</text>
+            <text class="order-date">{{item.date}}</text>
+          </view>
+        </view>
+      </block>
+      
+      <!-- 收回单列表 -->
+      <block wx:if="{{activeTab === 'received'}}">
+        <view class="order-item-card" wx:for="{{receiveList}}" wx:key="id">
+          <view class="order-header">
+            <text class="order-id">#{{item.orderNo}}</text>
+            <text class="order-factory">{{item.factoryName}}</text>
+          </view>
+          <view class="order-details">
+            <view class="detail-pair"><text class="label">重量</text><text class="value">{{item.weight}}kg</text></view>
+            <view class="detail-pair"><text class="label">数量</text><text class="value">{{item.quantity}}</text></view>
+          </view>
+          <view class="order-footer">
+            <text class="order-creator">制单: {{item.staff}}</text>
+            <text class="order-date">{{item.date}}</text>
+          </view>
+        </view>
+      </block>
+    </scroll-view>
+  </view>
+
+  <!-- 新增按钮 -->
+  <view class="add-button"></view>
+</view>

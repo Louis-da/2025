@@ -1,0 +1,32 @@
+<view class="container">
+  <view class="header">
+    <text class="title">数据清理工具</text>
+  </view>
+  
+  <view class="section">
+    <view class="section-title">组织信息</view>
+    <view class="form-item">
+      <text class="label">组织ID</text>
+      <input class="input" value="{{orgId}}" bindinput="inputOrgId" placeholder="请输入组织ID" />
+    </view>
+  </view>
+  
+  <view class="section">
+    <view class="section-title">数据清理</view>
+    <view class="button-group">
+      <button class="btn btn-warning" bindtap="clearProducts">清除货品数据</button>
+      <button class="btn btn-warning" bindtap="clearProcesses">清除工序数据</button>
+      <button class="btn btn-danger" bindtap="clearAll">清除全部数据</button>
+    </view>
+  </view>
+  
+  <view class="section" wx:if="{{logs.length > 0}}">
+    <view class="section-title">执行日志</view>
+    <view class="logs">
+      <view class="log-item" wx:for="{{logs}}" wx:key="index">
+        <text class="log-time">{{item.time}}</text>
+        <text class="log-message">{{item.message}}</text>
+      </view>
+    </view>
+  </view>
+</view> 
