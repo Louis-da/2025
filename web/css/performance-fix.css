@@ -1,0 +1,339 @@
+/* 修复web端滑动闪烁问题的CSS */
+
+/* 1. 启用硬件加速和GPU优化 */
+html {
+    /* 启用平滑滚动，但控制性能 */
+    scroll-behavior: smooth;
+    /* 减少滚动时的重绘 */
+    -webkit-overflow-scrolling: touch;
+    /* 确保可以滚动 */
+    overflow: visible;
+}
+
+body {
+    /* 强制启用硬件加速 */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* 优化渲染性能 */
+    will-change: scroll-position;
+    /* 消除滚动抖动 */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* iOS风格滚动 */
+    -webkit-overflow-scrolling: touch;
+    /* 确保body可以滚动 */
+    overflow: auto;
+    /* 苹果风格的抗锯齿 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 2. 优化所有可滚动容器 */
+.page-content {
+    /* 启用硬件加速 */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* 优化滚动性能 */
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+    /* 减少重绘 */
+    will-change: scroll-position;
+    /* 消除闪烁 */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* 保持滚动能力 */
+    overflow: auto;
+    /* 平滑滚动惯性 */
+    scroll-behavior: smooth;
+}
+
+/* 3. 优化动画和过渡效果 */
+.card,
+.btn,
+.nav-item,
+.tab,
+.modal-content {
+    /* 使用transform替代position变化，减少重排 */
+    will-change: transform, opacity;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* 消除动画闪烁 */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* 苹果风格的微妙阴影 */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    /* 平滑过渡 */
+    transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+    /* 苹果风格的背景虚化 */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* 4. 特别优化悬停效果，避免重绘 */
+.card:hover,
+.btn:hover,
+.nav-item:hover {
+    /* 使用transform进行3D变换，启用GPU */
+    transform: translateZ(0) translateY(-2px);
+    -webkit-transform: translateZ(0) translateY(-2px);
+    /* 增强阴影 */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    /* 苹果风格的缩放 */
+    scale: 1.02;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover {
+    /* 使用transform进行3D变换 */
+    transform: translateZ(0) translateY(-1px);
+    -webkit-transform: translateZ(0) translateY(-1px);
+    /* 苹果风格的按钮反馈 */
+    transform: translateZ(0) scale(0.98);
+    -webkit-transform: translateZ(0) scale(0.98);
+}
+
+/* 5. 优化滚动条，减少重绘 */
+::-webkit-scrollbar {
+    /* 启用硬件加速 */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    /* 减少滚动条重绘 */
+    will-change: auto;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    /* 减少滚动条重绘 */
+    will-change: auto;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* 6. 优化表格和列表，防止滚动时重排 */
+table,
+.order-list,
+.data-table,
+#orderList,
+#dataTableBody {
+    /* 启用硬件加速 */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* 优化表格渲染 */
+    table-layout: fixed;
+    /* 减少重绘 */
+    will-change: scroll-position;
+    /* 消除闪烁 */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* 保持滚动 */
+    overflow: auto;
+    /* iOS风格滚动 */
+    -webkit-overflow-scrolling: touch;
+    /* 苹果风格的边框 */
+    border-radius: 12px;
+    /* 微妙阴影 */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* 7. 优化模态框和弹窗 */
+.modal,
+.modal-content,
+.loading-overlay {
+    /* 启用硬件加速 */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* 优化模态框渲染 */
+    will-change: transform, opacity;
+    /* 消除闪烁 */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* 苹果风格的背景虚化 */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    /* 苹果风格的圆角 */
+    border-radius: 16px;
+    /* 微妙阴影 */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* 8. 优化加载动画，使用GPU */
+.loading-spinner {
+    /* 强制使用GPU渲染动画 */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+    /* 消除动画闪烁 */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* 硬件加速的旋转动画 */
+    animation: apple-spin 1s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+}
+
+@keyframes apple-spin {
+    0% { transform: translateZ(0) rotate(0deg); }
+    100% { transform: translateZ(0) rotate(360deg); }
+}
+
+/* 9. 优化渐变背景，减少重绘 */
+.app-header,
+.main-nav,
+.nav-item.active {
+    /* 启用硬件加速处理渐变 */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* 减少渐变重绘 */
+    will-change: auto;
+    /* 消除闪烁 */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* 苹果风格的毛玻璃效果 */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.8);
+    /* 苹果风格的边框 */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* 10. 针对移动设备的特殊优化 */
+@media (hover: none) and (pointer: coarse) {
+    /* 移动设备优化 */
+    * {
+        /* 减少移动设备上的重绘 */
+        -webkit-tap-highlight-color: transparent;
+        /* 优化触摸滚动 */
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    body {
+        /* 移动设备强制GPU加速 */
+        transform: translate3d(0, 0, 0);
+        -webkit-transform: translate3d(0, 0, 0);
+    }
+    
+    .page-content {
+        /* 移动设备优化滚动 */
+        transform: translate3d(0, 0, 0);
+        -webkit-transform: translate3d(0, 0, 0);
+        /* 减少滚动卡顿 */
+        -webkit-overflow-scrolling: touch;
+        overflow-scrolling: touch;
+    }
+}
+
+/* 11. 减少动画首选项用户的动画 */
+@media (prefers-reduced-motion: reduce) {
+    /* 为动作敏感用户优化 */
+    * {
+        /* 保持硬件加速但减少动画 */
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        /* 保持GPU优化 */
+        transform: translateZ(0) !important;
+        -webkit-transform: translateZ(0) !important;
+    }
+    
+    html {
+        /* 禁用平滑滚动以减少动画 */
+        scroll-behavior: auto;
+    }
+}
+
+/* 12. 针对高DPI显示器的优化 */
+@media (-webkit-min-device-pixel-ratio: 2) {
+    * {
+        /* 高分辨率显示器优化 */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* 强制硬件加速 */
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+    }
+}
+
+/* 13. 强制所有元素使用合成层，避免重绘 */
+.app-main,
+.page-container,
+.card,
+.modal,
+.loading-overlay {
+    /* 创建新的合成层 */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* 优化渲染 */
+    isolation: isolate;
+    /* 保持滚动能力 */
+    overflow: auto;
+}
+
+/* 14. 特别修复：禁用可能导致闪烁的CSS属性 */
+* {
+    /* 禁用可能导致重排的属性 */
+    contain: layout style paint;
+    /* 优化渲染性能 */
+    will-change: auto;
+}
+
+/* 15. 强制GPU合成的关键元素 */
+.critical-performance {
+    /* 关键性能元素的特殊处理 */
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    perspective: 1000px;
+    -webkit-perspective: 1000px;
+    /* 保持滚动 */
+    overflow: auto;
+}
+
+/* 16. 苹果风格的触摸反馈 */
+.touchable,
+.btn,
+.card,
+.nav-item {
+    /* 苹果风格的触摸反馈 */
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    /* 触摸时的微妙反馈 */
+    transition: all 0.1s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.touchable:active,
+.btn:active,
+.card:active {
+    /* 苹果风格的按下反馈 */
+    transform: translateZ(0) scale(0.95);
+    -webkit-transform: translateZ(0) scale(0.95);
+}
+
+/* 17. 苹果风格的文字和排版 */
+body,
+.app-main {
+    /* 苹果系统字体 */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    /* 苹果风格的行高 */
+    line-height: 1.5;
+    /* 字体渲染优化 */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+} 

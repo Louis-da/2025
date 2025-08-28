@@ -1,0 +1,112 @@
+/* 基础管理页面样式 */
+
+.management-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.management-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+    border-left: 4px solid #007aff;
+    padding-left: 12px;
+}
+
+.management-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.management-card {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fafafa;
+}
+
+.management-card:hover {
+    border-color: #007aff;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.card-icon {
+    font-size: 2rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.card-content {
+    flex: 1;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 0.5rem 0;
+}
+
+.card-desc {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0 0 0.75rem 0;
+    line-height: 1.4;
+}
+
+.card-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.stat-item {
+    font-size: 0.85rem;
+    color: #007aff;
+    font-weight: 500;
+}
+
+.card-arrow {
+    font-size: 1.2rem;
+    color: #999;
+    margin-left: 1rem;
+    flex-shrink: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .management-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .management-card {
+        padding: 1rem;
+    }
+    
+    .card-icon {
+        font-size: 1.5rem;
+        margin-right: 0.75rem;
+    }
+    
+    .card-title {
+        font-size: 1rem;
+    }
+    
+    .card-desc {
+        font-size: 0.85rem;
+    }
+} 

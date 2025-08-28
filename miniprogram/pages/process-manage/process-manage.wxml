@@ -1,159 +1,199 @@
 <!--pages/process-manage/process-manage.wxml-->
-<view class="container with-bg">
-  <!-- 头部区域 -->
-  <view class="header">
-    <text class="title">工序管理</text>
-    <view class="btn btn-primary btn-rounded add-btn" bindtap="showAddModal">添加工序</view>
+<view class="page-container">
+  
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <view class="header-content">
+      <view class="header-left">
+        <text class="page-title">工序管理</text>
+        <text class="page-subtitle">合计{{filteredProcesses.length}}，启用{{enabledCount}} 停用{{disabledCount}}</text>
+      </view>
+      <view class="header-right">
+        <view class="add-btn-wrapper">
+          <view class="add-btn" bindtap="showAddModal">
+            <text class="add-icon">+</text>
+            <text class="add-text">新增</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 
-  <!-- 搜索区域 -->
-  <view class="search-box">
-    <view class="search-input">
-      <input 
-        type="text" 
-        placeholder="搜索工序名称" 
-        value="{{keyword}}" 
-        bindinput="onKeywordInput"
-        confirm-type="search"
-        bindconfirm="searchProcesses"
-      />
-      <icon type="search" size="16"></icon>
+  <!-- AI智能提示卡片 -->
+  <view class="ai-tip-card">
+    <text class="ai-tip-icon">🤖</text>
+    <view class="ai-tip-content">
+      <text class="ai-tip-title">AI智能建议</text>
+      <text class="ai-tip-desc">建议常用工序：裁剪、缝制、熨烫、质检、包装</text>
     </view>
   </view>
 
   <!-- 加载状态 -->
-  <view class="loading" wx:if="{{loading}}">
-    <view class="loading-spinner"></view>
-    <text class="loading-text">加载中...</text>
-  </view>
-
-  <!-- 空状态提示 -->
-  <view class="empty-state" wx:elif="{{processes !== null && processes.length === 0}}">
-    <image class="empty-icon" src="/images/icons/empty-state.png" mode="aspectFit"></image>
-    <text class="empty-text">{{keyword ? '没有找到相关工序' : '暂无工序数据'}}</text>
-    <view class="btn btn-primary btn-rounded mt-4" bindtap="showAddModal">添加工序</view>
-  </view>
-
-  <!-- 工序列表 -->
-  <view class="list" wx:elif="{{processes !== null && processes.length > 0}}">
-    <block wx:for="{{processes}}" wx:key="{{item._id || item.id}}">
-      <view class="list-item {{item.status === 0 ? 'disabled' : ''}}">
-        <view class="list-item-content" bindtap="showEditModal" data-process="{{item}}">
-          <view class="list-item-title">{{item.processName}}</view>
-        </view>
-        <view class="list-item-right">
-          <view class="tag tag-gray" wx:if="{{item.status === 0}}">停用</view>
-          <view 
-            class="btn btn-small btn-success mt-2" 
-            wx:if="{{item.status === 0}}"
-            bindtap="enableProcess" 
-            data-id="{{item._id || item.id}}" 
-            style="font-size:22rpx;padding:8rpx 20rpx;min-width:60rpx;"
-          >启用</view>
-        </view>
-      </view>
-    </block>
-  </view>
-
-  <!-- 添加工序弹窗 -->
-  <view class="mask" catchtouchmove="preventTouchMove" wx:if="{{showModal && !currentProcess}}" bindtap="closeModal"></view>
-  <view class="drawer drawer-bottom {{showModal && !currentProcess ? 'drawer-show' : ''}}" wx:if="{{showModal && !currentProcess}}">
-    <view class="drawer-header">
-      <text class="drawer-title">添加新工序</text>
-      <view class="drawer-close" bindtap="closeModal">×</view>
+  <view class="loading-wrapper" wx:if="{{loading}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">数据加载中...</text>
     </view>
-    <view class="drawer-body">
-      <view class="form-group">
-        <text class="form-label">工序名称</text>
-        <input class="form-control" 
-               placeholder="请输入工序名称" 
-               value="{{formData.processName}}" 
-               maxlength="20" 
-               bindinput="onProcessNameInput"
-               focus="{{showModal && !currentProcess}}"/>
-        <text class="form-helper">名称需唯一，最多输入20个字符</text>
-      </view>
-      
-      <view class="form-group">
-        <text class="form-label">显示顺序</text>
-        <input class="form-control" 
-               type="number"
-               placeholder="请输入显示顺序，数字越小越靠前" 
-               maxlength="10" 
-               bindinput="onOrderInput"
-               value="{{formData.order}}"/>
-        <text class="form-helper">按数字大小排序，数字越小越靠前显示</text>
-      </view>
-      
-      <view class="form-group">
-        <text class="form-label">状态</text>
-        <radio-group class="status-group" bindchange="onStatusChange">
-          <label class="radio-label">
-            <radio value="1" checked="{{formData.status === '1'}}"/>
-            <text>启用</text>
-          </label>
-          <label class="radio-label">
-            <radio value="0" checked="{{formData.status === '0'}}"/>
-            <text>禁用</text>
-          </label>
-        </radio-group>
-      </view>
-      
-      <view class="drawer-notice">
-        <text class="notice-icon">ⓘ</text>
-        <text class="notice-text">工序添加后将用于产品加工流程管理</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-wrapper" wx:elif="{{filteredProcesses !== null && filteredProcesses.length === 0}}">
+    <view class="empty-content">
+      <text class="empty-icon">📋</text>
+      <text class="empty-title">暂无工序数据</text>
+      <text class="empty-desc">点击右上角"新增"按钮添加第一个工序</text>
+      <view class="empty-action">
+        <text class="empty-btn" bindtap="showAddModal">立即添加</text>
       </view>
     </view>
-    <view class="drawer-footer">
-      <view class="btn btn-light btn-rounded cancel-btn" bindtap="closeModal">取消</view>
-      <view class="btn btn-primary btn-rounded confirm-btn" bindtap="saveProcess">保存</view>
+  </view>
+
+  <!-- 工序网格布局 -->
+  <view class="process-grid" wx:elif="{{filteredProcesses !== null && filteredProcesses.length > 0}}">
+    <view class="process-card {{item.status === 0 ? 'disabled' : ''}}" 
+          wx:for="{{filteredProcesses}}" 
+          wx:key="id"
+          bindtap="showEditModal" 
+          data-process="{{item}}">
+      
+      <!-- 卡片头部 -->
+      <view class="card-header">
+        <view class="process-order-badge">{{item.order || index + 1}}</view>
+        <view class="status-indicator {{item.status === 1 ? 'active' : 'inactive'}}"></view>
+      </view>
+
+      <!-- 卡片内容 -->
+      <view class="card-content">
+        <text class="process-name">{{item.processName || item.name}}</text>
+      </view>
+
+      <!-- 卡片操作 -->
+      <view class="card-actions" catchtap="preventTouchMove">
+        <view class="action-btn enable-btn" 
+              wx:if="{{item.status === 0}}"
+              catchtap="enableProcess" 
+              data-id="{{item.id || item._id}}">
+          <text class="btn-icon">✓</text>
+        </view>
+        <view class="action-btn disable-btn" 
+              wx:if="{{item.status === 1}}"
+              catchtap="toggleProcessStatus" 
+              data-id="{{item.id || item._id}}" 
+              data-status="{{item.status}}">
+          <text class="btn-icon">✕</text>
+        </view>
+      </view>
+
+      <!-- 状态标签（隐藏） -->
+      <view class="status-badge status-{{item.status === 1 ? 'active' : 'disabled'}}">
+        {{item.status === 1 ? '启用' : '停用'}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 新增工序弹窗 -->
+  <view class="modal-mask" wx:if="{{showModal && !currentProcess}}" bindtap="closeModal"></view>
+  <view class="modal-container {{showModal && !currentProcess ? 'modal-show' : ''}}" wx:if="{{showModal && !currentProcess}}">
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">🆕 新增工序</text>
+        <text class="modal-close" bindtap="closeModal">×</text>
+      </view>
+      <view class="modal-body">
+        <!-- AI建议区域 -->
+        <view class="ai-suggestion">
+          <text class="suggestion-icon">💡</text>
+          <view class="suggestion-content">
+            <text class="suggestion-title">智能建议</text>
+            <text class="suggestion-desc">推荐工序名称：裁剪、缝制、熨烫、质检、包装</text>
+          </view>
+        </view>
+
+        <view class="form-section">
+          <view class="form-item">
+            <text class="form-label">工序名称</text>
+            <input class="form-input" 
+                   placeholder="请输入工序名称" 
+                   value="{{formData.processName}}" 
+                   maxlength="20" 
+                   bindinput="onProcessNameInput"
+                   focus="{{showModal && !currentProcess}}"/>
+          </view>
+          <view class="form-item">
+            <text class="form-label">显示顺序</text>
+            <input class="form-input" 
+                   type="number"
+                   placeholder="选填，留空自动排序（数字越小越靠前）" 
+                   maxlength="10" 
+                   bindinput="onOrderInput"
+                   value="{{formData.order}}"/>
+          </view>
+          <view class="form-item">
+            <text class="form-label">状态</text>
+            <radio-group class="status-group" bindchange="onStatusChange">
+              <label class="radio-label">
+                <radio value="1" checked="{{formData.status === '1'}}"/>
+                <text>启用</text>
+              </label>
+              <label class="radio-label">
+                <radio value="0" checked="{{formData.status === '0'}}"/>
+                <text>禁用</text>
+              </label>
+            </radio-group>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="footer-btn cancel-btn" bindtap="closeModal">取消</view>
+        <view class="footer-btn confirm-btn" bindtap="saveProcess">保存</view>
+      </view>
     </view>
   </view>
 
   <!-- 编辑工序弹窗 -->
-  <view class="mask" catchtouchmove="preventTouchMove" wx:if="{{showModal && currentProcess}}" bindtap="closeModal"></view>
-  <view class="drawer drawer-bottom {{showModal && currentProcess ? 'drawer-show' : ''}}" wx:if="{{showModal && currentProcess}}">
-    <view class="drawer-header">
-      <text class="drawer-title">编辑工序</text>
-      <view class="drawer-close" bindtap="closeModal">×</view>
-    </view>
-    <view class="drawer-body">
-      <view class="form-group">
-        <text class="form-label">工序名称</text>
-        <input class="form-control" 
-               placeholder="请输入工序名称" 
-               value="{{formData.processName}}" 
-               maxlength="20" 
-               bindinput="onProcessNameInput"
-               focus="{{showModal && currentProcess}}"/>
-        <text class="form-helper">名称需唯一，最多输入20个字符</text>
+  <view class="modal-mask" wx:if="{{showModal && currentProcess}}" bindtap="closeModal"></view>
+  <view class="modal-container {{showModal && currentProcess ? 'modal-show' : ''}}" wx:if="{{showModal && currentProcess}}">
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">✏️ 编辑工序</text>
+        <text class="modal-close" bindtap="closeModal">×</text>
       </view>
-      
-      <view class="form-group">
-        <text class="form-label">显示顺序</text>
-        <input class="form-control" 
-               type="number"
-               placeholder="请输入显示顺序，数字越小越靠前" 
-               maxlength="10" 
-               bindinput="onOrderInput"
-               value="{{formData.order}}"/>
-        <text class="form-helper">按数字大小排序，数字越小越靠前显示</text>
+      <view class="modal-body">
+        <!-- 编辑警告区域 -->
+        <view class="edit-warning">
+          <text class="warning-icon">⚠️</text>
+          <view class="warning-content">
+            <text class="warning-title">编辑提醒</text>
+            <text class="warning-desc">修改工序后将同步更新关联的产品和订单</text>
+          </view>
+        </view>
+
+        <view class="form-section">
+          <view class="form-item">
+            <text class="form-label">工序名称</text>
+            <input class="form-input" 
+                   placeholder="请输入工序名称" 
+                   value="{{formData.processName}}" 
+                   maxlength="20" 
+                   bindinput="onProcessNameInput"
+                   focus="{{showModal && currentProcess}}"/>
+          </view>
+          <view class="form-item">
+            <text class="form-label">显示顺序</text>
+            <input class="form-input" 
+                   type="number"
+                   placeholder="选填，数字越小越靠前" 
+                   maxlength="10" 
+                   bindinput="onOrderInput"
+                   value="{{formData.order}}"/>
+          </view>
+        </view>
       </view>
-      
-      <view class="drawer-notice">
-        <text class="notice-icon">ⓘ</text>
-        <text class="notice-text">修改工序后将同步更新关联的产品和订单</text>
+      <view class="modal-footer">
+        <view class="footer-btn cancel-btn" bindtap="closeModal">取消</view>
+        <view class="footer-btn confirm-btn" bindtap="saveProcess">{{currentProcess ? '更新' : '保存'}}</view>
       </view>
-    </view>
-    <view class="drawer-footer">
-      <view 
-        class="btn btn-danger btn-rounded" 
-        wx:if="{{formData.status == 1 || formData.status == '1'}}"
-        bindtap="disableProcessFromEdit"
-        style="margin-right:auto;font-size:22rpx;padding:8rpx 20rpx;min-width:60rpx;"
-      >停用</view>
-      <view class="btn btn-light btn-rounded cancel-btn" bindtap="closeModal">取消</view>
-      <view class="btn btn-primary btn-rounded confirm-btn" bindtap="saveProcess">{{currentProcess ? '更新' : '保存'}}</view>
     </view>
   </view>
+
 </view>

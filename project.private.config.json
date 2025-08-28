@@ -3,5 +3,6 @@
   "projectname": "yunsf3",
   "setting": {
     "compileHotReLoad": true
-  }
+  },
+  "libVersion": "3.8.7"
 }

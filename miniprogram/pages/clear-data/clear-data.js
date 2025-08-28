@@ -3,16 +3,28 @@ const api = require('../../utils/api')
 
 Page({
   data: {
-    orgId: 'org1', // 默认组织ID
+    orgId: '', // 动态获取组织ID
+    isLoading: false,
+    clearResults: [],
     logs: []
   },
   
   onLoad() {
-    // 从本地存储加载组织ID，如果有的话
-    const storedOrgId = wx.getStorageSync('orgId');
-    if (storedOrgId) {
-      this.setData({ orgId: storedOrgId });
+    // 动态获取当前用户的组织ID
+    const orgId = wx.getStorageSync('orgId');
+    if (!orgId) {
+      wx.showModal({
+        title: '错误',
+        content: '组织信息缺失，请重新登录',
+        showCancel: false,
+        success: () => {
+          wx.reLaunch({ url: '/pages/login/login' });
+        }
+      });
+      return;
     }
+    
+    this.setData({ orgId });
   },
   
   // 输入组织ID

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>云收发管理系统</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <div class="logo-container">
+      <img src="images/logo.png" alt="云收发logo" class="logo">
+      <h1>云收发管理系统</h1>
+      <p class="subtitle">AI智能风格 · 超级管理员控制台</p>
+    </div>
+    
+    <div class="form-container">
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="orgCode">组织编号</label>
+          <input type="text" id="orgCode" name="orgCode" placeholder="请输入组织编号" required autocomplete="organization">
+        </div>
+        <div class="form-group">
+          <label for="username">用户名</label>
+          <input type="text" id="username" name="username" value="admin" placeholder="请输入管理员用户名" required autocomplete="username">
+        </div>
+        
+        <div class="form-group">
+          <label for="password">密码</label>
+          <input type="password" id="password" name="password" value="admin123" placeholder="请输入管理员密码" required autocomplete="current-password">
+        </div>
+        
+        <button type="submit" class="btn-primary">
+          <span class="btn-text">登录管理系统</span>
+        </button>
+        
+        <div class="form-message" id="loginMessage"></div>
+      </form>
+    </div>
+    
+    <div class="footer">
+      <p>© <span id="currentYear">2025</span> 云收发管理系统 保留所有权利</p>
+      <p style="margin-top: 8px; font-size: 11px; color: var(--text-light);">
+        AI智能风格设计 · 现代化管理体验
+      </p>
+    </div>
+  </div>
+  
+  <script>
+    // 设置当前年份
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+  </script>
+  <script src="js/login.js"></script>
+</body>
+</html> 

@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>云收发 - Web管理系统</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/send-receive.css">
+    <link rel="stylesheet" href="css/send-receive-detail.css">
+    <link rel="stylesheet" href="css/receive-order-form.css">
+    <link rel="stylesheet" href="css/send-order-form.css">
+    <link rel="stylesheet" href="css/modal-styles.css">
+    <link rel="stylesheet" href="css/base-manage.css">
+    <link rel="stylesheet" href="css/base-manage-detail.css">
+    <link rel="stylesheet" href="css/ai-reports.css">
+    <link rel="stylesheet" href="css/flow-table.css">
+    <link rel="stylesheet" href="css/statement.css">
+    <!-- 🎯 工厂管理页面样式 - 对标微信小程序 -->
+    <link rel="stylesheet" href="css/factory-manage.css">
+    <!-- Apple设计系统CSS -->
+    <link rel="stylesheet" href="css/apple-design.css">
+    <!-- 性能优化CSS：修复滑动闪烁问题 -->
+    <link rel="stylesheet" href="css/performance-fix.css">
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+</head>
+<body class="apple-page">
+    <!-- 登录页面 - Apple风格 -->
+    <div id="loginPage" class="login-page" style="display: none;">
+        <div class="apple-container">
+            <div class="apple-card" style="max-width: 400px; margin: 50px auto;">
+                <div class="apple-card-header" style="text-align: center; border-bottom: none;">
+                    <div style="width: 100%;">
+                        <img class="logo" src="images/logo.png" alt="云收发" onclick="clearCacheOnLogoClick()" style="cursor: pointer; width: 80px; height: 80px; margin: 0 auto 16px; display: block; border-radius: 16px;" title="点击清理缓存">
+                        <h1 class="apple-card-title" style="font-size: 28px; margin-bottom: 8px; color: var(--apple-blue);">云收发</h1>
+                        <p class="apple-card-subtitle" style="font-size: 16px; margin-bottom: 24px;">高效、简洁的收发流程管理工具</p>
+                    </div>
+            </div>
+            
+                <form id="loginForm" class="login-form">
+                    <div class="apple-form-group">
+                        <label class="apple-label">组织编码</label>
+                        <input type="text" id="orgCode" class="apple-input" placeholder="请输入组织编码" autocomplete="organization" required>
+                    </div>
+                    
+                    <div class="apple-form-group">
+                        <label class="apple-label">工号</label>
+                        <input type="text" id="username" class="apple-input" placeholder="请输入工号" autocomplete="username" required>
+                    </div>
+                    
+                    <div class="apple-form-group">
+                        <label class="apple-label">密码</label>
+                        <input type="password" id="password" class="apple-input" placeholder="请输入密码" autocomplete="current-password" required>
+                    </div>
+                    
+                    <!-- 🎯 隐私协议勾选区域 - 对齐微信小程序设计 -->
+                    <div class="agreement-section">
+                        <div class="agreement-checkbox-wrapper" onclick="toggleAgreement()">
+                            <input type="checkbox" id="agreeToTerms" class="agreement-checkbox" style="display: none;">
+                            <div class="custom-checkbox" id="customCheckbox">
+                                <div class="checkmark" style="display: none;">✓</div>
+                            </div>
+                            <span class="agreement-text">
+                                我已阅读并同意
+                                <a href="#" onclick="showServiceAgreement()" class="agreement-link">《服务协议》</a>
+                                和
+                                <a href="#" onclick="showPrivacyPolicy()" class="agreement-link">《隐私政策》</a>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="apple-btn apple-btn-primary apple-btn-large" id="loginBtn" style="width: 100%; margin-top: 16px;">
+                        <span class="btn-text">登录</span>
+                        <div class="loading-spinner" style="display: none;"></div>
+                    </button>
+                </form>
+                
+                <div class="help-link" style="text-align: center; margin-top: 16px;">
+                    <a href="#" onclick="showHelp()" style="color: var(--apple-gray-600); text-decoration: none; font-size: 14px;">忘记密码？</a>
+                </div>
+                
+                <div class="footer" style="text-align: center; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--apple-gray-200);">
+                    <p class="copyright" style="font-size: 12px; color: var(--apple-gray-500);">© <span id="currentYear"></span> 云收发管理 保留所有权利</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主应用页面 - Apple风格 -->
+    <div id="mainApp" class="main-app apple-page" style="display: none;">
+        <!-- 顶部导航栏 - Apple风格 -->
+        <header class="apple-header">
+            <div class="apple-container">
+                <div class="apple-header-content">
+                    <div class="apple-logo">
+                        <img src="images/logo.png" alt="云收发">
+                        <span>云收发</span>
+            </div>
+            
+                    <nav class="apple-nav">
+                        <a href="#" class="apple-nav-item active" data-page="dashboard">
+                            <span>🏠</span>
+                            <span>首页</span>
+                    </a>
+                        <a href="#" class="apple-nav-item" data-page="base">
+                            <span>⚙️</span>
+                            <span>基础</span>
+                    </a>
+                        <a href="#" class="apple-nav-item" data-page="send-receive">
+                            <span>📦</span>
+                            <span>收发</span>
+                    </a>
+                        <a href="#" class="apple-nav-item" data-page="ai-reports">
+                            <span>🤖</span>
+                            <span>AI智能</span>
+                    </a>
+                </nav>
+            
+                    <div class="header-right" style="display: flex; align-items: center; gap: 16px;">
+                        <!-- 🎯 优化用户信息显示 - 更好的布局和视觉效果 -->
+                        <div class="user-info" style="text-align: right;">
+                            <div style="font-weight: 600; color: var(--apple-gray-900); font-size: 14px;" id="userName">用户</div>
+                            <div style="font-size: 11px; color: var(--apple-gray-600); margin-top: 2px;" id="orgName">组织</div>
+                            <div style="font-size: 10px; color: var(--apple-gray-500); margin-top: 1px;" id="userRole"></div>
+                        </div>
+                        <!-- 🎯 优化用户菜单 - 更现代化的头像和下拉菜单 -->
+                        <div class="user-menu" style="position: relative;">
+                            <button class="apple-btn apple-btn-secondary user-avatar-btn" onclick="toggleUserMenu()" style="border-radius: 50%; width: 40px; height: 40px; padding: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                                <span id="avatarText" style="font-weight: 600; font-size: 16px;">用</span>
+                            </button>
+                            <div class="user-dropdown apple-card" id="userDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; min-width: 160px; padding: 12px; z-index: 1000; box-shadow: 0 8px 32px rgba(0,0,0,0.12); border-radius: 12px;">
+                                <!-- 🎯 用户信息区域 -->
+                                <div style="padding: 8px 0; border-bottom: 1px solid var(--apple-gray-200); margin-bottom: 8px;">
+                                    <div style="font-weight: 600; font-size: 14px; color: var(--apple-gray-900);" id="dropdownUserName">用户</div>
+                                    <div style="font-size: 12px; color: var(--apple-gray-600); margin-top: 2px;" id="dropdownOrgName">组织</div>
+                                </div>
+                                <!-- 🎯 操作按钮 -->
+                                <button onclick="showUserProfile()" class="dropdown-menu-item" style="width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; border-radius: 6px; font-size: 14px; cursor: pointer; margin-bottom: 4px;">
+                                    <span style="margin-right: 8px;">👤</span>个人信息
+                                </button>
+                                <button onclick="confirmLogout()" class="dropdown-menu-item logout-btn" style="width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; border-radius: 6px; font-size: 14px; cursor: pointer; color: #ef4444;">
+                                    <span style="margin-right: 8px;">🚪</span>退出登录
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主内容区域 - Apple风格 -->
+        <main class="apple-content">
+            <div class="apple-container">
+            <!-- 首页内容 -->
+            <div id="dashboardPage" class="page-content active">
+                    <!-- 今日数据卡片 -->
+                    <div class="apple-grid apple-grid-2" style="margin-bottom: 32px;">
+                        <div class="apple-stat-card">
+                            <div class="apple-card-header">
+                                <h2 class="apple-card-title">📤 发出数据</h2>
+                                </div>
+                            <div class="apple-stat-value" id="todaySendWeight">0.00kg</div>
+                            <div class="apple-stat-label">今日发出重量</div>
+                            <div class="apple-stat-change positive" id="todaySendCount">0单</div>
+                                </div>
+                        
+                        <div class="apple-stat-card">
+                            <div class="apple-card-header">
+                                <h2 class="apple-card-title">📥 收回数据</h2>
+                            </div>
+                            <div class="apple-stat-value" id="todayReceiveWeight" style="color: var(--apple-green);">0.00kg</div>
+                            <div class="apple-stat-label">今日收回重量</div>
+                            <div class="apple-stat-change positive" id="todayReceiveCount">0单</div>
+                        </div>
+                    </div>
+
+                    <!-- AI智能助理卡片 -->
+                    <div class="apple-card" onclick="navigateToAI()" style="cursor: pointer; margin-bottom: 32px;">
+                        <div class="apple-card-header">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="font-size: 32px;">🤖</div>
+                                <div>
+                                    <h3 class="apple-card-title">AI智能助理</h3>
+                                    <p class="apple-card-subtitle">智能分析收发流水，发现异常和趋势</p>
+                                </div>
+                            </div>
+                            <div style="font-size: 24px; color: var(--apple-gray-400);">→</div>
+                                </div>
+                        <div class="apple-grid apple-grid-3">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 20px;">⚡</span>
+                                <span style="font-size: 14px; color: var(--apple-gray-600);">异常检测</span>
+                                </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 20px;">📊</span>
+                                <span style="font-size: 14px; color: var(--apple-gray-600);">趋势分析</span>
+                                </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 20px;">💡</span>
+                                <span style="font-size: 14px; color: var(--apple-gray-600);">智能建议</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 快捷操作 -->
+                    <div class="apple-grid apple-grid-2">
+                        <div class="apple-card" onclick="navigateToSendOrder()" style="cursor: pointer;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div style="font-size: 48px; color: var(--apple-blue);">📤</div>
+                                <div>
+                                    <h4 class="apple-card-title">发出单</h4>
+                                    <p class="apple-card-subtitle">创建新的发出订单</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="apple-card" onclick="navigateToReceiveOrder()" style="cursor: pointer;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div style="font-size: 48px; color: var(--apple-green);">📥</div>
+                                <div>
+                                    <h4 class="apple-card-title">收回单</h4>
+                                    <p class="apple-card-subtitle">创建新的收回订单</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="apple-card" onclick="navigateToFlowTable()" style="cursor: pointer;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div style="font-size: 48px; color: var(--apple-orange);">📋</div>
+                                <div>
+                                    <h4 class="apple-card-title">流水表</h4>
+                                    <p class="apple-card-subtitle">查看收发流水记录</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="apple-card" onclick="navigateToStatement()" style="cursor: pointer;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div style="font-size: 48px; color: var(--apple-purple);">📊</div>
+                                <div>
+                                    <h4 class="apple-card-title">对账单</h4>
+                                    <p class="apple-card-subtitle">生成对账报表</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 基础管理页面 -->
+            <div id="basePage" class="page-content">
+                    <div class="apple-card">
+                        <div class="apple-card-header">
+                            <div>
+                                <h2 class="apple-card-title">⚙️ 基础管理</h2>
+                                <p class="apple-card-subtitle">管理货品、工厂和属性</p>
+                            </div>
+                    </div>
+                    
+                        <div style="margin-bottom: 32px;">
+                            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--apple-gray-900);">业务实体</h3>
+                            <div class="apple-grid apple-grid-2">
+                                <div class="apple-card apple-card-compact" onclick="navigateToProductManage()" style="cursor: pointer;">
+                                    <div style="display: flex; align-items: center; gap: 16px;">
+                                        <div style="font-size: 32px;">📦</div>
+                                        <div style="flex: 1;">
+                                            <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">货品管理</h4>
+                                            <p style="font-size: 14px; color: var(--apple-gray-600); margin-bottom: 8px;">管理产品信息、规格和属性</p>
+                                            <div style="font-size: 12px; color: var(--apple-blue);">总数: <span id="productCount">0</span></div>
+                                        </div>
+                                        <div style="font-size: 16px; color: var(--apple-gray-400);">→</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="apple-card apple-card-compact" onclick="navigateToFactoryManage()" style="cursor: pointer;">
+                                    <div style="display: flex; align-items: center; gap: 16px;">
+                                        <div style="font-size: 32px;">🏭</div>
+                                        <div style="flex: 1;">
+                                            <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">工厂管理</h4>
+                                            <p style="font-size: 14px; color: var(--apple-gray-600); margin-bottom: 8px;">管理合作工厂信息和联系方式</p>
+                                            <div style="font-size: 12px; color: var(--apple-blue);">总数: <span id="factoryCount">0</span></div>
+                                        </div>
+                                        <div style="font-size: 16px; color: var(--apple-gray-400);">→</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--apple-gray-900);">属性管理</h3>
+                            <div class="apple-grid apple-grid-3">
+                                <div class="apple-card apple-card-compact" onclick="navigateToColorManage()" style="cursor: pointer;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="font-size: 24px;">🎨</div>
+                                        <div style="flex: 1;">
+                                            <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">颜色管理</h4>
+                                            <div style="font-size: 12px; color: var(--apple-blue);">总数: <span id="colorCount">0</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="apple-card apple-card-compact" onclick="navigateToSizeManage()" style="cursor: pointer;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="font-size: 24px;">📏</div>
+                                        <div style="flex: 1;">
+                                            <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">尺码管理</h4>
+                                            <div style="font-size: 12px; color: var(--apple-blue);">总数: <span id="sizeCount">0</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="apple-card apple-card-compact" onclick="navigateToProcessManage()" style="cursor: pointer;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="font-size: 24px;">⚙️</div>
+                                        <div style="flex: 1;">
+                                            <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">工序管理</h4>
+                                            <div style="font-size: 12px; color: var(--apple-blue);">总数: <span id="processCount">0</span></div>
+                                        </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 收发管理页面 -->
+            <div id="send-receivePage" class="page-content">
+                <div id="send-receivePageContent">
+                    <!-- 收发管理详细内容将通过JavaScript动态生成 -->
+                </div>
+            </div>
+
+            <!-- 新增发出单页面 -->
+            <div id="send-order-formPage" class="page-content">
+                <div id="send-order-formPageContent">
+                    <!-- 发出单表单内容将通过JavaScript动态生成 -->
+                </div>
+            </div>
+
+            <!-- 新增收回单页面 -->
+            <div id="receive-order-formPage" class="page-content">
+                <div id="receive-order-formPageContent">
+                    <!-- 收回单表单内容将通过JavaScript动态生成 -->
+                </div>
+            </div>
+
+            <!-- 基础管理详细页面 -->
+            <div id="baseDetailPage" class="page-content">
+                <div id="baseDetailContainer">
+                    <!-- 基础管理详细内容将通过JavaScript动态生成 -->
+                </div>
+            </div>
+
+            <!-- AI智能报告页面 -->
+            <div id="ai-reportsPage" class="page-content">
+                <div id="ai-reportsPageContent">
+                    <!-- AI报告内容将通过JavaScript动态生成 -->
+                </div>
+            </div>
+
+            <!-- 流水表页面 -->
+            <div id="flow-tablePage" class="page-content">
+                    <div class="apple-card">
+                        <div class="apple-card-header">
+                            <div>
+                                <h2 class="apple-card-title">📋 流水表</h2>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="apple-btn apple-btn-primary" onclick="showFlowFilterModal()">
+                                    <span>🔍</span>
+                                    <span>筛选</span>
+                            </button>
+                                <button class="apple-btn apple-btn-secondary" onclick="exportFlowTable()">
+                                    <span>📤</span>
+                                    <span>导出</span>
+                            </button>
+                                <button class="apple-btn apple-btn-secondary" onclick="analyzeLossRate()">
+                                    <span>📊</span>
+                                    <span>损耗分析</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 快速筛选 -->
+                        <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+                            <button class="apple-btn apple-btn-small apple-btn-secondary" onclick="window.flowTable && window.flowTable.applyTodayFilter()">今日</button>
+                            <button class="apple-btn apple-btn-small apple-btn-secondary" onclick="window.flowTable && window.flowTable.applyWeekFilter()">本周</button>
+                            <button class="apple-btn apple-btn-small apple-btn-secondary" onclick="window.flowTable && window.flowTable.applyMonthFilter()">本月</button>
+                            <button class="apple-btn apple-btn-small apple-btn-secondary" onclick="window.flowTable && window.flowTable.applyHighLossFilter()">高损耗</button>
+                            <button class="apple-btn apple-btn-small apple-btn-primary" onclick="window.flowTable && window.flowTable.refresh()">刷新数据</button>
+                    </div>
+                    
+                    <!-- 流水表内容 -->
+                        <div class="apple-grid apple-grid-3" style="margin-bottom: 16px;">
+                            <div class="apple-stat-card apple-card-compact">
+                                <div class="apple-stat-label">总发出重量</div>
+                                <div class="apple-stat-value" id="flowTotalSendWeight" style="font-size: 24px;">0.00kg</div>
+                            </div>
+                            <div class="apple-stat-card apple-card-compact">
+                                <div class="apple-stat-label">总收回重量</div>
+                                <div class="apple-stat-value" id="flowTotalReceiveWeight" style="font-size: 24px; color: var(--apple-green);">0.00kg</div>
+                            </div>
+                            <div class="apple-stat-card apple-card-compact">
+                                <div class="apple-stat-label">平均损耗率</div>
+                                <div class="apple-stat-value" id="flowAvgLossRate" style="font-size: 24px; color: var(--apple-orange);">0.00%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="apple-table-container">
+                            <table class="apple-table" id="flowTable">
+                                <thead>
+                                    <tr>
+                                        <th>货号</th>
+                                        <th>工厂</th>
+                                        <th>工序</th>
+                                        <th>发出重量</th>
+                                        <th>收回重量</th>
+                                        <th>损耗率</th>
+                                        <th>发出日期</th>
+                                        <th>收回日期</th>
+                                        <th>状态</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="flowTableBody">
+                                    <!-- 流水记录将通过JavaScript动态生成 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 空状态 -->
+                        <div style="text-align: center; padding: 48px; display: none;" id="flowEmptyState">
+                            <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--apple-gray-700);">暂无流水数据</div>
+                            <p style="font-size: 14px; color: var(--apple-gray-500);">请调整筛选条件或创建新的订单</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 对账单页面 -->
+            <div id="statementPage" class="page-content">
+                    <div class="apple-card">
+                        <div class="apple-card-header">
+                            <div>
+                                <h2 class="apple-card-title">📊 对账单</h2>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="apple-btn apple-btn-primary" onclick="generateStatement()">
+                                    <span>📊</span>
+                                    <span>生成对账单</span>
+                            </button>
+                                <button class="apple-btn apple-btn-secondary" onclick="exportStatement()">
+                                    <span>📤</span>
+                                    <span>导出</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 对账单筛选 - 对齐微信小程序搜索体验 -->
+                        <div class="statement-filter-section">
+                            <div class="filter-row">
+                                <div class="filter-item">
+                                    <label class="filter-label">工厂选择</label>
+                                    <div class="factory-search-container">
+                                        <input 
+                                            type="text" 
+                                            id="statementFactorySearch" 
+                                            class="filter-input" 
+                                            placeholder="输入工厂名称或首字母搜索" 
+                                            oninput="window.statement && window.statement.onFactorySearch(event)"
+                                            onfocus="window.statement && window.statement.showFactoryDropdown()"
+                                            onblur="window.statement && window.statement.hideFactoryDropdown()"
+                                        />
+                                        <div class="factory-dropdown" id="statementFactoryDropdown" style="display: none;">
+                                            <div class="dropdown-content">
+                                                <div class="dropdown-item" data-factory-id="">
+                                                    <span>请选择工厂</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="filter-item">
+                                    <label class="filter-label">货品选择</label>
+                                    <div class="product-search-container">
+                                        <input 
+                                            type="text" 
+                                            id="statementProductSearch" 
+                                            class="filter-input" 
+                                            placeholder="输入货品编号或名称搜索" 
+                                            oninput="window.statement && window.statement.onProductSearch(event)"
+                                            onfocus="window.statement && window.statement.showProductDropdown()"
+                                            onblur="window.statement && window.statement.hideProductDropdown()"
+                                        />
+                                        <div class="product-dropdown" id="statementProductDropdown" style="display: none;">
+                                            <div class="dropdown-content">
+                                                <div class="dropdown-item active" data-product-id="">
+                                                    <span>全部货品</span>
+                                                    <span class="check-mark">✓</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="filter-row">
+                                <div class="filter-item">
+                                    <label class="filter-label">开始日期</label>
+                                    <input type="date" id="statementStartDate" class="filter-input">
+                                </div>
+                                <div class="filter-item">
+                                    <label class="filter-label">结束日期</label>
+                                    <input type="date" id="statementEndDate" class="filter-input">
+                                </div>
+                            </div>
+                            
+                            <div class="filter-actions">
+                                <button class="filter-btn primary" onclick="window.statement && window.statement.applyFilters()">
+                                    🔍 查询对账单
+                                </button>
+                                <button class="filter-btn secondary" onclick="window.statement && window.statement.clearFilters()">
+                                    🧹 重置筛选
+                                </button>
+                            </div>
+                        </div>
+                    
+                    <!-- 对账单内容 -->
+                        <div id="statementContent">
+                        <!-- 对账单将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            
+            <!-- 🎯 工厂管理页面 - 对标微信小程序功能 -->
+            <div id="factoryManagePage" class="page-content">
+                <div id="factoryManagePageContent">
+                    <!-- 工厂管理内容将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Apple风格的加载提示 -->
+    <div id="loadingOverlay" class="apple-loading" style="display: none;">
+        <div class="apple-spinner"></div>
+    </div>
+
+    <!-- Apple风格的消息提示 -->
+    <div id="messageToast" class="apple-toast" style="display: none;">
+        <div class="toast-content">
+            <span class="toast-icon"></span>
+            <span class="toast-text"></span>
+        </div>
+    </div>
+
+    <!-- JavaScript文件 - 组织数据隔离版 -->
+    <script src="js/config.js?v=2.1"></script>
+    <script src="js/utils/common.js"></script>
+    <!-- 拼音搜索工具 -->
+    <script src="js/utils/pinyin.js"></script>
+    <!-- 滚动性能优化 - 修复滑动闪烁问题 -->
+    <script src="js/utils/scroll-optimizer.js"></script>
+    <script src="js/utils/api.js?v=2.1"></script>
+    <script src="js/auth.js?v=2.1"></script>
+    <script src="js/pages/dashboard.js"></script>
+    <script src="js/pages/send-receive.js"></script>
+    <script src="js/pages/send-receive-detail.js"></script>
+    <script src="js/pages/receive-order-form.js"></script>
+    <script src="js/pages/send-order-form.js"></script>
+    <script src="js/pages/base-manage-detail.js"></script>
+    <script src="js/pages/flow-table.js"></script>
+    <script src="js/pages/statement.js"></script>
+    <!-- 🎯 工厂管理页面 - 对标微信小程序功能 -->
+    <script src="js/pages/factory-manage.js"></script>
+    <script src="js/app.js?v=2.1"></script>
+    
+    <!-- 🎯 工厂管理模态框集合 -->
+    <!-- 工厂编辑模态框 -->
+    <div class="modal-overlay" id="editModalOverlay" style="display: none;">
+        <div class="modal-container" onclick="event.stopPropagation()">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title" id="editModalTitle">编辑工厂</div>
+                    <button class="modal-close" onclick="factoryManage.closeEditModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <!-- AI建议 -->
+                    <div class="ai-suggestion" id="aiSuggestion" style="display: none;">
+                        <div class="suggestion-icon">🤖</div>
+                        <div class="suggestion-content">
+                            <strong>AI助手建议：</strong>建议为工厂设置清晰的名称和完整的联系方式，选择合适的工序类型，这将有助于后续的订单分配和管理。
+                        </div>
+                    </div>
+                    
+                    <!-- 编辑警告 -->
+                    <div class="edit-warning" id="editWarning" style="display: none;">
+                        <div class="warning-icon">⚠️</div>
+                        <div class="warning-content">
+                            <strong>注意：</strong>该工厂存在余额或欠款，修改工厂名称和电话可能会影响财务记录的一致性。
+                        </div>
+                    </div>
+                    
+                    <!-- 工厂编辑表单 -->
+                    <form class="factory-edit-form" id="factoryEditForm">
+                        <div class="form-item">
+                            <label class="form-label required" for="factoryName">工厂名称</label>
+                            <input type="text" 
+                                   class="form-input" 
+                                   id="factoryName" 
+                                   placeholder="请输入工厂名称"
+                                   maxlength="50"
+                                   required>
+                        </div>
+                        
+                        <div class="form-item">
+                            <label class="form-label" for="factoryPhone">联系电话</label>
+                            <input type="tel" 
+                                   class="form-input" 
+                                   id="factoryPhone" 
+                                   placeholder="请输入联系电话">
+                        </div>
+                        
+                        <div class="form-item">
+                            <label class="form-label" for="factoryAddress">工厂地址</label>
+                            <input type="text" 
+                                   class="form-input" 
+                                   id="factoryAddress" 
+                                   placeholder="请输入工厂地址">
+                        </div>
+                        
+                        <div class="form-item">
+                            <label class="form-label required">工序类型</label>
+                            <div class="process-selector">
+                                <div class="selected-processes" id="selectedProcesses">
+                                    <div class="placeholder-text">请选择工序</div>
+                                </div>
+                                <button type="button" 
+                                        class="select-process-btn apple-btn" 
+                                        onclick="factoryManage.showProcessSelector()">
+                                    ⚙️ 选择工序
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-item">
+                            <label class="form-label" for="factoryRemark">备注说明</label>
+                            <textarea class="form-textarea" 
+                                      id="factoryRemark" 
+                                      placeholder="请输入备注说明"
+                                      rows="3"></textarea>
+                        </div>
+                        
+                        <div class="form-item">
+                            <label class="form-label">工厂状态</label>
+                            <div class="status-toggle">
+                                <input type="checkbox" 
+                                       class="status-checkbox" 
+                                       id="factoryStatus" 
+                                       checked>
+                                <label for="factoryStatus" class="status-label">
+                                    <span class="status-text">启用</span>
+                                    <div class="toggle-switch"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary apple-btn" onclick="factoryManage.closeEditModal()">取消</button>
+                    <button class="btn-primary apple-btn" onclick="factoryManage.saveFactory()">
+                        <span id="saveBtnText">保存</span>
+                        <div class="btn-spinner" id="saveBtnSpinner" style="display: none;"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 🎯 处理服务协议和隐私政策链接 - 优化复选框交互 -->
+    <script>
+        // 🎯 隐私协议复选框切换功能 - 对齐微信小程序交互（健壮性增强）
+        function toggleAgreement() {
+            try {
+                const checkbox = document.getElementById('agreeToTerms');
+                const customCheckbox = document.getElementById('customCheckbox');
+                
+                // 🛡️ 健壮性检查：确保元素存在
+                if (!checkbox || !customCheckbox) {
+                    console.warn('[隐私协议] DOM元素未找到，跳过切换操作');
+                    return;
+                }
+                
+                const checkmark = customCheckbox.querySelector('.checkmark');
+                if (!checkmark) {
+                    console.warn('[隐私协议] checkmark元素未找到');
+                    return;
+                }
+                
+                // 切换状态
+                checkbox.checked = !checkbox.checked;
+                
+                // 🎯 更新视觉状态和本地存储
+                updateAgreementVisualState(checkbox.checked);
+                
+                // 💾 保存状态到sessionStorage（页面会话期间保持）
+                try {
+                    sessionStorage.setItem('agreeToTermsTemp', checkbox.checked ? 'true' : 'false');
+                } catch (storageError) {
+                    console.warn('[隐私协议] 无法保存到sessionStorage:', storageError);
+                }
+                
+                console.log('[隐私协议] 勾选状态:', checkbox.checked);
+                
+            } catch (error) {
+                console.error('[隐私协议] 切换状态时出错:', error);
+                // 🛡️ 出错情况下显示友好提示
+                if (window.Utils && window.Utils.toast) {
+                    window.Utils.toast.error('操作失败，请重试');
+                }
+            }
+        }
+        
+        // 🎯 更新隐私协议视觉状态（复用函数）
+        function updateAgreementVisualState(isChecked) {
+            try {
+                const customCheckbox = document.getElementById('customCheckbox');
+                const checkmark = customCheckbox?.querySelector('.checkmark');
+                
+                if (!customCheckbox || !checkmark) {
+                    return;
+                }
+                
+                if (isChecked) {
+                    customCheckbox.classList.add('checked');
+                    checkmark.style.display = 'block';
+                } else {
+                    customCheckbox.classList.remove('checked');
+                    checkmark.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('[隐私协议] 更新视觉状态时出错:', error);
+            }
+        }
+        
+        // 🎯 初始化隐私协议状态同步
+        function initAgreementState() {
+            try {
+                const checkbox = document.getElementById('agreeToTerms');
+                if (!checkbox) return;
+                
+                // 🔄 从sessionStorage恢复临时状态
+                const savedState = sessionStorage.getItem('agreeToTermsTemp');
+                if (savedState === 'true') {
+                    checkbox.checked = true;
+                    updateAgreementVisualState(true);
+                } else {
+                    checkbox.checked = false;
+                    updateAgreementVisualState(false);
+                }
+                
+                console.log('[隐私协议] 初始化状态:', checkbox.checked);
+                
+            } catch (error) {
+                console.error('[隐私协议] 初始化状态时出错:', error);
+            }
+        }
+        
+        // 显示服务协议
+        function showServiceAgreement() {
+            event.stopPropagation(); // 防止触发复选框
+            window.open('service-agreement.html', '_blank');
+        }
+        
+        // 显示隐私政策
+        function showPrivacyPolicy() {
+            event.stopPropagation(); // 防止触发复选框
+            window.open('privacy-policy.html', '_blank');
+        }
+        
+        // 显示帮助信息
+        function showHelp() {
+            alert('如需帮助，请联系客服或系统管理员。');
+        }
+        
+        // 🎯 用户菜单切换 - 优化交互体验
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) {
+                const isVisible = dropdown.style.display === 'block';
+                dropdown.style.display = isVisible ? 'none' : 'block';
+                
+                // 🎯 更新下拉菜单中的用户信息
+                if (!isVisible) {
+                    updateDropdownUserInfo();
+                }
+            }
+        }
+        
+        // 🎯 更新下拉菜单中的用户信息
+        function updateDropdownUserInfo() {
+            if (window.Auth && window.Auth.getUserInfo) {
+                const userInfo = window.Auth.getUserInfo();
+                
+                const dropdownUserName = document.getElementById('dropdownUserName');
+                const dropdownOrgName = document.getElementById('dropdownOrgName');
+                
+                if (dropdownUserName) {
+                    dropdownUserName.textContent = userInfo.realName || userInfo.username || '用户';
+                }
+                
+                if (dropdownOrgName) {
+                    dropdownOrgName.textContent = userInfo.orgName || userInfo.orgCode || '组织';
+                }
+            }
+        }
+        
+        // 🎯 显示用户资料（占位符功能）
+        function showUserProfile() {
+            // 关闭下拉菜单
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.style.display = 'none';
+            
+            if (window.Utils && window.Utils.toast) {
+                window.Utils.toast.info('个人信息功能开发中...');
+            } else {
+                alert('个人信息功能开发中...');
+            }
+        }
+        
+        // 🎯 确认退出登录 - 增强用户体验
+        function confirmLogout() {
+            // 关闭下拉菜单
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.style.display = 'none';
+            
+            // 使用现代化的确认对话框
+            if (window.Utils && window.Utils.modal) {
+                // 使用自定义模态框（如果可用）
+                window.Utils.modal.confirm(
+                    '确认退出登录？',
+                    '您确定要退出当前账户吗？',
+                    () => performLogout(),
+                    () => console.log('用户取消退出登录')
+                );
+            } else {
+                // 备用方案：使用原生确认框
+                if (confirm('确定要退出登录吗？')) {
+                    performLogout();
+                }
+            }
+        }
+        
+        // 🎯 执行退出登录操作（健壮性增强）
+        function performLogout() {
+            try {
+                console.log('[退出登录] 开始执行退出登录流程');
+                
+                // 🔄 第一优先级：使用Auth模块的logout方法
+                if (window.Auth && typeof window.Auth.logout === 'function') {
+                    console.log('[退出登录] 使用Auth.logout方法');
+                    window.Auth.logout(true);
+                    return;
+                }
+                
+                // 🔄 第二优先级：使用app的logout方法
+                if (window.app && typeof window.app.logout === 'function') {
+                    console.log('[退出登录] 使用app.logout方法');
+                    window.app.logout();
+                    return;
+                }
+                
+                // 🔄 备用退出逻辑：手动清理和重定向
+                console.log('[退出登录] 执行备用退出登录逻辑');
+                
+                // 🧹 清理所有存储数据
+                try {
+                    localStorage.clear();
+                    console.log('[退出登录] localStorage已清理');
+                } catch (localStorageError) {
+                    console.warn('[退出登录] localStorage清理失败:', localStorageError);
+                }
+                
+                try {
+                    sessionStorage.clear();
+                    console.log('[退出登录] sessionStorage已清理');
+                } catch (sessionStorageError) {
+                    console.warn('[退出登录] sessionStorage清理失败:', sessionStorageError);
+                }
+                
+                // 🔄 重新加载页面到登录状态
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+                
+                // 💬 显示成功提示
+                if (window.Utils && window.Utils.toast) {
+                    window.Utils.toast.success('已退出登录');
+                } else {
+                    console.log('[退出登录] 退出登录成功');
+                }
+                
+            } catch (error) {
+                console.error('[退出登录] 退出过程中出错:', error);
+                
+                // 🚨 显示错误提示
+                const errorMessage = '退出登录失败: ' + (error.message || '未知错误');
+                if (window.Utils && window.Utils.toast) {
+                    window.Utils.toast.error(errorMessage);
+                } else {
+                    alert(errorMessage + '\n\n页面将重新加载');
+                }
+                
+                // 🔄 强制重新加载页面（最后的保险措施）
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            }
+        }
+        
+        // 点击外部关闭用户菜单
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('userDropdown');
+            const userMenu = e.target.closest('.user-menu');
+            if (dropdown && !userMenu) {
+                dropdown.style.display = 'none';
+            }
+        });
+        
+        // 点击logo清理缓存功能
+        function clearCacheOnLogoClick() {
+            try {
+                // 清理localStorage
+                if (window.localStorage) {
+                    localStorage.clear();
+                    console.log('[缓存清理] localStorage已清理');
+                }
+                
+                // 清理sessionStorage
+                if (window.sessionStorage) {
+                    sessionStorage.clear();
+                    console.log('[缓存清理] sessionStorage已清理');
+                }
+                
+                // 清理应用缓存（如果Utils可用）
+                if (window.Utils && window.Utils.storage) {
+                    window.Utils.storage.clear();
+                    console.log('[缓存清理] 应用存储已清理');
+                }
+                
+                // 显示清理成功提示
+                if (window.Utils && window.Utils.toast) {
+                    window.Utils.toast.success('缓存已清理！请重新登录');
+                } else {
+                    // 如果Utils不可用，使用原生alert
+                    alert('✅ 缓存已清理！\n\n页面将重新加载，请重新登录。');
+                }
+                
+                // 延迟重新加载页面
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+                
+                console.log('[缓存清理] 缓存清理完成，即将重新加载页面');
+                
+            } catch (error) {
+                console.error('[缓存清理] 清理缓存时出错:', error);
+                alert('❌ 清理缓存时出错: ' + error.message);
+            }
+        }
+        
+        // 🎯 页面初始化 - 设置当前年份和同步隐私协议状态
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                // 设置当前年份
+                const yearElement = document.getElementById('currentYear');
+                if (yearElement) {
+                    yearElement.textContent = new Date().getFullYear();
+                }
+                
+                // 🎯 初始化隐私协议状态同步
+                setTimeout(() => {
+                    initAgreementState();
+                }, 100); // 确保DOM完全加载后再初始化
+                
+                console.log('[页面初始化] DOM加载完成，初始化状态同步');
+                
+            } catch (error) {
+                console.error('[页面初始化] 初始化过程中出错:', error);
+            }
+        });
+        
+        // 导航功能由app.js中的真实函数处理，此处不再需要占位符
+        function showFlowFilterModal() {
+            if (window.flowTable) {
+                window.flowTable.showFilterModal();
+            } else {
+                console.log('显示流水表筛选');
+            }
+        }
+        function exportFlowTable() {
+            if (window.flowTable) {
+                window.flowTable.exportTable();
+            } else {
+                console.log('导出流水表');
+            }
+        }
+        function analyzeLossRate() {
+            if (window.flowTable) {
+                console.log('分析损耗率功能开发中...');
+            } else {
+                console.log('分析损耗率');
+            }
+        }
+        function applyTodayFilter() {
+            if (window.flowTable) {
+                const today = new Date().toISOString().split('T')[0];
+                window.flowTable.setFilters({ startDate: today, endDate: today });
+            } else {
+                console.log('应用今日筛选');
+            }
+        }
+        function applyWeekFilter() {
+            if (window.flowTable) {
+                const now = new Date();
+                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                window.flowTable.setFilters({ 
+                    startDate: weekAgo.toISOString().split('T')[0], 
+                    endDate: now.toISOString().split('T')[0] 
+                });
+            } else {
+                console.log('应用本周筛选');
+            }
+        }
+        function applyMonthFilter() {
+            if (window.flowTable) {
+                const now = new Date();
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                window.flowTable.setFilters({ 
+                    startDate: firstDay.toISOString().split('T')[0], 
+                    endDate: now.toISOString().split('T')[0] 
+                });
+            } else {
+                console.log('应用本月筛选');
+            }
+        }
+        function applyHighLossFilter() {
+            if (window.flowTable) {
+                console.log('高损耗筛选功能开发中...');
+            } else {
+                console.log('应用高损耗筛选');
+            }
+        }
+        function applyRecentFilter() {
+            if (window.flowTable) {
+                window.flowTable.refresh();
+            } else {
+                console.log('应用最近数据筛选');
+            }
+        }
+        function generateStatement() {
+            if (window.statement) {
+                console.log('生成对账单功能开发中...');
+            } else {
+                console.log('生成对账单');
+            }
+        }
+        function exportStatement() {
+            if (window.statement) {
+                window.statement.exportStatement();
+            } else {
+                console.log('导出对账单');
+            }
+        }
+        function logout() { console.log('退出登录'); }
+    </script>
+</body>
+</html> 

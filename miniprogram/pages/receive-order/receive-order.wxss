@@ -111,17 +111,21 @@
 .product-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
-  margin-top: 4rpx;
+  align-items: center;
+  position: relative;
+}
+
+.product-actions-inline {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
 }
 
 .product-tag {
-  display: flex;
-  align-items: center;
-  background-color: #f5f5f7;
-  border-radius: 6rpx;
-  padding: 4rpx 8rpx;
-  font-size: 22rpx;
+  font-size: 26rpx;
+  padding: 10rpx 20rpx;
+  border-radius: 10rpx;
 }
 
 .tag-name {
@@ -145,9 +149,11 @@
 }
 
 .control-item {
+  flex: 1; /* Allow items to share space equally in a row */
   display: flex;
   align-items: center;
-  margin-right: 24rpx;
+  margin-right: 0; /* Remove individual margin, rely on parent's gap */
+  min-width: 0; /* Allow items to shrink properly */
 }
 
 .control-label {
@@ -158,18 +164,35 @@
 }
 
 .control-input {
-  width: 100rpx;
-  height: 56rpx;
-  border: 1rpx solid #d1d1d6;
-  border-radius: 8rpx;
-  text-align: center;
+  flex: 1;
+  background-color: #eee;
+  border-radius: 6rpx;
+  padding: 0 15rpx;
   font-size: 26rpx;
-  color: #1d1d1f;
+  text-align: center;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 明细中的数值和单位容器 */
+.control-value-container {
+  display: flex;
+  align-items: baseline;
+  gap: 2rpx;
 }
 
 .control-value {
   font-size: 26rpx;
   color: #1d1d1f;
+}
+
+.control-unit {
+  font-size: 20rpx;
+  color: #8e8e93;
+  font-weight: 400;
+  margin-left: 2rpx;
 }
 
 .product-actions {
@@ -178,19 +201,35 @@
   gap: 16rpx;
 }
 
-.btn-same-product {
+.btn-same-product.apple-btn {
+  width: 28rpx;
+  height: 28rpx;
+  font-size: 18rpx;
+  border-radius: 14rpx;
+  background: #fff;
+  color: #34C759;
+  border: 2rpx solid #34C759;
+  margin-left: 0;
+  margin-right: 40rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6rpx;
-  width: 48rpx;
-  height: 48rpx;
-  background-color: rgba(0, 113, 227, 0.1);
-  border-radius: 24rpx;
-  border: none;
-  font-size: 32rpx;
   font-weight: bold;
-  color: #0071e3;
+}
+
+.btn-small.btn-danger.apple-btn {
+  width: 28rpx;
+  height: 28rpx;
+  font-size: 18rpx;
+  border-radius: 14rpx;
+  background: #fff;
+  color: #ff3b30;
+  border: 2rpx solid #ff3b30;
+  margin-left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
 }
 
 .btn-icon {
@@ -227,31 +266,6 @@
   padding: 40rpx 0;
   color: #8e8e93;
   font-size: 28rpx;
-}
-
-.product-totals {
-  display: flex;
-  justify-content: space-between;
-  padding: 16rpx 0;
-  border-top: 1rpx solid #e5e5ea;
-  margin-top: 16rpx;
-  align-items: center;
-}
-
-.total-item {
-  font-size: 24rpx;
-  color: #1d1d1f;
-  font-weight: 500;
-  flex: 1;
-  text-align: center;
-}
-
-.total-item:first-child {
-  text-align: left;
-}
-
-.total-item:last-child {
-  text-align: right;
 }
 
 /* === Product Confirm Modal Styles (REVISED Bottom Sheet - Ensure Full Width) === */
@@ -327,7 +341,7 @@
   background-color: #007aff;
   color: #fff;
   border: none;
-  order: 1;
+  order: 2;
 }
 
 /* Style the plus button */
@@ -335,13 +349,13 @@
   width: 70rpx; /* Slightly larger */
   height: 70rpx;
   border-radius: 50%; /* Circle */
-  background-color: #f2f2f7;
-  color: #007aff; 
-  border: 1rpx solid #e5e5ea;
-  box-shadow: none;
+  background-color: #8e44ad;
+  color: #fff; 
+  border: 1rpx solid #8e44ad;
+  box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3);
   font-size: 45rpx; /* Adjust size */
   font-weight: 300;
-  order: 2;
+  order: 1;
   /* display: flex, align-items, justify-content already applied */
 }
 
@@ -445,7 +459,7 @@
 }
 
 .modal-search {
-  padding: 12rpx;
+  padding: 20rpx 12rpx; /* 增加垂直内边距 */
   border-bottom: 1rpx solid #e5e5ea;
 }
 
@@ -538,449 +552,129 @@
   grid-column: span 2; /* 取消按钮占满一行 */
 }
 
-/* 苹果风格全局背景 */
-.apple-bg {
+/* 苹果风全局背景 */
+.page-bg {
+  background: #f5f5f7;
   min-height: 100vh;
-  background: #f7f7fa;
-  padding: 24rpx 0 120rpx 0;
+  padding: 24rpx;
 }
 
-/* 为第一个卡片增加额外的顶部边距 */
-.apple-bg > .apple-card:first-child {
-  margin-top: 20rpx;
-}
-
-/* 卡片分组 */
-.apple-card {
+/* 卡片样式 */
+.card {
   background: #fff;
-  border-radius: 24rpx;
-  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.04);
-  margin: 0 32rpx 32rpx 32rpx;
-  padding: 32rpx 28rpx 24rpx 28rpx;
-}
-
-/* 标题区 */
-.apple-header {
-  background: #fff;
-  padding: 0 32rpx 24rpx 32rpx;
-  border-radius: 0 0 24rpx 24rpx;
-  margin-bottom: 24rpx;
-}
-.apple-title {
-  font-size: 40rpx;
-  font-weight: 700;
-  color: #1d1d1f;
-  text-align: center;
-  margin: 0 0 8rpx 0;
-}
-
-/* 主按钮 */
-.apple-btn-main {
-  background: #007aff;
-  color: #fff;
   border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  margin-bottom: 32rpx;
+  padding: 32rpx;
+}
+
+/* 分区标题 */
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 24rpx;
+  letter-spacing: 1rpx;
+}
+
+/* 苹果风输入框 */
+.apple-input {
+  width: 100%;
+  background: #f0f0f5;
+  border-radius: 12rpx;
+  padding: 20rpx; /* 保持或根据需要调整垂直内边距 */
+  font-size: 28rpx;
+  margin-bottom: 24rpx;
+  border: none;
+  box-sizing: border-box;
+}
+
+/* 苹果风按钮 */
+.apple-btn {
+  background: linear-gradient(90deg, #34C759 0%, #30B0FF 100%);
+  color: #fff;
+  border-radius: 24rpx;
   font-size: 32rpx;
   font-weight: 600;
   padding: 24rpx 0;
+  box-shadow: 0 4rpx 16rpx rgba(52,199,89,0.08);
   margin-top: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,122,255,0.08);
   border: none;
 }
 
-/* 副按钮 */
-.apple-btn-sub {
-  background: #f2f2f7;
-  color: #007aff;
-  border-radius: 16rpx;
-  font-size: 32rpx;
+.apple-btn:active {
+  opacity: 0.85;
+}
+
+/* 优化表单、标签、分组等细节 */
+.form-label, .form-value, .form-textarea {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.form-label {
   font-weight: 500;
-  margin-top: 16rpx;
-  border: none;
-}
-
-/* 输入框、picker统一圆角 */
-.apple-input {
-  background: #f7f7fa;
-  border-radius: 12rpx;
-  border: 1rpx solid #e5e5ea;
-  padding: 20rpx 24rpx;
-  font-size: 30rpx;
-  color: #1d1d1f;
-  margin-top: 8rpx;
   margin-bottom: 8rpx;
 }
-.apple-input.placeholder {
-  color: #b0b0b8;
+
+.form-value {
+  background: #f5f5f5;
+  border-radius: 10rpx;
+  padding: 20rpx;
+  min-height: 40rpx;
 }
 
-/* 货品卡片 */
-.apple-product-card {
-  display: flex;
-  background: #f9f9fb;
-  border-radius: 18rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.03);
+.form-value.apple-input {
+  background: #f0f0f5;
+}
+
+.form-textarea {
+  min-height: 120rpx;
+  border: none;
+  background: #f0f0f5;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
   margin-bottom: 24rpx;
-  padding: 16rpx;
 }
 
-.product-left-col {
-  margin-right: 20rpx;
+/* 优化货品列表、操作按钮等 */
+.product-item {
+  border-radius: 14rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.03);
+  margin-bottom: 20rpx;
+  background: #fafbfc;
+  padding: 20rpx;
 }
 
-.product-image {
-  width: 110rpx;
-  height: 110rpx;
-  border-radius: 12rpx;
-  object-fit: cover;
-  background: #f2f2f7;
-}
-
-.product-details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* 产品名称和工价同行布局 */
-.product-top-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6rpx;
-}
-
-.product-name {
-  font-size: 24rpx;
-  font-weight: 600;
-  color: #86868b;
-  flex: 1;
-  margin-right: 12rpx;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.price-container {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.price-label {
-  font-size: 24rpx;
-  color: #86868b;
-  margin-right: 4rpx;
-}
-
-.price-input {
-  width: 80rpx !important;
-  height: 50rpx !important;
-  padding: 4rpx 8rpx !important;
-  margin: 0 4rpx 0 0 !important;
-  text-align: right;
-  font-size: 26rpx !important;
-  background: #fff !important;
-}
-
-.price-value {
-  font-size: 26rpx;
-  color: #007aff;
-  font-weight: 500;
-  margin-right: 4rpx;
-}
-
-.price-unit {
-  font-size: 22rpx;
-  color: #86868b;
-}
-
-.product-code {
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #1d1d1f;
-  margin-bottom: 8rpx;
-}
-
-/* 优化搜索框样式 */
-.search-input-container {
-  display: flex;
-  align-items: center;
-  background: #f2f2f7;
-  border-radius: 16rpx;
-  padding: 10rpx 20rpx;
-  margin: 0 16rpx;
-  border: 1rpx solid #e5e5ea;
-}
-
-.search-icon {
-  color: #8e8e93;
-  font-size: 32rpx;
-  margin-right: 8rpx;
-}
-
-.search-input {
-  flex: 1;
-  height: 60rpx;
+.product-actions .apple-btn {
+  min-width: 60rpx;
+  padding: 0 16rpx;
   font-size: 28rpx;
-  color: #1d1d1f;
-  border: none;
-  background: transparent;
+  margin-left: 12rpx;
 }
 
-.modal-search {
-  padding: 12rpx;
-  border-bottom: 1rpx solid #e5e5ea;
+.add-product-btn.apple-btn {
+  background: #007AFF;
+  font-size: 30rpx;
+  border-radius: 20rpx;
+  margin-bottom: 0;
+  margin-top: 0;
+  box-shadow: 0 2rpx 8rpx rgba(0,122,255,0.08);
 }
 
-.product-tags {
-  display: flex;
-  gap: 16rpx;
-  margin-bottom: 8rpx;
-}
-.product-tag {
-  background: #f2f2f7;
-  border-radius: 8rpx;
-  padding: 4rpx 12rpx;
-  font-size: 24rpx;
-  color: #007aff;
-}
-.quantity-weight {
-  display: flex;
-  gap: 24rpx;
-  margin-top: 8rpx;
-}
-.control-item {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-.control-label {
-  font-size: 26rpx;
-  color: #86868b;
-}
-.control-input {
-  width: 80rpx;
-  background: #fff;
-  border-radius: 8rpx;
-  border: 1rpx solid #e5e5ea;
-  padding: 8rpx 12rpx;
-  font-size: 28rpx;
-  color: #1d1d1f;
-}
-.product-actions {
-  display: flex;
-  gap: 16rpx;
-  margin-top: 12rpx;
+/* 优化弹窗 */
+.product-modal .modal-content.card {
+  border-radius: 18rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.08);
+  padding: 32rpx 24rpx;
 }
 
-/* 底部操作区 */
-.apple-footer {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #fff;
-  box-shadow: 0 -2rpx 16rpx rgba(0,0,0,0.04);
-  padding: 24rpx 32rpx 32rpx 32rpx;
-  display: flex;
-  gap: 24rpx;
-  z-index: 99;
+.product-modal .apple-input {
+  margin-bottom: 16rpx;
 }
 
-/* 适配弹窗、picker等控件的圆角和主色 */
-.picker-arrow {
-  border: solid #b0b0b8;
-  border-width: 0 4rpx 4rpx 0;
-  display: inline-block;
-  padding: 6rpx;
-  margin-left: 8rpx;
-  transform: rotate(45deg);
-}
-
-/* 备注输入框优化 */
-.form-textarea.apple-input {
-  min-height: 80rpx;
-  resize: none;
-}
-
-/* 其它细节可根据实际效果微调 */
-
-/* 备注图片功能样式 */
-.remark-images {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-  margin-top: 16rpx;
-}
-.remark-image-item {
-  position: relative;
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 16rpx;
-  overflow: hidden;
-  background: #f2f2f7;
-}
-.remark-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 16rpx;
-}
-.remark-image-delete {
-  position: absolute;
-  top: 4rpx;
-  right: 4rpx;
-  width: 32rpx;
-  height: 32rpx;
-  background: rgba(0,0,0,0.5);
-  color: #fff;
-  border-radius: 50%;
-  text-align: center;
-  line-height: 32rpx;
-  font-size: 28rpx;
-  z-index: 2;
-}
-.remark-image-add {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 16rpx;
-  background: #e5e5ea;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #b0b0b8;
-  font-size: 48rpx;
-  cursor: pointer;
-}
-
-/* === Product Select Modal Styles (Optimized) === */
-
-/* Make the modal full width */
-.product-modal .modal-content {
-  width: 100%; /* Set width to full screen */
-  max-width: 100%; /* Ensure it can reach full width */
-  border-radius: 16rpx 16rpx 0 0; /* Keep top radius, remove bottom for bottom sheet style */
-  position: fixed; /* Change position to fixed */
-  bottom: 0; /* Align to bottom */
-  left: 0;
-  top: auto; /* Override previous top alignment */
-  transform: translateY(100%); /* Initial state off-screen */
-  transition: transform 0.3s ease-out; /* Add transition */
-  max-height: 75vh; /* Adjust max height for bottom sheet */
-  /* Remove transform: translate(-50%, -50%) if it exists from previous styles */
-}
-
-/* Style for when the modal is shown */
-.product-modal.show .modal-content {
-  transform: translateY(0); /* Slide up */
-}
-
-/* Ensure modal mask covers the screen */
-.product-modal .modal-mask {
-  /* Existing mask styles should be okay */
-}
-
-/* Adjust modal body padding if necessary */
-.product-modal .modal-body {
-  padding: 10rpx 0 20rpx; /* Reduce top/bottom padding */
-}
-
-/* Style the product selection list container */
-.product-select-list {
-  padding: 0 20rpx; /* Adjust horizontal padding */
-}
-
-/* Style individual list items (cards) */
-.product-select-list .list-item-override {
-  padding: 12rpx 16rpx; /* Reduce item padding */
-  margin-bottom: 12rpx; /* Reduce space between items */
-  border-radius: 12rpx; /* Apple-style radius */
-  background-color: #f9f9fb; /* Lighter background for item */
-  border: none; /* Remove border */
-  box-shadow: none; /* Remove individual shadow, modal has shadow */
-  display: flex; /* Ensure flex layout */
-  align-items: center; /* Center vertically */
-}
-
-/* Adjust item content layout */
-.list-item-content {
-  display: flex;
-  align-items: center;
-  width: 100%; /* Ensure content takes full width */
-}
-
-/* Make the image smaller */
-.list-item-image {
-  width: 80rpx; /* Smaller image */
-  height: 80rpx;
-  border-radius: 8rpx; /* Consistent radius */
-  margin-right: 16rpx; /* Adjust spacing */
-  background-color: #e5e5ea; /* Placeholder color */
-  flex-shrink: 0;
-}
-
-/* Style the details section */
-.list-item-details {
-  flex: 1; /* Allow details to take remaining space */
-  overflow: hidden; /* Prevent text overflow issues */
-}
-
-/* Make product code smaller and lighter */
-.list-item-code {
-  font-size: 24rpx; /* Smaller font */
-  color: #8e8e93; /* Lighter color */
-  margin-bottom: 4rpx; /* Reduce spacing */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Adjust product name style */
-.list-item-name {
-  font-size: 28rpx; /* Slightly smaller font */
-  color: #1d1d1f; /* Standard dark text */
-  font-weight: 400; /* Regular weight */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Ensure modal header/search/empty state styles are consistent */
-.product-modal .modal-header {
-  padding: 24rpx 30rpx; /* Adjust padding */
-  border-bottom: 1rpx solid #f0f0f0;
-}
-
-.product-modal .modal-title {
-  font-size: 32rpx; /* Standard title size */
-  font-weight: 600;
-}
-
-.product-modal .modal-close {
-  /* Standard close button style */
-}
-
-.product-modal .modal-search {
-  padding: 16rpx 30rpx; /* Adjust search padding */
-}
-
-.product-modal .search-input-container {
-  /* Consistent search bar style */
-}
-
-.product-modal .search-input {
-  height: 64rpx; /* Adjust search input height */
-}
-
-.product-modal .empty-search {
-  padding: 40rpx 0; /* Adjust empty state padding */
-}
-
-.product-modal .empty-text {
-  font-size: 26rpx; /* Adjust empty state text size */
-}
-
-/* === End Product Select Modal Styles === */
+/* 其它细节优化可按需补充 */
 
 /* 支付方式和金额 */
 .payment-group {
@@ -1463,8 +1157,18 @@
 }
 
 .modal-search {
-  padding: 20rpx 30rpx;
-  border-bottom: 1px solid #e5e5ea;
+  padding: 20rpx 30rpx; /* 调整内边距使其与列表项对齐 */
+  border-bottom: 1rpx solid #e5e5ea;
+}
+
+/* 新增：为产品选择弹窗内的搜索输入框 apple-input 设置样式 */
+.product-modal .modal-search .apple-input {
+  height: 80rpx; /* 设置一个合适的高度 */
+  line-height: 80rpx; /* 垂直居中文本 */
+  padding: 0 20rpx; /* 根据需要调整水平内边距 */
+  /* 可以根据需要覆盖其他 apple-input 的样式 */
+  background-color: #f2f2f7; /* 确保背景色 */
+  border-radius: 10rpx; /* 确保圆角 */
 }
 
 .search-input-container {
@@ -1482,7 +1186,9 @@
 
 .search-input {
   flex: 1;
-  height: 72rpx;
+  height: 80rpx; /* 设置一个合适的高度 */
+  line-height: 80rpx; /* 垂直居中文本 */
+  padding: 0 20rpx; /* 根据需要调整水平内边距 */
   font-size: 28rpx;
   background-color: transparent;
 }
@@ -1672,6 +1378,11 @@ input.quantity-input, input.weight-input, input.price-input {
   font-size: 30rpx;
 }
 
+/* 隐藏货品编辑弹窗中颜色和尺码选择的下拉箭头 */
+.product-confirm-modal .product-edit-form .edit-form-value .picker-arrow {
+  display: none;
+}
+
 .modal-actions {
   padding: 20rpx 30rpx 30rpx; /* Adjusted padding */
   display: flex; /* Use flex for button layout */
@@ -1686,14 +1397,14 @@ input.quantity-input, input.weight-input, input.price-input {
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background-color: #007aff;
+  background-color: #8e44ad;
   color: #fff;
   font-size: 50rpx;
   display: flex;
   justify-content: center;
   align-items: center;
   margin-bottom: 30rpx;
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3);
 }
 
 .full-width-btn {
@@ -1764,4 +1475,525 @@ button.btn-default {
 .checkbox-inner {
   width: 8rpx; /* 缩小内部圆点 */
   height: 8rpx;
+}
+
+.footer-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40rpx;
+  padding: 0 20rpx 40rpx;
+}
+
+.footer-actions button {
+  min-width: 220rpx;
+  margin: 0;
+}
+
+/* 基础信息卡片（仅在查看模式显示，精简版，横向排列） */
+.info-simple-header {
+  background: #f2f2f7; /* 苹果风格浅灰色背景 */
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 32rpx;
+}
+
+.info-row-horizontal {
+  display: flex;
+  /* justify-content: space-between; */ /* 移除空间分散 */
+  align-items: flex-start; /* 顶部对齐，确保标签和值顶部对齐 */
+  gap: 150rpx; /* 增大列之间的间距，将工序往右移动到中线偏右位置 */
+}
+
+.info-item-col {
+  display: flex; /* 保持flex布局 */
+  flex-direction: column; /* 保持垂直排列 */
+  /* flex: 1; */ /* 移除 flex: 1 让列宽根据内容自适应 */
+  flex-shrink: 0; /* 防止被压缩 */
+  /* 可以考虑给一个最小宽度 */
+  min-width: 120rpx; /* 示例：给列一个最小宽度 */
+  /* 根据需要调整文本对齐方式 */
+  text-align: left; /* 默认左对齐 */
+}
+
+.info-label {
+  font-size: 28rpx;
+  color: #888;
+  width: 120rpx;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 30rpx;
+  color: #222;
+  font-weight: 600;
+}
+
+.quantity-input, .weight-input {
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  font-size: 32rpx;
+}
+
+/* 工厂账户状态样式 */
+.factory-account-status {
+  display: flex;
+  align-items: center;
+  margin-top: 12rpx;
+  font-size: 18rpx; /* 将字体从28rpx调小18rpx */
+}
+
+.account-status-label {
+  color: #86868b;
+  font-size: 24rpx; /* 明确设置标签的字体大小 */
+}
+
+.account-status-value {
+  margin-left: 8rpx;
+  font-size: 24rpx; /* 明确设置值的字体大小 */
+}
+
+.balance-positive {
+  color: #34c759;
+  font-weight: 600;
+}
+
+.balance-negative {
+  color: #ff3b30;
+  font-weight: 600;
+}
+
+.balance-zero {
+  color: #b0b0b8;
+}
+
+/* ========== 工厂搜索相关样式 ========== */
+.factory-search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.factory-search-container input {
+  flex: 1;
+  padding-right: 50rpx; /* 为搜索图标留空间 */
+}
+
+.search-icon {
+  position: absolute;
+  right: 15rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 28rpx;
+  color: #666;
+  padding: 5rpx;
+}
+
+.selected-factory-display {
+  font-size: 24rpx;
+  color: #3875FF;
+  margin-top: 8rpx;
+  padding: 8rpx 12rpx;
+  background-color: rgba(56, 117, 255, 0.1);
+  border-radius: 6rpx;
+}
+
+/* 工厂搜索弹窗 */
+.factory-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: none;
+}
+
+.factory-modal.show {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.factory-modal .modal-content {
+  width: 90%;
+  max-width: 600rpx;
+  max-height: 80%;
+  background-color: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+}
+
+.factory-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #e5e5e5;
+  background-color: #f9f9f9;
+}
+
+.factory-modal .modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.factory-modal .modal-close {
+  font-size: 40rpx;
+  color: #666;
+  padding: 8rpx;
+  line-height: 1;
+}
+
+.factory-modal .modal-search {
+  padding: 24rpx 30rpx;
+  border-bottom: 1rpx solid #e5e5e5;
+}
+
+.factory-modal .modal-search input {
+  width: 100%;
+  height: 72rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  border: 1rpx solid #e5e5e5;
+  border-radius: 10rpx;
+  background-color: #f9f9f9;
+}
+
+.factory-modal .modal-body {
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.factory-select-list {
+  padding: 20rpx;
+}
+
+.factory-item {
+  margin-bottom: 16rpx;
+  border: 1rpx solid #e5e5e5;
+  border-radius: 12rpx;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.factory-item:last-child {
+  margin-bottom: 0;
+}
+
+.factory-item:active {
+  background-color: #f0f0f0;
+  transform: scale(0.98);
+}
+
+.factory-item .list-item-content {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  position: relative;
+}
+
+.factory-icon {
+  font-size: 40rpx;
+  margin-right: 20rpx;
+  width: 50rpx;
+  text-align: center;
+}
+
+.factory-item .list-item-details {
+  flex: 1;
+  overflow: hidden;
+}
+
+.factory-item .list-item-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.factory-item .list-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.factory-phone, .factory-address {
+  font-size: 24rpx;
+  color: #666;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.select-check {
+  position: absolute;
+  right: 24rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 32rpx;
+  color: #3875FF;
+  font-weight: bold;
+}
+
+.empty-search {
+  padding: 60rpx 30rpx;
+  text-align: center;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* ========== 苹果简约风工厂下拉搜索样式 ========== */
+.factory-dropdown-container {
+  position: relative;
+  z-index: 100;
+}
+
+.factory-search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* 工厂输入框特定样式 - 与工序框保持一致的高度 */
+.factory-search-input-wrapper .apple-input {
+  height: 80rpx;
+  line-height: 80rpx;
+  padding: 0 50rpx 0 20rpx;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  min-height: 80rpx;
+  background: #f5f5f5;
+  border-radius: 10rpx;
+}
+
+.factory-search-input-wrapper .search-icon {
+  position: absolute;
+  right: 20rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 28rpx;
+  color: #8e8e93;
+  pointer-events: none;
+}
+
+.factory-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12), 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-8rpx);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  z-index: 1000;
+  margin-top: 8rpx;
+}
+
+.factory-dropdown.show {
+  max-height: 400rpx;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dropdown-scroll {
+  max-height: 400rpx;
+  padding: 8rpx 0;
+}
+
+.dropdown-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 20rpx;
+  color: #8e8e93;
+}
+
+.dropdown-empty .empty-icon {
+  font-size: 48rpx;
+  margin-bottom: 12rpx;
+  opacity: 0.6;
+}
+
+.dropdown-empty .empty-text {
+  font-size: 24rpx;
+  color: #8e8e93;
+}
+
+.factory-dropdown-list {
+  padding: 0;
+}
+
+.factory-dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  margin: 0 8rpx;
+  border-radius: 12rpx;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.factory-dropdown-item:hover {
+  background: rgba(0, 122, 255, 0.08);
+}
+
+.factory-dropdown-item:active {
+  background: rgba(0, 122, 255, 0.15);
+  transform: scale(0.98);
+}
+
+.factory-dropdown-item.selected {
+  background: rgba(0, 122, 255, 0.1);
+}
+
+.factory-dropdown-item.selected::before {
+  content: '';
+  position: absolute;
+  left: 8rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4rpx;
+  height: 32rpx;
+  background: #007aff;
+  border-radius: 2rpx;
+}
+
+.factory-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.factory-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 4rpx;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.factory-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.factory-phone,
+.factory-address {
+  font-size: 22rpx;
+  color: #8e8e93;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.check-mark {
+  font-size: 28rpx;
+  color: #007aff;
+  font-weight: 600;
+  margin-left: 12rpx;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.2s ease;
+}
+
+.factory-dropdown-item.selected .check-mark {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.selected-factory-display {
+  font-size: 24rpx;
+  color: #007aff;
+  margin-top: 8rpx;
+  padding: 8rpx 12rpx;
+  background: rgba(0, 122, 255, 0.08);
+  border-radius: 8rpx;
+  border: 1rpx solid rgba(0, 122, 255, 0.2);
+}
+
+/* 响应式适配 */
+@media (max-width: 750rpx) {
+  .factory-dropdown {
+    margin-left: -8rpx;
+    margin-right: -8rpx;
+    border-radius: 12rpx;
+  }
+  
+  .factory-dropdown-item {
+    margin: 0 4rpx;
+    padding: 14rpx 16rpx;
+  }
+  
+  .factory-name {
+    font-size: 26rpx;
+  }
+  
+  .factory-phone,
+  .factory-address {
+    font-size: 20rpx;
+  }
+}
+
+/* 合计栏样式优化 */
+.product-totals {
+  display: flex;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-top: 1rpx solid #e5e5ea;
+  margin-top: 16rpx;
+  align-items: center;
+}
+
+.total-item {
+  display: flex;
+  align-items: baseline;
+  gap: 2rpx;
+  flex: 1;
+  justify-content: center;
+}
+
+.total-item:first-child {
+  justify-content: flex-start;
+}
+
+.total-item:last-child {
+  justify-content: flex-end;
+}
+
+.total-label {
+  font-size: 24rpx;
+  color: #1d1d1f;
+  font-weight: 500;
+}
+
+.total-value {
+  font-size: 24rpx;
+  color: #1d1d1f;
+  font-weight: 600;
+}
+
+.total-unit {
+  font-size: 20rpx;
+  color: #8e8e93;
+  font-weight: 400;
+  margin-left: 2rpx;
 }

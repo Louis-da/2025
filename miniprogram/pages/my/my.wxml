@@ -1,116 +1,324 @@
-<view class="container">
-  <!-- 会员信息（左上角，超小） -->
-  <view class="mini-membership-info">
-    <view class="mini-info-row">
-      <text class="mini-label">会员类型: </text>
-      <text class="mini-value">{{membershipType || '标准版'}}</text>
-    </view>
-    <view class="mini-info-row">
-      <text class="mini-label">剩余: </text>
-      <text class="mini-value {{remainingDays < 30 ? 'warning' : ''}}">
-        {{remainingDays || 0}}天{{remainingHours || 0}}时
-      </text>
-    </view>
-    <view class="mini-info-row">
-      <text class="mini-label">到期: </text>
-      <text class="mini-value">{{expiryDate || '暂无'}}</text>
-    </view>
-  </view>
-  
-  <!-- 头像居中 -->
-  <view class="centered-avatar-section">
-    <view class="avatar-container" bindtap="showEditProfile">
-      <image class="avatar" src="{{avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
-      <view class="avatar-edit-hint show-hint">
-        <view class="edit-hint-text">点击编辑</view>
+<view class="ai-container">
+  <!-- AI智能头部区域 -->
+  <view class="ai-header">
+    <view class="ai-header-content">
+      <view class="ai-title-section">
+        <view class="ai-icon">👤</view>
+        <view class="ai-title-info">
+          <text class="ai-title">个人中心</text>
+        </view>
+      </view>
+      <view class="ai-status-indicator">
+        <view class="status-dot active"></view>
+        <text class="status-text">在线</text>
       </view>
     </view>
-    
-    <view class="user-info">
-      <view class="username">{{username || '未知用户'}}</view>
-      <view class="role-tag">{{role || '普通用户'}}</view>
-    </view>
   </view>
-  
-  <!-- 组织信息（位于头像下方） -->
-  <view class="org-info-section">
-    <view class="org-info-item">
-      <text class="org-info-label">公司名称</text>
-      <text class="org-info-value">{{companyName || '未设置公司名称'}}</text>
+
+  <!-- AI智能用户卡片 -->
+  <view class="ai-user-card">
+    <view class="user-card-background">
+      <view class="background-pattern"></view>
     </view>
     
-    <view class="org-info-item">
-      <text class="org-info-label">组织ID</text>
-      <text class="org-info-value">{{orgId || '未知组织'}}</text>
-    </view>
-    
-    <view class="org-info-item">
-      <text class="org-info-label">创建时间</text>
-      <text class="org-info-value">{{creationDate || '暂无数据'}}</text>
-    </view>
-    
-    <view class="org-info-item">
-      <text class="org-info-label">使用天数</text>
-      <text class="org-info-value">{{usageDays || 0}} 天</text>
-    </view>
-  </view>
-  
-  <!-- 操作区域 -->
-  <view class="action-area">
-    <button class="logout-btn" bindtap="logout">退出登录</button>
-  </view>
-  
-  <!-- 编辑个人资料弹窗 -->
-  <view class="edit-modal" wx:if="{{showEditModal}}">
-    <view class="edit-modal-content">
-      <view class="edit-modal-header">
-        <text class="edit-modal-title">编辑个人资料</text>
-        <view class="edit-modal-close" bindtap="closeEditModal">×</view>
+    <view class="user-card-content">
+      <!-- 头像区域 -->
+      <view class="ai-avatar-section" bindtap="showEditProfile">
+        <view class="avatar-container">
+          <image class="ai-avatar" src="{{avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+          <view class="avatar-ring"></view>
+          <view class="avatar-edit-indicator">
+            <view class="edit-icon">✏️</view>
+          </view>
+        </view>
       </view>
       
-      <view class="edit-modal-body">
-        <!-- 头像选择 -->
-        <view class="edit-avatar-section">
+      <!-- 用户信息 -->
+      <view class="ai-user-info">
+        <view class="username-section">
+          <!-- 所有角色都显示角色标签 -->
+          <view class="role-badge">{{role}}</view>
+        </view>
+        <!-- 所有角色都显示姓名（单独一行） -->
+        <view class="real-name">{{employeeName || realName || username}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- AI智能信息卡片组 -->
+  <view class="ai-info-cards">
+    <!-- 组织信息卡片 -->
+    <view class="ai-info-card organization-card">
+      <view class="card-header">
+        <view class="card-icon">🏢</view>
+        <text class="card-title">{{canEdit ? '组织信息' : '个人信息'}}</text>
+      </view>
+      <view class="card-content">
+        <!-- 统一简化显示：公司名称、组织编码、工号、姓名 -->
+        <view class="info-item">
+          <view class="info-label">公司名称</view>
+          <view class="info-value">{{companyName || '未设置公司名称'}}</view>
+        </view>
+        <view class="info-item">
+          <view class="info-label">组织编码</view>
+          <view class="info-value">{{orgId || '未知组织'}}</view>
+        </view>
+        <view class="info-item">
+          <view class="info-label">工号</view>
+          <view class="info-value">{{employeeId || '未设置工号'}}</view>
+        </view>
+        <view class="info-item">
+          <view class="info-label">姓名</view>
+          <view class="info-value">{{employeeName || realName || '未设置姓名'}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 用户管理卡片（仅老板角色可见） -->
+    <view class="ai-info-card user-manage-card" wx:if="{{isBoss}}" bindtap="showUserManage">
+      <view class="card-header">
+        <view class="card-icon">👥</view>
+        <text class="card-title">用户管理</text>
+        <view class="card-arrow">▶</view>
+      </view>
+      <view class="card-content">
+        <view class="info-item">
+          <view class="info-label">管理权限</view>
+          <view class="info-value">编辑员工信息、重置密码</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- AI智能编辑弹窗 -->
+  <view class="ai-modal-mask" wx:if="{{showEditModal}}" bindtap="closeEditModal" catchtouchmove="preventTouchMove"></view>
+  <view class="ai-modal-dialog edit-profile-dialog" wx:if="{{showEditModal}}">
+    <view class="ai-modal-header">
+      <view class="modal-title-content">
+        <view class="modal-icon">✏️</view>
+        <text class="modal-title">编辑个人资料</text>
+      </view>
+      <view class="modal-close-btn" bindtap="closeEditModal">×</view>
+    </view>
+    
+    <view class="ai-modal-content">
+      <!-- AI头像编辑区域 -->
+      <view class="ai-avatar-edit-section">
+        <view class="edit-avatar-container">
           <image class="edit-avatar" src="{{editData.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
-          <button class="change-avatar-btn" bindtap="chooseNewAvatar">更换头像</button>
+          <view class="edit-avatar-overlay" bindtap="chooseNewAvatar">
+            <view class="camera-icon">📷</view>
+            <text class="change-text">更换头像</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- AI表单区域 -->
+      <view class="ai-form-section">
+        <view class="ai-form-item" wx:if="{{canEdit}}">
+          <view class="form-label">
+            <view class="label-icon">🏢</view>
+            <text>公司名称</text>
+          </view>
+          <view class="ai-form-input-wrapper">
+            <input class="ai-form-input" value="{{editData.companyName}}" data-field="companyName" bindinput="onInputChange" placeholder="请输入公司名称" />
+          </view>
         </view>
         
-        <!-- 信息编辑 -->
-        <view class="edit-form">
-          <view class="form-item">
-            <text class="form-label">公司名称</text>
-            <input class="form-input" value="{{editData.companyName}}" data-field="companyName" bindinput="onInputChange" placeholder="请输入公司名称" />
+        <view class="ai-form-item" wx:if="{{canEdit && !isBoss}}">
+          <view class="form-label">
+            <view class="label-icon">👤</view>
+            <text>员工姓名</text>
+          </view>
+          <view class="ai-form-input-wrapper">
+            <input class="ai-form-input" value="{{editData.employeeName}}" data-field="employeeName" bindinput="onInputChange" placeholder="请输入员工姓名" />
+          </view>
+        </view>
+        
+        <view class="ai-form-item" wx:if="{{canEdit && !isBoss}}">
+          <view class="form-label">
+            <view class="label-icon">🆔</view>
+            <text>工号</text>
+          </view>
+          <view class="ai-form-input-wrapper">
+            <input class="ai-form-input" value="{{editData.employeeId}}" data-field="employeeId" bindinput="onInputChange" placeholder="请输入工号" />
+          </view>
+        </view>
+        
+        <!-- 密码修改切换（所有用户都可以修改密码） -->
+        <view class="password-toggle-section">
+          <view class="toggle-header" bindtap="togglePasswordSection">
+            <view class="toggle-icon">{{showPasswordSection ? '🔒' : '🔓'}}</view>
+            <text class="toggle-text">{{showPasswordSection ? '取消修改密码' : '修改密码'}}</text>
+            <view class="toggle-arrow {{showPasswordSection ? 'expanded' : ''}}">▼</view>
+          </view>
+        </view>
+        
+        <!-- 密码修改区域（所有用户都可以修改密码） -->
+        <view class="password-section {{showPasswordSection ? 'expanded' : 'collapsed'}}">
+          <view class="ai-form-item">
+            <view class="form-label">
+              <view class="label-icon">🔐</view>
+              <text>原密码</text>
+            </view>
+            <view class="ai-form-input-wrapper">
+              <input class="ai-form-input" password="true" value="{{editData.oldPassword}}" data-field="oldPassword" bindinput="onInputChange" placeholder="请输入原密码" />
+            </view>
           </view>
           
-          <!-- 密码修改区域切换 -->
-          <view class="password-toggle" bindtap="togglePasswordSection">
-            <text>{{showPasswordSection ? '取消修改密码' : '修改密码'}}</text>
+          <view class="ai-form-item">
+            <view class="form-label">
+              <view class="label-icon">🆕</view>
+              <text>新密码</text>
+            </view>
+            <view class="ai-form-input-wrapper">
+              <input class="ai-form-input" password="true" value="{{editData.newPassword}}" data-field="newPassword" bindinput="onInputChange" placeholder="请输入新密码" />
+            </view>
           </view>
           
-          <!-- 密码修改区域 -->
-          <block wx:if="{{showPasswordSection}}">
-            <view class="form-item">
-              <text class="form-label">原密码</text>
-              <input class="form-input" password="true" value="{{editData.oldPassword}}" data-field="oldPassword" bindinput="onInputChange" placeholder="请输入原密码" />
+          <view class="ai-form-item">
+            <view class="form-label">
+              <view class="label-icon">✅</view>
+              <text>确认密码</text>
             </view>
-            
-            <view class="form-item">
-              <text class="form-label">新密码</text>
-              <input class="form-input" password="true" value="{{editData.newPassword}}" data-field="newPassword" bindinput="onInputChange" placeholder="请输入新密码" />
+            <view class="ai-form-input-wrapper">
+              <input class="ai-form-input" password="true" value="{{editData.confirmPassword}}" data-field="confirmPassword" bindinput="onInputChange" placeholder="请再次输入新密码" />
             </view>
-            
-            <view class="form-item">
-              <text class="form-label">确认密码</text>
-              <input class="form-input" password="true" value="{{editData.confirmPassword}}" data-field="confirmPassword" bindinput="onInputChange" placeholder="请再次输入新密码" />
-            </view>
-          </block>
+          </view>
         </view>
       </view>
-      
-      <view class="edit-modal-footer">
-        <button class="cancel-btn" bindtap="closeEditModal">取消</button>
-        <button class="save-btn" bindtap="saveProfile" loading="{{submitting}}">保存</button>
+    </view>
+    
+    <view class="ai-modal-footer">
+      <button class="ai-modal-btn cancel" bindtap="closeEditModal">取消</button>
+      <button class="ai-modal-btn confirm" bindtap="saveProfile" loading="{{submitting}}">保存</button>
+    </view>
+  </view>
+
+  <!-- 用户管理弹窗（老板角色专用） -->
+  <view class="ai-modal-mask" wx:if="{{showUserManageModal}}" bindtap="closeUserManageModal" catchtouchmove="preventTouchMove"></view>
+  <view class="ai-modal-dialog user-manage-dialog" wx:if="{{showUserManageModal}}">
+    <view class="ai-modal-header">
+      <view class="modal-title-content">
+        <view class="modal-icon">👥</view>
+        <text class="modal-title">用户管理</text>
+      </view>
+      <view class="modal-close-btn" bindtap="closeUserManageModal">×</view>
+    </view>
+    
+    <view class="ai-modal-content">
+      <view class="user-list-container">
+        <view class="user-list-header">
+          <text class="list-title">组织成员列表</text>
+          <text class="list-count">{{orgUsers.length}}人</text>
+        </view>
+        
+        <view class="loading-container" wx:if="{{loadingUsers}}">
+          <view class="loading-spinner"></view>
+          <text class="loading-text">加载中...</text>
+        </view>
+        
+        <view class="user-list" wx:else>
+          <view class="user-item" wx:for="{{orgUsers}}" wx:key="index">
+            <view class="user-main-info">
+              <text class="user-id">{{item.username}}</text>
+              <text class="user-name">{{item.real_name}}</text>
+              <view class="user-role">{{item.role}}</view>
+            </view>
+            
+            <view class="user-actions" wx:if="{{item.roleId !== 1}}">
+              <button class="action-btn edit" data-user="{{item}}" bindtap="editOrgUser">编辑</button>
+              <button class="action-btn reset" data-user="{{item}}" bindtap="resetUserPassword">密码重置</button>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
+    
+    <view class="ai-modal-footer">
+      <button class="ai-modal-btn cancel" bindtap="closeUserManageModal">关闭</button>
+    </view>
+  </view>
+
+  <!-- 用户编辑弹窗（工号姓名同时编辑） -->
+  <view class="ai-modal-mask" wx:if="{{showUserEditModal}}" bindtap="closeUserEditModal" catchtouchmove="preventTouchMove"></view>
+  <view class="ai-modal-dialog user-edit-dialog" wx:if="{{showUserEditModal}}">
+    <view class="ai-modal-header">
+      <view class="modal-title-content">
+        <view class="modal-icon">✏️</view>
+        <text class="modal-title">编辑用户信息</text>
+      </view>
+      <view class="modal-close-btn" bindtap="closeUserEditModal">×</view>
+    </view>
+    
+    <view class="ai-modal-content">
+      <view class="user-edit-form">
+        <view class="edit-form-item">
+          <view class="form-label">
+            <view class="label-icon">🆔</view>
+            <text>工号</text>
+          </view>
+          <view class="form-input-wrapper">
+            <input 
+              class="form-input" 
+              value="{{userEditData.username}}" 
+              data-field="username" 
+              bindinput="onUserEditInputChange" 
+              placeholder="请输入工号（3-20位字母数字下划线）" 
+              maxlength="20"
+            />
+          </view>
+        </view>
+        
+        <view class="edit-form-item">
+          <view class="form-label">
+            <view class="label-icon">👤</view>
+            <text>姓名</text>
+          </view>
+          <view class="form-input-wrapper">
+            <input 
+              class="form-input" 
+              value="{{userEditData.real_name}}" 
+              data-field="real_name" 
+              bindinput="onUserEditInputChange" 
+              placeholder="请输入真实姓名" 
+              maxlength="50"
+            />
+          </view>
+        </view>
+        
+        <view class="edit-form-item" wx:if="{{editingUser && (editingUser.roleId === 3 || editingUser.roleId === 4)}}">
+          <view class="form-label">
+            <view class="label-icon">🏷️</view>
+            <text>角色</text>
+          </view>
+          <view class="form-input-wrapper">
+            <picker 
+              bindchange="onRoleChange" 
+              value="{{userEditData.roleIndex}}" 
+              range="{{roleOptions}}" 
+              range-key="name"
+            >
+              <view class="form-input picker-input">
+                {{userEditData.roleName || '请选择角色'}}
+                <view class="picker-arrow">▼</view>
+              </view>
+            </picker>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="ai-modal-footer">
+      <button class="ai-modal-btn cancel" bindtap="closeUserEditModal">取消</button>
+      <button class="ai-modal-btn confirm" bindtap="saveUserEdit" loading="{{userSubmitting}}">保存</button>
+    </view>
+  </view>
+
+  <!-- 退出登录按钮 - 固定在底部 -->
+  <view class="logout-section-bottom">
+    <button class="logout-btn" bindtap="logout">
+      <text class="logout-text">退出登录</text>
+    </button>
   </view>
 </view>

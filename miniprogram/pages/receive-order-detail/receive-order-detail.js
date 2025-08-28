@@ -1,35 +1,31 @@
 const app = getApp()
 const api = require('../../utils/api');
+const { formatDateTimeToMinute } = require('../../utils/datetime'); // 引入日期格式化
+const { getFullImageUrl } = require('../../utils/image'); // 引入图片处理
 
 Page({
   data: {
     orderId: '',
     order: null,
     loading: true,
-    canEdit: false  // 是否可以编辑，取决于订单状态
+    canEdit: false,  // 是否可以编辑，取决于订单状态
+    orderStatus: '' // <<< 添加 orderStatus
   },
 
-  onLoad: function (options) {
+  // +++ 添加 getFullImageUrl 到 Page，供 WXML 使用 +++
+  getFullImageUrl: getFullImageUrl,
+
+  onLoad(options) {
     if (options.id) {
-      this.setData({
-        orderId: options.id
-      })
-      this.fetchOrderDetail(options.id)
-    } else {
-      wx.showToast({
-        title: '订单参数错误',
-        icon: 'error'
-      })
-      setTimeout(() => {
-        wx.navigateBack()
-      }, 1500)
+      this.setData({ orderId: options.id });
+      this.fetchOrderDetail(options.id);
     }
   },
 
-  onShow: function () {
-    // 页面显示时可能需要刷新数据（如从编辑页返回）
-    if (this.data.orderId && !this.data.loading) {
-      this.fetchOrderDetail(this.data.orderId)
+  onShow() {
+    // 刷新订单数据，确保状态最新
+    if (this.data.orderId) {
+      this.fetchOrderDetail(this.data.orderId);
     }
   },
 
@@ -39,20 +35,41 @@ Page({
     // 调用自建后端API获取订单详情
     api.getOrderDetail(id).then(res => {
       if (res && res.data) {
-        const canEdit = res.data.status === 'pending';
+        // 确保证书状态可以编辑产品行项目
+        const canEdit = res.data.status === 'pending' || res.data.status === 'normal'; // pending 或 normal 可编辑
+        
+        // 准备要设置的数据，确保基础信息字段存在
         const orderData = {
           ...res.data,
-          orderNo: res.data.orderNo || res.data.id
+          orderNo: res.data.orderNo || res.data.id,
+          factoryName: res.data.factoryName || '-', // <<< 确保证书字段
+          processName: res.data.processName || '-', // <<< 确保证书字段
+          // 格式化时间用于显示
+          createTime: res.data.createTime ? formatDateTimeToMinute(res.data.createTime) : '-',
+          // 确保 items 数组存在，并处理可能的 null 值
+          items: (res.data.items || []).map(item => ({
+              ...item,
+              // 在这里可以预处理 item 数据，例如计算 totalPrice
+              totalPrice: ((parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0)).toFixed(2),
+              // 移除重量格式化，直接使用后端返回的原始值
+              // weight: (parseFloat(item.weight) || 0).toFixed(1) 
+          })),
+          // 计算总计 - 移到这里处理更合适
+          totalQuantity: (res.data.items || []).reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0),
+          totalWeight: (res.data.items || []).reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0).toFixed(1),
+          totalAmount: (res.data.items || []).reduce((sum, item) => sum + ((parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0)), 0).toFixed(2)
         };
         this.setData({
           order: orderData,
           loading: false,
-          canEdit: canEdit
+          canEdit: canEdit,
+          orderStatus: orderData.status // <<< 设置 orderStatus
         });
       } else {
         this.setData({
           order: null,
-          loading: false
+          loading: false,
+          orderStatus: '' // 清空状态
         });
         wx.showToast({
           title: '未找到订单数据',
@@ -60,7 +77,7 @@ Page({
         });
       }
     }).catch(err => {
-      console.error('获取订单详情失败', err);
+      console.error('[fetchOrderDetail] API call failed:', err);
       this.setData({
         loading: false,
         order: null
@@ -121,11 +138,15 @@ Page({
     // TODO: 实现导出Excel功能
   },
 
-  // 编辑整个订单
+  // 🔒 编辑整个订单 - 已禁用以保证数据一致性
   editOrder: function() {
-    wx.navigateTo({
-      url: `/pages/receive-order/receive-order?id=${this.data.orderId}&mode=edit`
-    })
+    wx.showModal({
+      title: '功能提示',
+      content: '为保证数据一致性，收回单不允许编辑。如需修改，请先作废当前单据，然后重新创建。',
+      showCancel: false,
+      confirmText: '我知道了',
+      confirmColor: '#007aff'
+    });
   },
 
   // 确认删除
@@ -180,6 +201,18 @@ Page({
     });
   },
 
+  // 预览备注照片
+  previewRemarkImage: function(e) {
+    const index = e.currentTarget.dataset.index;
+    const imageUrls = this.data.order.remarkImages || [];
+    if (imageUrls.length > 0) {
+      wx.previewImage({
+        current: imageUrls[index],
+        urls: imageUrls
+      });
+    }
+  },
+
   // 编辑产品
   editProduct: function (e) {
     const productId = e.currentTarget.dataset.id
@@ -188,64 +221,49 @@ Page({
     })
   },
 
-  // 取消订单
+  // 取消订单 (作废逻辑)
   cancelOrder: function () {
+    // 增加状态检查，理论上按钮的wx:if会阻止，但多一层保险
+    if (this.data.orderStatus === 'cancelled') {
+        wx.showToast({title: '订单已作废', icon: 'none'});
+        return;
+    }
     wx.showModal({
-      title: '确认取消',
-      content: '确定要取消此订单吗？',
+      title: '确认作废', // 改为作废
+      content: '确定要作废此订单吗？',
       success: (res) => {
         if (res.confirm) {
-          wx.showLoading({
-            title: '处理中...',
-            mask: true
-          })
+          wx.showLoading({ title: '处理中...', mask: true });
           
-          wx.cloud.callFunction({
-            name: 'updateOrderStatus',
-            data: {
-              orderId: this.data.orderId,
-              status: 'cancelled',
-              orderType: 'receive'
-            }
-          }).then(res => {
-            wx.hideLoading()
-            
-            if (res.result && res.result.success) {
-              const order = this.data.order
-              order.status = 'cancelled'
-              
-              this.setData({
-                order: order,
-                canEdit: false
-              })
-              
-              wx.showToast({
-                title: '订单已取消',
-                icon: 'success'
-              })
-              
-              // 通知上一页刷新
-              this.notifyPrevPageRefresh()
-            } else {
-              wx.showToast({
-                title: res.result.message || '操作失败',
-                icon: 'none'
-              })
-            }
-          }).catch(err => {
-            console.error('取消订单失败', err)
-            wx.hideLoading()
-            wx.showToast({
-              title: '操作失败',
-              icon: 'none'
+          // === 使用 HTTP API 而不是云函数 ===
+          api.request(`/orders/${this.data.orderId}/cancel`, 'POST', { type: 'receive' }) // 添加type参数指定为收回单
+            .then(apiRes => {
+              wx.hideLoading();
+              if (apiRes && apiRes.success) {
+                // 更新本地状态
+                const updatedOrder = { ...this.data.order, status: 'cancelled' };
+                this.setData({
+                  order: updatedOrder,
+                  orderStatus: 'cancelled', 
+                  canEdit: false
+                });
+                wx.showToast({ title: '订单已作废', icon: 'success' });
+                this.notifyPrevPageRefresh();
+              } else {
+                wx.showToast({ title: (apiRes && apiRes.message) || '操作失败', icon: 'none' });
+              }
             })
-          })
+            .catch(apiErr => {
+              console.error('作废订单 API 调用失败', apiErr);
+              wx.hideLoading();
+              wx.showToast({ title: '操作失败', icon: 'none' });
+            });
         }
       }
-    })
+    });
   },
 
-  // 完成订单
+  // 完成订单 (这里可能不需要了，因为没有完成按钮了？如果需要，逻辑保留)
   completeOrder: function () {
     wx.showModal({
       title: '确认完成',
@@ -302,8 +320,13 @@ Page({
     })
   },
 
-  // 支付订单
+  // 支付订单 (保留，因为 normal 状态也要支付)
   payOrder: function () {
+     // 增加状态检查
+    if (this.data.orderStatus !== 'completed' && this.data.orderStatus !== 'normal') {
+        wx.showToast({title: '当前状态无法支付', icon: 'none'});
+        return;
+    }
     wx.navigateTo({
       url: `/pages/payment/payment?orderId=${this.data.orderId}&amount=${this.data.order.totalAmount}&orderType=receive`
     })

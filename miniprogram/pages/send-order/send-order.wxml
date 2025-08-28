@@ -1,61 +1,96 @@
-<view class="container">
-  <!-- 修改基础信息section，只保留工厂和工序信息 -->
-  <view class="section info-section" wx:if="{{mode === 'view'}}">
-    <!-- 第一行：工厂和工序 -->
-    <view class="combined-row">
-      <view class="combined-item">
-        <view class="item-label">工厂</view>
-        <view class="item-value">{{selectedFactory.name || '-'}}</view>
-      </view>
-      <view class="combined-item">
-        <view class="item-label">工序</view>
-        <view class="item-value">{{selectedProcess || '-'}}</view>
+<view class="send-order-page-container">
+
+  <!-- 基础信息卡片 -->
+  <view class="card">
+    <view class="section-title">基础信息</view>
+    <view wx:if="{{mode === 'view'}}">
+      <view class="combined-row">
+        <view class="combined-item">
+          <view class="item-label">工厂</view>
+          <view class="item-value">{{selectedFactory.name || '-'}}</view>
+        </view>
+        <view class="combined-item">
+          <view class="item-label">工序</view>
+          <view class="item-value">{{selectedProcess.name || selectedProcess || '-'}}</view>
+        </view>
       </view>
     </view>
-  </view>
-  
-  <!-- 编辑模式下保留原有的基础信息区域，但移除标题，将工厂和工序放在同一行 -->
-  <view class="section info-section" wx:if="{{mode !== 'view'}}">
-    <view class="form-row">
-      <view class="form-col">
-        <view class="form-label required">工厂</view>
-        <picker bindchange="selectFactory" range="{{factories}}" range-key="name" disabled="{{mode === 'view'}}">
-          <view class="form-value {{selectedFactory ? '' : 'placeholder'}}">
-            {{selectedFactory ? selectedFactory.name : '选择工厂'}}
-            <view class="picker-arrow" wx:if="{{mode !== 'view'}}"></view>
+    <view wx:if="{{mode !== 'view'}}">
+      <view class="form-row">
+        <view class="form-col">
+          <view class="form-label required">工厂</view>
+          <view class="factory-dropdown-container">
+            <view class="factory-search-input-wrapper">
+              <input 
+                class="form-value apple-input {{selectedFactory ? '' : 'placeholder'}}" 
+                placeholder="输入工厂名称或首字母"
+                value="{{factorySearchKeyword}}"
+                bindinput="onFactorySearch"
+                bindtap="showFactoryDropdown"
+                bindfocus="showFactoryDropdown"
+                bindblur="hideFactoryDropdownWithDelay"
+                confirm-type="search"
+              />
+            </view>
+            <!-- 苹果简约风下拉列表 -->
+            <view class="factory-dropdown {{showFactoryDropdown ? 'show' : ''}}" wx:if="{{showFactoryDropdown}}">
+              <scroll-view class="dropdown-scroll" scroll-y="true">
+                <view wx:if="{{filteredFactories.length === 0}}" class="dropdown-empty">
+                  <view class="empty-icon">🏭</view>
+                  <view class="empty-text">未找到相关工厂</view>
+                </view>
+                <view wx:else class="factory-dropdown-list">
+                  <view 
+                    class="factory-dropdown-item {{selectedFactory && selectedFactory.id === item.id ? 'selected' : ''}}" 
+                    wx:for="{{filteredFactories}}" 
+                    wx:key="id" 
+                    catchtap="selectFactoryFromDropdown" 
+                    data-factory="{{item}}"
+                  >
+                    <view class="factory-info">
+                      <view class="factory-name">{{item.name}}</view>
+                      <view class="factory-details" wx:if="{{item.phone || item.address}}">
+                        <text class="factory-phone" wx:if="{{item.phone}}">📞 {{item.phone}}</text>
+                        <text class="factory-address" wx:if="{{item.address}}">📍 {{item.address}}</text>
+                      </view>
+                    </view>
+                    <view class="check-mark" wx:if="{{selectedFactory && selectedFactory.id === item.id}}">✓</view>
+                  </view>
+                </view>
+              </scroll-view>
+            </view>
           </view>
-        </picker>
-      </view>
-      <view class="form-col">
-        <view class="form-label required">工序</view>
-        <picker bindchange="selectProcess" range="{{processes}}">
-          <view class="form-value {{selectedProcess ? '' : 'placeholder'}}">
-            {{selectedProcess || '请选择'}}
-            <view class="picker-arrow"></view>
+          <view class="selected-factory-display" wx:if="{{selectedFactory}}">
+            已选择：{{selectedFactory.name}}
           </view>
-        </picker>
+        </view>
+        <view class="form-col">
+          <view class="form-label required">工序</view>
+          <picker bindchange="selectProcess" range="{{processes}}" range-key="name">
+            <view class="form-value apple-input {{selectedProcess ? '' : 'placeholder'}}">
+              {{selectedProcess.name || selectedProcess || '请选择'}}
+              <view class="picker-arrow"></view>
+            </view>
+          </picker>
+        </view>
       </view>
     </view>
   </view>
 
-  <view class="section">
+  <!-- 货品信息卡片 -->
+  <view class="card">
     <view class="section-title">货品信息</view>
-    
     <view class="product-action-bar product-action-bar-centered" wx:if="{{mode !== 'view'}}">
-      <button class="add-product-btn" bindtap="showProductSelect">添加货品</button>
+      <button class="add-product-btn apple-btn" bindtap="showProductSelect">添加货品</button>
     </view>
-    
-    <!-- 货品列表 -->
     <view class="product-list">
       <block wx:if="{{selectedProducts && selectedProducts.length > 0}}">
         <view class="product-item" wx:for="{{selectedProducts}}" wx:key="index">
           <view class="product-info">
-            <image class="product-image" src="{{item.imageUrl}}" mode="aspectFill"></image>
+            <image class="product-image" src="{{item.image || '/images/default-product.png'}}" mode="aspectFill" binderror="onImageError" data-index="{{index}}"></image>
             <view class="product-details">
-              <view class="product-code">货号: {{item.productNo}}</view>
-              <view class="product-name">{{item.name}}</view>
-              
-              <!-- 颜色和尺码在同一行 - 采用简洁的标签样式 -->
+              <view class="product-code">货号: {{item.productNo || item.code || '-'}}</view>
+              <view class="product-name">{{item.name || '-'}}</view>
               <view class="product-tags">
                 <view class="product-tag" wx:if="{{item.color}}">
                   <text class="tag-name">颜色:</text>
@@ -65,90 +100,79 @@
                   <text class="tag-name">尺码:</text>
                   <text class="tag-value">{{item.size}}</text>
                 </view>
+                <view class="product-actions-inline" wx:if="{{mode !== 'view'}}">
+                  <button class="btn-same-product apple-btn" bindtap="addSameProduct" data-index="{{index}}">+</button>
+                  <button class="btn-small btn-danger apple-btn" bindtap="deleteProduct" data-index="{{index}}">-</button>
+                </view>
               </view>
             </view>
           </view>
-          
           <view class="product-controls">
             <view class="quantity-weight">
               <view class="control-item">
-                <text class="control-label required">数量:</text>
-                <input wx:if="{{mode !== 'view'}}" class="control-input" type="digit" value="{{item.quantity}}" bindinput="bindQuantityInput" data-index="{{index}}" />
-                <view wx:else class="control-value">{{item.quantity}}</view>
+                <text class="control-label {{tempWeight && parseFloat(tempWeight) > 0 ? '' : 'required'}}">数量:</text>
+                <input wx:if="{{mode !== 'view'}}" class="control-input apple-input" type="digit" value="{{item.quantity}}" bindinput="bindQuantityInput" data-index="{{index}}" />
+                <view wx:else class="control-value-container">
+                  <text class="control-value">{{item.quantity}}</text>
+                  <text class="control-unit">打</text>
+                </view>
               </view>
               <view class="control-item">
-                <text class="control-label">重量(kg):</text>
-                <input wx:if="{{mode !== 'view'}}" class="control-input" type="digit" value="{{item.weight}}" bindinput="bindWeightInput" data-index="{{index}}" />
-                <view wx:else class="control-value">{{item.weight}}</view>
+                <text class="control-label">重量:</text>
+                <input wx:if="{{mode !== 'view'}}" class="control-input apple-input" type="digit" value="{{item.weight}}" bindinput="bindWeightInput" data-index="{{index}}" />
+                <view wx:else class="control-value-container">
+                  <text class="control-value">{{item.weight}}</text>
+                  <text class="control-unit">kg</text>
+                </view>
               </view>
-            </view>
-            
-            <view class="product-actions" wx:if="{{mode !== 'view'}}">
-              <button class="btn-same-product" bindtap="addSameProduct" data-index="{{index}}">
-                <view class="btn-icon">+</view>
-              </button>
-              <button class="btn-small btn-danger" bindtap="deleteProduct" data-index="{{index}}">-</button>
             </view>
           </view>
         </view>
       </block>
-      
       <view wx:else class="no-products">
         <text>暂无货品，请添加</text>
       </view>
     </view>
-    
-    <!-- 货品总计 -->
     <view class="product-totals">
       <view class="total-item">
-        <text>总数量: {{totalQuantity || 0}}</text>
+        <text class="total-label">总数量: </text>
+        <text class="total-value">{{totalQuantity || 0}}</text>
+        <text class="total-unit">打</text>
       </view>
       <view class="total-item">
-        <text>总重量: {{totalWeight || 0}} kg</text>
+        <text class="total-label">总重量: </text>
+        <text class="total-value">{{totalWeight || 0}}</text>
+        <text class="total-unit">kg</text>
       </view>
     </view>
   </view>
 
-  <view class="section">
-    <!-- 添加制单人和制单时间信息在备注栏上方，无论何种模式都显示 -->
-    <view class="creator-info">
-      <text class="creator-info-text">制单人:{{staff || '-'}} 制单时间:{{date || '-'}}</text>
+  <!-- 备注及照片卡片 -->
+  <view class="card">
+    <view class="section-title">备注及照片</view>
+    <view class="creator-info" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+      <text class="creator-info-text">制单人:{{staff || '-'}} </text>
+      <text class="creator-info-text" style="margin-left:auto;">制单时间:{{date || '-'}} </text>
     </view>
-    
     <view class="form-group">
       <view class="form-label">备注</view>
       <view class="form-value" wx:if="{{mode === 'view'}}">
-        {{remark || '无'}}
-        <!-- 查看模式下显示已上传的照片 -->
-        <view class="remark-photos" wx:if="{{remarkPhotos && remarkPhotos.length > 0}}">
-          <image 
-            wx:for="{{remarkPhotos}}" 
-            wx:key="index" 
-            src="{{item}}" 
-            mode="aspectFill" 
-            class="remark-photo" 
-            bindtap="previewImage" 
-            data-url="{{item}}" 
-            data-urls="{{remarkPhotos}}"
-          ></image>
+        {{remark || '无备注'}}
+      </view>
+      <view wx:if="{{mode === 'view' && remarkImages && remarkImages.length > 0}}" class="remark-photos-section">
+        <view class="form-label">备注照片</view>
+        <view class="remark-photos">
+          <image wx:for="{{remarkImages}}" wx:key="index" src="{{item}}" mode="aspectFill" class="remark-photo" bindtap="previewRemarkImage" data-index="{{index}}"></image>
         </view>
       </view>
-      
-      <!-- 编辑模式下的备注文本和照片上传 -->
       <block wx:else>
-        <textarea class="form-textarea" placeholder="输入备注信息" bindinput="inputRemark" value="{{remark}}" />
-        
+        <textarea class="form-textarea apple-input" placeholder="输入备注信息" bindinput="inputRemark" value="{{remark}}" />
         <view class="remark-photo-upload">
           <view class="photo-list">
-            <view 
-              class="photo-item" 
-              wx:for="{{remarkPhotos}}" 
-              wx:key="index"
-            >
+            <view class="photo-item" wx:for="{{remarkPhotos}}" wx:key="index">
               <image src="{{item}}" mode="aspectFill" class="photo-preview"></image>
               <view class="photo-delete" bindtap="deleteRemarkPhoto" data-index="{{index}}">×</view>
             </view>
-            
             <view class="photo-upload-btn" bindtap="chooseRemarkPhoto" wx:if="{{remarkPhotos.length < 3}}">
               <view class="upload-icon">+</view>
               <view class="upload-text">照片</view>
@@ -160,43 +184,43 @@
     </view>
   </view>
 
+  <!-- 底部操作栏 -->
   <view class="footer-actions">
-    <button class="btn-primary" bindtap="submitOrder" wx:if="{{mode !== 'view'}}">{{mode === 'edit' ? '保存订单' : '保存'}}</button>
-    <button class="btn-default" bindtap="cancelOrder" wx:if="{{mode === 'view' && orderStatus !== 'canceled'}}">作废订单</button>
-    <button class="btn-default" bindtap="navigateBack">返回</button>
+    <button class="btn-primary apple-btn" bindtap="submitOrder" wx:if="{{mode !== 'view'}}">{{mode === 'edit' ? '保存订单' : '保存'}}</button>
+    <button class="btn-default apple-btn" bindtap="cancelOrder" wx:if="{{mode === 'view' && orderStatus !== 0}}">作废</button>
+    <button class="btn-default apple-btn" bindtap="navigateBack">返回</button>
   </view>
-</view>
 
-<!-- 货品选择弹窗 -->
-<view class="product-modal {{showProductModal ? 'show' : ''}}" wx:if="{{showProductModal}}">
-  <view class="modal-mask" bindtap="hideProductSelect"></view>
-  <view class="modal-content">
-    <view class="modal-header">
-      <text class="modal-title">选择货品</text>
-      <text class="modal-close" bindtap="hideProductSelect">×</text>
-    </view>
-    
-    <view class="modal-search">
-      <input placeholder="搜索货品编号或名称" value="{{productSearchKeyword}}" bindinput="searchProducts" />
-    </view>
-    
-    <scroll-view class="modal-body" scroll-y="true">
-      <view wx:if="{{filteredProducts.length === 0}}" class="empty-search">
-        <view class="empty-text">未找到相关货品</view>
+  <!-- 货品选择弹窗 -->
+  <view class="product-modal {{showProductModal ? 'show' : ''}}" wx:if="{{showProductModal}}">
+    <view class="modal-mask" bindtap="hideProductSelect"></view>
+    <view class="modal-content card">
+      <view class="modal-header">
+        <text class="modal-title">选择货品</text>
+        <text class="modal-close" bindtap="hideProductSelect">×</text>
       </view>
-      <view wx:else class="product-select-list">
-        <view class="card list-item-override" wx:for="{{filteredProducts}}" wx:key="id" bindtap="selectProduct" data-index="{{index}}">
-          <view class="list-item-content">
-            <image class="list-item-image" src="{{item.imageUrl || '/images/default-product.png'}}" mode="aspectFill"></image>
-            <view class="list-item-details">
-              <view class="list-item-code">{{item.productNo}}</view>
-              <view class="list-item-name">{{item.name}}</view>
+      <view class="modal-search">
+        <input class="apple-input" placeholder="搜索货品编号或名称" value="{{productSearchKeyword}}" bindinput="searchProducts" />
+      </view>
+      <scroll-view class="modal-body" scroll-y="true">
+        <view wx:if="{{filteredProducts.length === 0}}" class="empty-search">
+          <view class="empty-text">未找到相关货品</view>
+        </view>
+        <view wx:else class="product-select-list">
+          <view class="card list-item-override" wx:for="{{filteredProducts}}" wx:key="id" bindtap="selectProduct" data-index="{{index}}">
+            <view class="list-item-content">
+              <image class="list-item-image" src="{{item.image || '/images/default-product.png'}}" mode="aspectFill"></image>
+              <view class="list-item-details">
+                <view class="list-item-code">{{item.productNo}}</view>
+                <view class="list-item-name">{{item.name}}</view>
+              </view>
             </view>
           </view>
         </view>
-      </view>
-    </scroll-view>
+      </scroll-view>
+    </view>
   </view>
+
 </view>
 
 <!-- 货品确认添加弹窗 -->
@@ -210,7 +234,7 @@
     
     <view class="modal-body">
       <view class="selected-product">
-        <image class="product-image" src="{{selectedProductTemp.imageUrl}}" mode="aspectFill"></image>
+        <image class="product-image" src="{{selectedProductTemp.image || '/images/default-product.png'}}" mode="aspectFill"></image>
         <view class="product-details">
           <view class="product-code">货号: {{selectedProductTemp.productNo}}</view>
           <view class="product-name">{{selectedProductTemp.name}}</view>
@@ -218,42 +242,46 @@
       </view>
       
       <view class="product-edit-form">
-        <!-- 颜色和尺码放在同一行 -->
+        <!-- 颜色和尺码选择（同步货品信息） -->
         <view class="form-row">
-          <!-- 颜色选择 -->
-          <view class="form-col" wx:if="{{selectedProductTemp.colorOptions && selectedProductTemp.colorOptions.length > 0}}">
-            <text class="edit-form-label {{tempWeight && parseFloat(tempWeight) > 0 ? '' : 'required'}}">颜色</text>
-            <picker bindchange="bindColorChange" value="{{selectedProductTemp.colorOptions.indexOf(selectedColorTemp)}}" range="{{selectedProductTemp.colorOptions}}">
-              <view class="edit-form-value {{selectedColorTemp ? '' : 'placeholder'}}">
-                {{selectedColorTemp || '请选择颜色'}}
+          <view class="form-col">
+            <text class="edit-form-label">颜色</text>
+            <picker
+              bindchange="bindTempColorPicker"
+              range="{{selectedProductTemp.colorOptions}}"
+              value="{{selectedProductTemp.colorIndex}}"
+            >
+              <view class="edit-form-value {{tempColor ? '' : 'placeholder'}}">
+                {{tempColor || '请选择颜色'}}
                 <view class="picker-arrow"></view>
               </view>
             </picker>
           </view>
-          
-          <!-- 尺码选择 -->
-          <view class="form-col" wx:if="{{selectedProductTemp.sizeOptions && selectedProductTemp.sizeOptions.length > 0}}">
-            <text class="edit-form-label {{tempWeight && parseFloat(tempWeight) > 0 ? '' : 'required'}}">尺码</text>
-            <picker bindchange="bindSizeChange" value="{{selectedProductTemp.sizeOptions.indexOf(selectedSizeTemp)}}" range="{{selectedProductTemp.sizeOptions}}">
-              <view class="edit-form-value {{selectedSizeTemp ? '' : 'placeholder'}}">
-                {{selectedSizeTemp || '请选择尺码'}}
+          <view class="form-col">
+            <text class="edit-form-label">尺码</text>
+            <picker
+              bindchange="bindTempSizePicker"
+              range="{{selectedProductTemp.sizeOptions}}"
+              value="{{selectedProductTemp.sizeIndex}}"
+            >
+              <view class="edit-form-value {{tempSize ? '' : 'placeholder'}}">
+                {{tempSize || '请选择尺码'}}
                 <view class="picker-arrow"></view>
               </view>
             </picker>
           </view>
         </view>
-
-        <!-- 数量和重量放在同一行 -->
+        <!-- 原有数量和重量输入行 -->
         <view class="form-row">
-          <!-- 数量输入 -->
+          <!-- Quantity Input -->
           <view class="form-col">
-            <text class="edit-form-label {{tempWeight && parseFloat(tempWeight) > 0 ? '' : 'required'}}">数量</text>
+            <text class="edit-form-label {{tempWeight && parseFloat(tempWeight) > 0 ? '' : 'required'}}">数量(打)</text>
             <input class="quantity-input" type="digit" placeholder="请输入数量" bindinput="bindTempQuantityInput" value="{{tempQuantity}}" focus/>
           </view>
 
           <!-- 重量输入 -->
           <view class="form-col">
-            <text class="edit-form-label">重量(kg)</text>
+            <text class="edit-form-label">重量</text>
             <input class="weight-input" type="digit" placeholder="请输入重量" bindinput="bindTempWeightInput" value="{{tempWeight}}"/>
           </view>
         </view>

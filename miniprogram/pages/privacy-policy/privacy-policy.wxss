@@ -1,0 +1,99 @@
+/* 不使用任何样式 确保显示 */ 
+
+/* 简单有效的样式 确保真机兼容 */
+page {
+  background: #f5f5f5;
+}
+
+.container {
+  padding: 20rpx;
+}
+
+.header {
+  background: white;
+  padding: 30rpx 20rpx;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.title {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.subtitle {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.content {
+  background: white;
+  padding: 20rpx;
+}
+
+.intro {
+  background: #f5f5f5;
+  padding: 15rpx;
+  margin-bottom: 20rpx;
+}
+
+.section {
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 15rpx;
+  border-left: 4rpx solid #007aff;
+  padding-left: 10rpx;
+}
+
+.subsection {
+  margin-bottom: 20rpx;
+  margin-left: 15rpx;
+}
+
+.subsection-title {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.text {
+  font-size: 24rpx;
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 10rpx;
+}
+
+.list-item {
+  font-size: 24rpx;
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 8rpx;
+  margin-left: 10rpx;
+}
+
+.footer {
+  background: white;
+  padding: 20rpx;
+  margin-top: 20rpx;
+  text-align: center;
+}
+
+.final-text {
+  font-size: 26rpx;
+  color: #007aff;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.compliance-text {
+  font-size: 22rpx;
+  color: #666;
+} 

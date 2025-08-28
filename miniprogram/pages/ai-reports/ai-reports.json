@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "云助理",
+  "navigationBarBackgroundColor": "#a18cd1",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#f2f2f7",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50,
+  "usingComponents": {}
+} 

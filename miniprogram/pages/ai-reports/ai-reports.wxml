@@ -1,0 +1,343 @@
+<!-- 云助理 -->
+<view class="ai-assistant-gradient-bg">
+  <view class="ai-assistant-container">
+    <!-- 异常警报模块（损耗率排行榜） -->
+    <view class="module-card alert-module">
+      <view class="module-header">
+        <view class="module-icon alert-icon">⚠️</view>
+        <text class="module-title loss-title">损耗排行</text>
+        <view class="header-right">
+          <!-- 时间筛选按钮组 -->
+          <view class="time-filter-container">
+            <view class="time-filter-buttons">
+              <text class="time-filter-btn {{timeFilterType === 'today' ? 'active' : ''}}" bindtap="selectTimeFilter" data-type="today">本日</text>
+              <text class="time-filter-btn {{timeFilterType === 'week' ? 'active' : ''}}" bindtap="selectTimeFilter" data-type="week">本周</text>
+              <text class="time-filter-btn {{timeFilterType === 'month' ? 'active' : ''}}" bindtap="selectTimeFilter" data-type="month">本月</text>
+              <text class="time-filter-btn {{timeFilterType === 'year' ? 'active' : ''}}" bindtap="selectTimeFilter" data-type="year">本年</text>
+              <text class="time-filter-btn custom {{timeFilterType === 'custom' ? 'active' : ''}}" bindtap="showCustomTimeFilter">自定义</text>
+            </view>
+          </view>
+          <!-- 原有的模式切换 -->
+          <view class="mode-switch" bindtap="switchLossRankingMode">
+            <text class="mode-text">{{lossRankingMode === 'product' ? '货品模式' : '工厂模式'}}</text>
+            <text class="switch-icon">⇄</text>
+          </view>
+        </view>
+        <view class="bottom-info">
+          <text class="count-text" wx:if="{{alertCount > 0}}">{{alertCount}}</text>
+          <text class="rule-text">{{lossRankingMode === 'product' ? '按货品统计损耗率，≥2%或≤-2%显示' : '按工厂统计损耗率，≥2%或≤-2%显示'}}</text>
+        </view>
+      </view>
+      
+      <view class="module-content">
+        <view wx:if="{{alerts.length > 0}}" class="alert-list">
+          <!-- 货品模式 -->
+          <block wx:if="{{lossRankingMode === 'product'}}">
+            <view class="alert-item {{item.level}}" wx:for="{{alerts}}" wx:key="id">
+              <view class="rank-indicator">
+                <text class="rank-number">{{item.rank}}</text>
+              </view>
+              <view class="product-image-container">
+                <image 
+                  class="product-image" 
+                  src="{{item.productImage || '/images/default-product.png'}}" 
+                  mode="aspectFill"
+                  lazy-load="true"
+                  binderror="onImageError"
+                  data-index="{{index}}"
+                />
+              </view>
+              <view class="alert-content">
+                <view class="product-info">
+                  <text class="product-no">{{item.productNo}}</text>
+                  <text class="product-name small">{{item.productName}}</text>
+                  <text class="loss-rate {{item.level}}">{{item.lossRate}}%</text>
+                </view>
+                <view class="weight-info-row">
+                  <text class="weight-item">发出: {{item.totalSendWeight}}kg</text>
+                  <text class="weight-item">收回: {{item.totalReceiveWeight}}kg</text>
+                  <text class="weight-item loss">差值: {{item.totalLossWeight}}kg</text>
+                </view>
+                <view class="factory-bottom-row">
+                  <text class="alert-time">{{item.time}}</text>
+                  <text class="factory-count" bindtap="showFactoryDetail" data-item="{{item}}">{{item.factoryCount}}个工厂</text>
+                </view>
+              </view>
+            </view>
+          </block>
+          
+          <!-- 工厂模式 -->
+          <block wx:else>
+            <view class="alert-item {{item.level}}" wx:for="{{alerts}}" wx:key="id">
+              <view class="rank-indicator">
+                <text class="rank-number">{{item.rank}}</text>
+              </view>
+              <view class="factory-icon-container">
+                <view class="factory-icon">🏭</view>
+              </view>
+              <view class="alert-content">
+                <view class="product-info">
+                  <text class="product-no">{{item.process}}</text>
+                  <text class="product-name factory-mode-factory-name">{{item.factoryName}}</text>
+                  <text class="loss-rate {{item.level}}">{{item.lossRate}}%</text>
+                </view>
+                <view class="weight-info-row">
+                  <text class="weight-item">发出: {{item.totalSendWeight}}kg</text>
+                  <text class="weight-item">收回: {{item.totalReceiveWeight}}kg</text>
+                  <text class="weight-item loss">差值: {{item.totalLossWeight}}kg</text>
+                </view>
+                <view class="factory-bottom-row">
+                  <text class="alert-time">{{item.time}}</text>
+                  <text class="product-count" bindtap="showProductDetail" data-item="{{item}}">{{item.productCount}}个货品</text>
+                </view>
+              </view>
+            </view>
+          </block>
+        </view>
+        
+        <view wx:else class="empty-state">
+          <view class="empty-icon">🎯</view>
+          <text class="empty-text">暂无损耗异常</text>
+          <text class="empty-desc">所有货品损耗率正常</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 活跃排行模块 -->
+    <view class="module-card trend-module">
+      <view class="module-header">
+        <view class="module-icon trend-icon">🤖</view>
+        <text class="module-title trend-title">活跃排行</text>
+        <view class="header-right">
+          <!-- 时间筛选按钮组 -->
+          <view class="time-filter-container">
+            <view class="time-filter-buttons">
+              <text class="time-filter-btn {{activeTimeFilterType === 'today' ? 'active' : ''}}" bindtap="selectActiveTimeFilter" data-type="today">本日</text>
+              <text class="time-filter-btn {{activeTimeFilterType === 'week' ? 'active' : ''}}" bindtap="selectActiveTimeFilter" data-type="week">本周</text>
+              <text class="time-filter-btn {{activeTimeFilterType === 'month' ? 'active' : ''}}" bindtap="selectActiveTimeFilter" data-type="month">本月</text>
+              <text class="time-filter-btn {{activeTimeFilterType === 'year' ? 'active' : ''}}" bindtap="selectActiveTimeFilter" data-type="year">本年</text>
+              <text class="time-filter-btn custom {{activeTimeFilterType === 'custom' ? 'active' : ''}}" bindtap="showActiveCustomTimeFilter">自定义</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <view class="module-content">
+        <!-- 活跃货品排行 -->
+        <view class="active-section">
+          <view class="section-header">
+            <view class="section-title-row">
+              <text class="section-title">📦 活跃货品</text>
+              <text class="section-count">TOP {{activeProducts.length > 5 ? 5 : activeProducts.length}}</text>
+            </view>
+            <text class="section-desc">{{activeTimeFilterType === 'today' ? '今日' : activeTimeFilterType === 'week' ? '本周' : activeTimeFilterType === 'month' ? '本月' : activeTimeFilterType === 'year' ? '本年' : '自定义时间'}}科学活跃度排行</text>
+          </view>
+          <view class="active-list">
+            <view wx:for="{{activeProducts}}" wx:key="product_no" class="active-item" wx:if="{{index < 5}}">
+              <view class="rank-badge">
+                <text class="rank-number">{{index + 1}}</text>
+              </view>
+              <view class="active-item-header">
+                <image src="{{item.productImage ? item.productImage : '/images/default-product.png'}}" class="active-item-image" mode="aspectFill"></image>
+                <view class="active-item-info">
+                  <text class="active-item-title">{{item.product_no}}</text>
+                  <text class="active-item-subtitle">{{item.productName || '未知货品'}}</text>
+                </view>
+                <view class="active-item-score">
+                  <text class="score-value">{{item.activityScore || 0}}</text>
+                  <text class="score-label">活跃度</text>
+                </view>
+              </view>
+              
+              <!-- 科学指标展示 -->
+              <view class="scientific-metrics">
+                <view class="metric-group">
+                  <view class="metric-item">
+                    <text class="metric-label">发出</text>
+                    <text class="metric-value">{{item.sendOrderCount || 0}}单 {{item.totalSendWeight || 0}}kg</text>
+                  </view>
+                  <view class="metric-item">
+                    <text class="metric-label">收回</text>
+                    <text class="metric-value">{{item.receiveOrderCount || 0}}单 {{item.totalReceiveWeight || 0}}kg</text>
+                  </view>
+                </view>
+                
+                <view class="completion-bar">
+                  <view class="completion-info">
+                    <text class="completion-label">完成率</text>
+                    <text class="completion-percent">{{item.completionRate || 0}}%</text>
+                  </view>
+                  <view class="progress-bar">
+                    <view class="progress-fill" style="width: {{Math.min(item.completionRate || 0, 100)}}%"></view>
+                  </view>
+                </view>
+              </view>
+              
+              <view class="active-item-details">
+                <text class="detail-text">总交易: {{item.recordCount || 0}}笔</text>
+                <text class="detail-text">涉及工厂: {{item.factoryCount || 0}}个</text>
+                <text class="detail-text">最近活跃: {{item.lastActiveText || '未知'}}</text>
+              </view>
+            </view>
+          </view>
+          <view class="section-footer" wx:if="{{activeProducts.length === 0}}">
+            <text class="empty-hint">暂无活跃货品数据</text>
+          </view>
+        </view>
+
+        <!-- 活跃工厂排行 -->
+        <view class="active-section">
+          <view class="section-header">
+            <view class="section-title-row">
+              <text class="section-title">🏭 活跃工厂</text>
+              <text class="section-count">TOP {{activeFactories.length > 5 ? 5 : activeFactories.length}}</text>
+            </view>
+            <text class="section-desc">{{activeTimeFilterType === 'today' ? '今日' : activeTimeFilterType === 'week' ? '本周' : activeTimeFilterType === 'month' ? '本月' : activeTimeFilterType === 'year' ? '本年' : '自定义时间'}}科学活跃度排行</text>
+          </view>
+          <view class="active-list">
+            <view wx:for="{{activeFactories}}" wx:key="factory_id" class="active-item" wx:if="{{index < 5}}">
+              <view class="rank-badge">
+                <text class="rank-number">{{index + 1}}</text>
+              </view>
+              <view class="active-item-header">
+                <view class="factory-icon">🏭</view>
+                <view class="active-item-info">
+                  <text class="active-item-title">{{item.factoryName}}</text>
+                  <text class="active-item-subtitle"></text>
+                </view>
+                <view class="active-item-score">
+                  <text class="score-value">{{item.activityScore || 0}}</text>
+                  <text class="score-label">活跃度</text>
+                </view>
+              </view>
+              
+              <!-- 科学指标展示 -->
+              <view class="scientific-metrics">
+                <view class="metric-group">
+                  <view class="metric-item">
+                    <text class="metric-label">发出</text>
+                    <text class="metric-value">{{item.sendOrderCount || 0}}单 {{item.totalSendWeight || 0}}kg</text>
+                  </view>
+                  <view class="metric-item">
+                    <text class="metric-label">收回</text>
+                    <text class="metric-value">{{item.receiveOrderCount || 0}}单 {{item.totalReceiveWeight || 0}}kg</text>
+                  </view>
+                </view>
+                
+                <view class="completion-bar">
+                  <view class="completion-info">
+                    <text class="completion-label">完成率</text>
+                    <text class="completion-percent">{{item.completionRate || 0}}%</text>
+                  </view>
+                  <view class="progress-bar">
+                    <view class="progress-fill" style="width: {{Math.min(item.completionRate || 0, 100)}}%"></view>
+                  </view>
+                </view>
+              </view>
+              
+              <view class="active-item-details">
+                <text class="detail-text">总交易: {{item.recordCount || 0}}笔</text>
+                <text class="detail-text">涉及货品: {{item.productCount || 0}}种</text>
+                <text class="detail-text">最近活跃: {{item.lastActiveText || '未知'}}</text>
+              </view>
+            </view>
+          </view>
+          <view class="section-footer" wx:if="{{activeFactories.length === 0}}">
+            <text class="empty-hint">暂无活跃工厂数据</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 刷新按钮 -->
+    <view class="refresh-section">
+      <button class="refresh-btn" bindtap="refreshData">
+        <text class="refresh-icon">🔄</text>
+        <text>刷新数据</text>
+      </button>
+    </view>
+
+    <!-- 详情弹窗 -->
+    <view class="detail-modal" wx:if="{{showDetailModal}}" bindtap="hideDetailModal">
+      <view class="modal-content" catchtap="stopPropagation">
+        <view class="modal-header">
+          <text class="modal-title">{{detailModalTitle}}</text>
+          <text class="modal-close" bindtap="hideDetailModal">✕</text>
+        </view>
+        <scroll-view class="modal-body" scroll-y="true">
+          <view class="detail-item" wx:for="{{detailList}}" wx:key="id">
+            <view class="detail-rank">{{index + 1}}</view>
+            <view class="detail-content">
+              <view class="detail-name">{{item.name}}</view>
+              <view class="detail-info">
+                <text class="detail-loss-rate {{item.level}}">{{item.lossRate}}%</text>
+                <text class="detail-weight">发出: {{item.sendWeight}}kg</text>
+                <text class="detail-weight">收回: {{item.receiveWeight}}kg</text>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+
+    <!-- 自定义时间筛选弹窗 -->
+    <view class="time-filter-modal" wx:if="{{showCustomTimeModal}}" bindtap="hideCustomTimeFilter">
+      <view class="time-modal-content" catchtap="stopPropagation">
+        <view class="time-modal-header">
+          <text class="time-modal-title">自定义时间范围</text>
+          <text class="time-modal-close" bindtap="hideCustomTimeFilter">✕</text>
+        </view>
+        <view class="time-modal-body">
+          <view class="time-input-section">
+            <view class="time-input-group">
+              <text class="time-label">开始日期</text>
+              <picker mode="date" value="{{customStartDate}}" bindchange="onCustomStartDateChange">
+                <view class="time-picker">{{customStartDate || '选择开始日期'}}</view>
+              </picker>
+            </view>
+            <view class="time-input-group">
+              <text class="time-label">结束日期</text>
+              <picker mode="date" value="{{customEndDate}}" bindchange="onCustomEndDateChange">
+                <view class="time-picker">{{customEndDate || '选择结束日期'}}</view>
+              </picker>
+            </view>
+          </view>
+          <view class="time-modal-footer">
+            <button class="time-cancel-btn" bindtap="hideCustomTimeFilter">取消</button>
+            <button class="time-confirm-btn" bindtap="confirmCustomTimeFilter">确定</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 活跃排行自定义时间筛选弹窗 -->
+    <view class="time-filter-modal" wx:if="{{showActiveCustomTimeModal}}" bindtap="hideActiveCustomTimeFilter">
+      <view class="time-modal-content" catchtap="stopPropagation">
+        <view class="time-modal-header">
+          <text class="time-modal-title">活跃排行 - 自定义时间范围</text>
+          <text class="time-modal-close" bindtap="hideActiveCustomTimeFilter">✕</text>
+        </view>
+        <view class="time-modal-body">
+          <view class="time-input-section">
+            <view class="time-input-group">
+              <text class="time-label">开始日期</text>
+              <picker mode="date" value="{{activeCustomStartDate}}" bindchange="onActiveCustomStartDateChange">
+                <view class="time-picker">{{activeCustomStartDate || '选择开始日期'}}</view>
+              </picker>
+            </view>
+            <view class="time-input-group">
+              <text class="time-label">结束日期</text>
+              <picker mode="date" value="{{activeCustomEndDate}}" bindchange="onActiveCustomEndDateChange">
+                <view class="time-picker">{{activeCustomEndDate || '选择结束日期'}}</view>
+              </picker>
+            </view>
+          </view>
+          <view class="time-modal-footer">
+            <button class="time-cancel-btn" bindtap="hideActiveCustomTimeFilter">取消</button>
+            <button class="time-confirm-btn" bindtap="confirmActiveCustomTimeFilter">确定</button>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view> 

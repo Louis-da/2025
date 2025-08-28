@@ -4,8 +4,21 @@
     "pages/index/index",
     "pages/base/base",
     "pages/send-receive/send-receive",
+    "pages/statement/statement",
     "pages/my/my",
-    "pages/logs/logs"
+    "pages/logs/logs",
+    "pages/send-order/send-order",
+    "pages/receive-order/receive-order",
+    "pages/receive-order-detail/receive-order-detail",
+    "pages/product-manage/product-manage",
+    "pages/factory-manage/factory-manage",
+    "pages/color-manage/color-manage",
+    "pages/size-manage/size-manage",
+    "pages/process-manage/process-manage",
+    "pages/flow-table/flow-table",
+    "pages/ai-reports/ai-reports",
+    "pages/service-agreement/service-agreement",
+    "pages/privacy-policy/privacy-policy"
   ],
   "window": {
     "navigationBarTextStyle": "black",

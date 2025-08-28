@@ -1,0 +1,283 @@
+/* 个人信息页面样式 */
+
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.profile-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.profile-avatar {
+    flex-shrink: 0;
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #f0f0f0;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #007aff, #5ac8fa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2.5rem;
+    font-weight: bold;
+    border: 4px solid #f0f0f0;
+}
+
+.profile-info {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.info-label {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.info-value {
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e5e5e5;
+}
+
+/* 特殊信息样式 */
+.info-value.role {
+    background: linear-gradient(135deg, #007aff, #5ac8fa);
+    color: white;
+    text-align: center;
+}
+
+.info-value.membership {
+    background: linear-gradient(135deg, #ff9500, #ffcc02);
+    color: white;
+    text-align: center;
+}
+
+.info-value.remaining-days {
+    background: linear-gradient(135deg, #34c759, #4cd964);
+    color: white;
+    text-align: center;
+    font-weight: bold;
+}
+
+.info-value.usage-days {
+    background: #e9ecef;
+    color: #495057;
+    text-align: center;
+}
+
+/* 编辑模式样式 */
+.profile-edit-mode .info-value {
+    background: white;
+    border: 2px solid #007aff;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.profile-edit-mode .info-value:focus {
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+/* 头像编辑 */
+.avatar-edit-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+.profile-avatar:hover .avatar-edit-overlay {
+    opacity: 1;
+}
+
+.avatar-edit-icon {
+    color: white;
+    font-size: 1.5rem;
+}
+
+/* 操作按钮区域 */
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.profile-edit-btn {
+    padding: 0.75rem 1.5rem;
+    background: #007aff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.profile-edit-btn:hover {
+    background: #0056cc;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.profile-save-btn {
+    background: #34c759;
+}
+
+.profile-save-btn:hover {
+    background: #28a745;
+    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+}
+
+.profile-cancel-btn {
+    background: #8e8e93;
+}
+
+.profile-cancel-btn:hover {
+    background: #6d6d70;
+    box-shadow: 0 4px 12px rgba(142, 142, 147, 0.3);
+}
+
+/* 状态指示器 */
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-dot.active {
+    background: #34c759;
+    animation: pulse 2s infinite;
+}
+
+.status-dot.inactive {
+    background: #8e8e93;
+}
+
+.status-dot.warning {
+    background: #ff9500;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(52, 199, 89, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(52, 199, 89, 0);
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .profile-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 1.5rem;
+        gap: 1.5rem;
+    }
+    
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .avatar-placeholder {
+        font-size: 2rem;
+    }
+    
+    .profile-info {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        width: 100%;
+    }
+    
+    .profile-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .profile-edit-btn {
+        flex: 1;
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-card {
+        padding: 1rem;
+    }
+    
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .avatar-placeholder {
+        font-size: 1.5rem;
+    }
+    
+    .info-value {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .profile-edit-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+} 

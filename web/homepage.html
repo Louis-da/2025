@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>云收发 - 高效简洁的收发流程管理工具</title>
+    <meta name="description" content="云收发是一款专业的收发流程管理工具，提供智能化的货品收发管理、AI分析报告、实时数据统计等功能，助力企业提升管理效率。">
+    <meta name="keywords" content="云收发,收发管理,流程管理,AI分析,数据统计,企业管理">
+    
+    <!-- Apple设计系统CSS -->
+    <link rel="stylesheet" href="css/apple-design.css">
+    <!-- 性能优化CSS -->
+    <link rel="stylesheet" href="css/performance-fix.css">
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+    
+    <style>
+        /* 官网专用样式 */
+        :root {
+            --hero-height: 100vh;
+            --section-padding: 120px 0;
+        }
+        
+        /* 全局重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--apple-gray-900);
+            overflow-x: hidden;
+        }
+        
+        /* 导航栏 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: all 0.3s var(--apple-ease);
+        }
+        
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--apple-gray-900);
+            text-decoration: none;
+        }
+        
+        .logo img {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+        }
+        
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+        }
+        
+        .nav-link {
+            color: var(--apple-gray-700);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s var(--apple-ease);
+        }
+        
+        .nav-link:hover {
+            color: var(--apple-blue);
+        }
+        
+        .login-btn {
+            background: var(--apple-blue);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s var(--apple-ease);
+        }
+        
+        .login-btn:hover {
+            background: #0056CC;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+        }
+        
+        /* 英雄区块 */
+        .hero {
+            height: var(--hero-height);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            padding: 0 24px;
+        }
+        
+        .hero-title {
+            font-size: clamp(48px, 8vw, 96px);
+            font-weight: 700;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, #f0f8ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: clamp(20px, 3vw, 28px);
+            margin-bottom: 40px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--apple-blue);
+            padding: 16px 32px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s var(--apple-ease);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            padding: 16px 32px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s var(--apple-ease);
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+        }
+        
+        /* 功能特色区块 */
+        .features {
+            padding: var(--section-padding);
+            background: var(--apple-gray-50);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: clamp(36px, 5vw, 48px);
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--apple-gray-900);
+        }
+        
+        .section-subtitle {
+            text-align: center;
+            font-size: 20px;
+            color: var(--apple-gray-600);
+            margin-bottom: 80px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-bottom: 80px;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s var(--apple-ease);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .feature-icon {
+            font-size: 60px;
+            margin-bottom: 24px;
+            display: block;
+        }
+        
+        .feature-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--apple-gray-900);
+        }
+        
+        .feature-description {
+            color: var(--apple-gray-600);
+            line-height: 1.6;
+        }
+        
+        /* 产品预览区块 */
+        .product-preview {
+            padding: var(--section-padding);
+            background: white;
+        }
+        
+        .preview-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+        
+        .preview-content h2 {
+            font-size: clamp(32px, 4vw, 42px);
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--apple-gray-900);
+        }
+        
+        .preview-content p {
+            font-size: 18px;
+            color: var(--apple-gray-600);
+            margin-bottom: 32px;
+            line-height: 1.7;
+        }
+        
+        .preview-features {
+            list-style: none;
+            margin-bottom: 40px;
+        }
+        
+        .preview-features li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            font-size: 16px;
+            color: var(--apple-gray-700);
+        }
+        
+        .preview-features li::before {
+            content: '✅';
+            font-size: 16px;
+        }
+        
+        .preview-image {
+            background: linear-gradient(135deg, var(--apple-gray-100) 0%, white 100%);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .preview-mockup {
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            background: var(--apple-blue);
+            border-radius: 16px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
+        }
+        
+        /* 统计数据区块 */
+        .stats {
+            padding: 80px 0;
+            background: linear-gradient(135deg, var(--apple-blue) 0%, #5856D6 100%);
+            color: white;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            text-align: center;
+        }
+        
+        .stat-item h3 {
+            font-size: clamp(36px, 5vw, 48px);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .stat-item p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        /* 联系我们区块 */
+        .contact-section {
+            padding: var(--section-padding);
+            background: white;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-bottom: 60px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .contact-card {
+            background: var(--apple-gray-50);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s var(--apple-ease);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            background: white;
+        }
+        
+        .contact-card.wechat-card {
+            background: linear-gradient(135deg, #07C160 0%, #00D976 100%);
+            color: white;
+            box-shadow: 0 4px 20px rgba(7, 193, 96, 0.3);
+        }
+        
+        .contact-card.wechat-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(7, 193, 96, 0.4);
+        }
+        
+        .contact-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        .contact-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--apple-gray-900);
+        }
+        
+        .contact-card.wechat-card .contact-title {
+            color: white;
+        }
+        
+        .contact-description {
+            color: var(--apple-gray-600);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        
+        .contact-card.wechat-card .contact-description {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .qrcode-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .qrcode-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s var(--apple-ease);
+        }
+        
+        .qrcode-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .qrcode-hint {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+        }
+        
+        .contact-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .contact-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s var(--apple-ease);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .contact-btn.primary {
+            background: var(--apple-blue);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+        }
+        
+        .contact-btn.primary:hover {
+            background: #0056CC;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+        }
+        
+        .contact-btn.secondary {
+            background: var(--apple-gray-200);
+            color: var(--apple-gray-900);
+            border: 1px solid var(--apple-gray-300);
+        }
+        
+        .contact-btn.secondary:hover {
+            background: var(--apple-gray-300);
+            transform: translateY(-1px);
+        }
+        
+        .contact-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            padding: 40px;
+            background: var(--apple-gray-50);
+            border-radius: 20px;
+            border: 1px solid var(--apple-gray-200);
+        }
+        
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s var(--apple-ease);
+        }
+        
+        .summary-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .summary-icon {
+            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--apple-blue);
+            border-radius: 12px;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .summary-content h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--apple-gray-900);
+        }
+        
+        .summary-content p {
+            font-size: 14px;
+            color: var(--apple-gray-600);
+            margin: 0;
+        }
+        
+        /* CTA区块 */
+        .cta {
+            padding: var(--section-padding);
+            background: var(--apple-gray-900);
+            color: white;
+            text-align: center;
+        }
+        
+        .cta h2 {
+            font-size: clamp(36px, 5vw, 48px);
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+        
+        .cta p {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* 页脚 */
+        .footer {
+            background: var(--apple-gray-100);
+            padding: 60px 0 40px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-section h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--apple-gray-900);
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section ul li {
+            margin-bottom: 8px;
+        }
+        
+        .footer-section ul li a {
+            color: var(--apple-gray-600);
+            text-decoration: none;
+            transition: color 0.2s var(--apple-ease);
+        }
+        
+        .footer-section ul li a:hover {
+            color: var(--apple-blue);
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid var(--apple-gray-300);
+            color: var(--apple-gray-500);
+            font-size: 14px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .preview-container {
+                grid-template-columns: 1fr;
+                gap: 50px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 30px;
+            }
+            
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            
+            .contact-card {
+                padding: 30px 20px;
+            }
+            
+            .qrcode-image {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .contact-summary {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 30px 20px;
+            }
+            
+            .summary-item {
+                padding: 16px;
+            }
+            
+            .contact-btn {
+                padding: 10px 20px;
+                font-size: 13px;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-fade-up {
+            animation: fadeInUp 0.6s var(--apple-ease) forwards;
+        }
+        
+        /* 滚动指示器 */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            opacity: 0.7;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            40% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+            60% {
+                transform: translateX(-50%) translateY(-5px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <img src="images/logo.png" alt="云收发">
+                <span>云收发</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="#features" class="nav-link">功能</a></li>
+                <li><a href="#product" class="nav-link">产品</a></li>
+                <li><a href="#about" class="nav-link">关于</a></li>
+                <li><a href="#contact-us" class="nav-link">联系</a></li>
+            </ul>
+            <a href="index.html" class="login-btn">立即登录</a>
+        </div>
+    </nav>
+
+    <!-- 英雄区块 -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">云收发</h1>
+            <p class="hero-subtitle">高效、简洁的收发流程管理工具</p>
+            <div class="hero-buttons">
+                <a href="index.html" class="btn-primary">立即开始</a>
+                <a href="#features" class="btn-secondary">了解更多</a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span style="font-size: 12px; margin-bottom: 8px;">向下滑动</span>
+            <div style="width: 20px; height: 30px; border: 2px solid white; border-radius: 15px; position: relative;">
+                <div style="width: 4px; height: 6px; background: white; border-radius: 2px; position: absolute; top: 6px; left: 50%; transform: translateX(-50%);"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 功能特色 -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">强大功能，简单易用</h2>
+            <p class="section-subtitle">云收发提供全方位的收发流程管理解决方案，让您的业务管理更加高效智能</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">📦</span>
+                    <h3 class="feature-title">智能收发管理</h3>
+                    <p class="feature-description">支持发出单、收回单的完整流程管理，实时跟踪货品状态，自动计算损耗率，确保流程透明可控。</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🤖</span>
+                    <h3 class="feature-title">AI智能分析</h3>
+                    <p class="feature-description">基于机器学习的智能分析引擎，自动识别异常模式，预测趋势变化，为决策提供数据支持。</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">📊</span>
+                    <h3 class="feature-title">实时数据统计</h3>
+                    <p class="feature-description">多维度数据可视化，实时生成统计报表和对账单，让数据分析变得直观易懂。</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">⚙️</span>
+                    <h3 class="feature-title">基础数据管理</h3>
+                    <p class="feature-description">统一管理货品、工厂、颜色、尺码等基础信息，支持批量导入导出，提升数据管理效率。</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">📱</span>
+                    <h3 class="feature-title">多端同步</h3>
+                    <p class="feature-description">支持Web端和移动端多平台访问，数据实时同步，随时随地管理您的业务。</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🔒</span>
+                    <h3 class="feature-title">安全可靠</h3>
+                    <p class="feature-description">企业级安全保障，多层数据加密，完善的权限管理，让您的数据安全无忧。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 产品预览 -->
+    <section class="product-preview" id="product">
+        <div class="container">
+            <div class="preview-container">
+                <div class="preview-content">
+                    <h2>专业的流程管理工具</h2>
+                    <p>云收发采用现代化的设计理念，结合先进的技术架构，为企业提供专业、高效的收发流程管理解决方案。</p>
+                    
+                    <ul class="preview-features">
+                        <li>直观的操作界面，降低学习成本</li>
+                        <li>完整的流程管控，确保业务规范</li>
+                        <li>智能的数据分析，辅助决策制定</li>
+                        <li>灵活的配置选项，适应不同需求</li>
+                        <li>强大的报表功能，数据一目了然</li>
+                    </ul>
+                    
+                    <a href="index.html" class="btn-primary" style="display: inline-block; color: var(--apple-blue);">体验产品</a>
+                </div>
+                
+                <div class="preview-image">
+                    <div class="preview-mockup">
+                        📊
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 统计数据 -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3>99.9%</h3>
+                    <p>系统稳定性</p>
+                </div>
+                <div class="stat-item">
+                    <h3>1000+</h3>
+                    <p>企业用户</p>
+                </div>
+                <div class="stat-item">
+                    <h3>50万+</h3>
+                    <p>月处理订单</p>
+                </div>
+                <div class="stat-item">
+                    <h3>24/7</h3>
+                    <p>技术支持</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 联系我们区块 -->
+    <section class="contact-section" id="contact-us">
+        <div class="container">
+            <h2 class="section-title">联系我们</h2>
+            <p class="section-subtitle">有任何问题或需要帮助？我们随时为您提供专业支持</p>
+            
+            <div class="contact-grid">
+                <!-- 微信联系 -->
+                <div class="contact-card wechat-card">
+                    <div class="contact-icon">💬</div>
+                    <h3 class="contact-title">微信咨询</h3>
+                    <p class="contact-description">扫描二维码添加微信，获得一对一专业咨询服务</p>
+                    <div class="qrcode-container">
+                        <img src="images/wechat-qrcode.jpg" alt="微信二维码" class="qrcode-image">
+                        <p class="qrcode-hint">扫码添加微信</p>
+                    </div>
+                </div>
+                
+                <!-- 在线客服 -->
+                <div class="contact-card">
+                    <div class="contact-icon">💻</div>
+                    <h3 class="contact-title">在线客服</h3>
+                    <p class="contact-description">7x24小时在线客服支持，快速响应您的问题</p>
+                    <div class="contact-actions">
+                        <button class="contact-btn primary" onclick="openOnlineChat()">
+                            <span>💬</span>
+                            <span>立即咨询</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 联系信息汇总 -->
+            <div class="contact-summary">
+                <div class="summary-item">
+                    <div class="summary-icon">🌍</div>
+                    <div class="summary-content">
+                        <h4>服务时间</h4>
+                        <p>周一至周日 9:00-22:00</p>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-icon">📍</div>
+                    <div class="summary-content">
+                        <h4>服务范围</h4>
+                        <p>全国范围专业服务</p>
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-icon">⚡</div>
+                    <div class="summary-content">
+                        <h4>响应时间</h4>
+                        <p>1小时内快速响应</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA区块 -->
+    <section class="cta">
+        <div class="container">
+            <h2>准备开始了吗？</h2>
+            <p>立即体验云收发，让您的收发流程管理更加高效智能</p>
+            <a href="index.html" class="btn-primary" style="color: var(--apple-blue);">免费试用</a>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer" id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>产品</h4>
+                    <ul>
+                        <li><a href="#features">功能特色</a></li>
+                        <li><a href="#product">产品介绍</a></li>
+                        <li><a href="index.html">在线体验</a></li>
+                        <li><a href="#">价格方案</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>解决方案</h4>
+                    <ul>
+                        <li><a href="#">制造业</a></li>
+                        <li><a href="#">贸易企业</a></li>
+                        <li><a href="#">物流行业</a></li>
+                        <li><a href="#">中小企业</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>支持</h4>
+                    <ul>
+                        <li><a href="#">帮助中心</a></li>
+                        <li><a href="#">API文档</a></li>
+                        <li><a href="#">视频教程</a></li>
+                        <li><a href="#">联系客服</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>公司</h4>
+                    <ul>
+                        <li><a href="#">关于我们</a></li>
+                        <li><a href="#">新闻动态</a></li>
+                        <li><a href="#">招贤纳士</a></li>
+                        <li><a href="#">合作伙伴</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; <span id="currentYear"></span> 云收发管理系统. 保留所有权利. | <a href="privacy-policy.html" style="color: inherit;">隐私政策</a> | <a href="service-agreement.html" style="color: inherit;">服务协议</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 导航栏滚动效果
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 设置当前年份
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // 滚动动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-up');
+                }
+            });
+        }, observerOptions);
+
+        // 观察需要动画的元素
+        document.querySelectorAll('.feature-card, .preview-content, .stat-item').forEach(el => {
+            observer.observe(el);
+        });
+
+        // 统计数字滚动效果
+        function animateCounters() {
+            const counters = document.querySelectorAll('.stat-item h3');
+            counters.forEach(counter => {
+                const target = parseInt(counter.textContent.replace(/[^\d]/g, ''));
+                const increment = target / 50;
+                let current = 0;
+                
+                const updateCounter = () => {
+                    if (current < target) {
+                        current += increment;
+                        const suffix = counter.textContent.replace(/[\d.]/g, '');
+                        counter.textContent = Math.ceil(current) + suffix;
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        counter.textContent = counter.textContent; // 恢复原始文本
+                    }
+                };
+                
+                updateCounter();
+            });
+        }
+
+        // 当统计区块可见时触发计数动画
+        const statsObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCounters();
+                    statsObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        const statsSection = document.querySelector('.stats');
+        if (statsSection) {
+            statsObserver.observe(statsSection);
+        }
+        
+        // 联系我们区块动画
+        document.querySelectorAll('.contact-card, .summary-item').forEach(el => {
+            observer.observe(el);
+        });
+        
+        // 在线咨询功能
+        function openOnlineChat() {
+            // 这里可以集成实际的在线客服系统
+            // 例如：腾讯客服、智齿客服、网易七鱼等
+            alert('🎉 感谢您的咨询！\n\n请通过以下方式联系我们：\n\n💬 微信：扫描上方二维码添加微信\n🌐 在线客服：7x24小时为您服务');
+            
+            // 示例：跳转到客服页面
+            // window.open('https://your-customer-service-url.com', '_blank');
+        }
+        
+        // 二维码悬停效果增强
+        const qrcodeImage = document.querySelector('.qrcode-image');
+        if (qrcodeImage) {
+            qrcodeImage.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1) rotate(2deg)';
+            });
+            
+            qrcodeImage.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1) rotate(0deg)';
+            });
+        }
+    </script>
+</body>
+</html> 

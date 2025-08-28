@@ -1,284 +1,587 @@
-<view class="container">
-  <!-- 搜索栏 -->
-  <view class="search-bar">
-    <view class="search-input-box">
-      <icon type="search" size="18" color="#999" />
-      <input placeholder="搜索工厂名称或联系人" bindinput="searchFactories" value="{{keyword}}" confirm-type="search" />
-      <icon wx:if="{{keyword}}" type="clear" size="18" color="#999" bindtap="clearSearch" />
+<view class="page-container">
+  
+  <!-- 页面头部 -->
+  <view class="page-header">
+    <view class="header-content">
+      <view class="header-left">
+        <text class="page-title">工厂管理</text>
+        <text class="page-subtitle">合计{{factoryStats.totalCount || 0}}家，启用{{factoryStats.activeCount || 0}} 停用{{factoryStats.inactiveCount || 0}}</text>
+      </view>
+      <view class="header-right">
+        <view class="add-btn-wrapper">
+          <view class="add-btn" bindtap="navigateToEdit">
+            <text class="add-icon">+</text>
+            <text class="add-text">新增</text>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 
-  <!-- 工厂列表 -->
-  <view class="factory-list">
-    <view wx:if="{{factories.length === 0 && !isLoading}}" class="empty-tips">
-      <image src="/images/icon-empty.png" mode="aspectFit"></image>
-      <text>暂无工厂信息</text>
+  <!-- 工厂筛选搜索框 -->
+  <view class="factory-search-section">
+    <view class="search-container">
+      <view class="search-box">
+        <input 
+          class="search-input"
+          placeholder="输入工厂名称、电话、地址或首字母筛选"
+          value="{{searchKeyword}}"
+          confirm-type="search"
+          bindinput="onFactorySearch"
+          bindconfirm="onSearchButtonClick"
+        />
+        <view class="search-icon">🔍</view>
+        <view class="clear-icon" wx:if="{{searchKeyword}}" catchtap="clearFactorySearch">×</view>
+        <view class="search-btn" bindtap="onSearchButtonClick">查询</view>
+      </view>
+      <view class="search-results-info" wx:if="{{isSearchMode}}">
+        <text class="results-text">找到 {{factories.length}} 家相关工厂</text>
+      </view>
     </view>
-    
-    <view wx:for="{{factories}}" wx:key="_id" class="factory-item {{item.status === 'inactive' ? 'inactive' : ''}}">
-      <view class="factory-header">
-        <view class="factory-name">{{item.name}}</view>
-        <view class="factory-status" wx:if="{{item.status !== 1}}">已停用</view>
+  </view>
+
+  <!-- AI智能提示卡片 -->
+  <view class="ai-tip-card">
+    <text class="ai-tip-icon">🤖</text>
+    <view class="ai-tip-content">
+      <text class="ai-tip-title">AI智能建议</text>
+      <text class="ai-tip-desc">建议定期核对工厂账户，及时处理欠款和余额</text>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-wrapper" wx:if="{{isLoading && factories.length === 0}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">数据加载中...</text>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-wrapper" wx:elif="{{!isLoading && factories.length === 0}}">
+    <view class="empty-content">
+      <text class="empty-icon">🏭</text>
+      <text class="empty-title">{{isSearchMode ? '未找到相关工厂' : '暂无工厂数据'}}</text>
+      <text class="empty-desc">{{isSearchMode ? '请尝试其他关键词或添加新工厂' : '点击右上角"新增"按钮添加第一家工厂'}}</text>
+      <view class="empty-action">
+        <text class="empty-btn" bindtap="{{isSearchMode ? 'clearFactorySearch' : 'navigateToEdit'}}">
+          {{isSearchMode ? '清除筛选' : '立即添加'}}
+        </text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 工厂网格布局 -->
+  <view class="factory-grid" wx:elif="{{!isLoading && factories.length > 0}}">
+    <view class="factory-card {{item.status === 'inactive' ? 'disabled' : ''}}" 
+          wx:for="{{factories}}" 
+          wx:key="_id"
+          bindtap="editFactory"
+          data-id="{{item._id}}">
+      
+      <!-- 卡片内容 -->
+      <view class="card-content">
+        <!-- 工厂基本信息 -->
+        <view class="factory-header">
+          <view class="factory-name">{{item.name}}</view>
+        </view>
+        
+        <!-- 工序和联系信息 - 移到工厂名正下方 -->
+        <view class="factory-details">
+          <view wx:if="{{item.processes}}" class="detail-row">
+            <text class="detail-icon">⚙️</text>
+            <text class="detail-content">{{item.processes}}</text>
+          </view>
+          <view wx:if="{{item.phone}}" class="detail-row">
+            <text class="detail-icon">📞</text>
+            <text class="detail-content">{{item.phone}}</text>
+          </view>
+        </view>
+
+        <!-- 账户状态 -->
+        <view class="account-status">
+          <view class="account-label">账户状态</view>
+          <view class="account-value">
+            <block wx:if="{{item.balance > 0}}">
+              <text class="balance-positive">余款 ¥{{item.balance}}</text>
+            </block>
+            <block wx:elif="{{item.debt > 0}}">
+              <text class="balance-negative">欠款 ¥{{item.debt}}</text>
+            </block>
+            <block wx:else>
+              <text class="balance-zero">¥0</text>
+            </block>
+          </view>
+        </view>
+      </view>
+
+      <!-- 卡片操作 - 只保留账户和付款按钮 -->
+      <view class="card-actions" catchtap="stopPropagation">
+        <view class="action-btn account-btn" 
+              bindtap="viewAccountDetail" 
+              data-id="{{item._id}}" 
+              data-name="{{item.name}}">
+          <text class="btn-icon">📊</text>
+          <text class="btn-text">账户</text>
+        </view>
+        <view class="action-btn pay-btn" 
+              bindtap="openPayDebtModal" 
+              data-id="{{item._id}}" 
+              data-name="{{item.name}}" 
+              data-debt="{{item.debt}}">
+          <text class="btn-icon">💰</text>
+          <text class="btn-text">付款</text>
+        </view>
       </view>
       
-      <view class="factory-info">
-        <view class="info-item">
-          <text class="label">联系电话：</text>
-          <text class="value">{{item.phone || '未设置'}}</text>
-        </view>
-        <view class="info-item">
-          <text class="label">主营工序：</text>
-          <block wx:if="{{item.processes}}">
-            <text wx:if="{{item.processes.length > 0}}" class="processes">{{item.processes.join('、')}}</text>
-            <text wx:else class="processes-empty">未设置</text>
-          </block>
-          <text wx:else class="processes-empty">未设置</text>
-        </view>
-        <view class="info-item">
-          <text class="label">地址：</text>
-          <text class="value">{{item.address || '未设置'}}</text>
-        </view>
-        <view wx:if="{{item.remark}}" class="info-item">
-          <text class="label">备注：</text>
-          <text class="value remark">{{item.remark}}</text>
-        </view>
-        
-        <view class="factory-extra">
-          <view class="balance-info">
-            <view class="balance-item">
-              <text>账户状态：</text>
-              <block wx:if="{{item.balance > 0}}">
-                <text class="balance">余款 ￥{{item.balance}}</text>
-              </block>
-              <block wx:elif="{{item.debt > 0}}">
-                <text class="debt">欠款 ￥{{item.debt}}</text>
-              </block>
-              <block wx:else>
-                <text class="balance-zero">￥0</text>
-              </block>
-            </view>
-          </view>
-          <view class="factory-actions">
-            <view class="action-group">
-              <button class="btn-detail" catchtap="viewAccountDetail" data-id="{{item._id}}" data-name="{{item.name}}">
-                <text>账户详情</text>
-              </button>
-              
-              <block wx:if="{{item.debt > 0}}">
-                <button class="btn-pay" catchtap="openPayDebtModal" data-id="{{item._id}}" data-name="{{item.name}}" data-debt="{{item.debt}}">
-                  <text>付款</text>
-                </button>
-              </block>
-              
-              <button class="btn-edit" catchtap="editFactory" data-id="{{item._id}}">
-                <text>编辑</text>
-              </button>
-              
-              <button class="btn-enable" wx:if="{{item.status === 0}}" catchtap="toggleStatus" data-id="{{item._id}}" data-status="{{item.status}}">
-                启用
-              </button>
-            </view>
-          </view>
-        </view>
+      <!-- 创建日期 - 移到账户按钮下一行，靠左对齐 -->
+      <view wx:if="{{item.createTime}}" class="factory-create-time">
+        <text class="time-label"></text>
+        <text class="time-value">{{item.createTime}}</text>
       </view>
     </view>
-    
-    <!-- 加载提示 -->
-    <view wx:if="{{isLoading}}" class="loading-tips">
-      <view class="loading-icon"></view>
-      <text>加载中...</text>
-    </view>
-    
-    <!-- 加载更多提示 -->
-    <view wx:if="{{!isLoading && hasMore}}" class="load-more" bindtap="loadMoreFactories">
-      点击加载更多
-    </view>
-    
-    <!-- 列表底部提示 -->
-    <view wx:if="{{!isLoading && !hasMore && factories.length > 0}}" class="list-end-tips">
-      已显示全部 {{totalCount}} 条数据
-    </view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view wx:if="{{isLoading && factories.length > 0}}" class="loading-more">
+    <view class="loading-spinner-small"></view>
+    <text class="loading-more-text">加载中...</text>
   </view>
   
-  <!-- 添加按钮 -->
-  <view class="add-btn" bindtap="navigateToEdit">
-    <text>+</text>
+  <view wx:if="{{!isLoading && hasMore && factories.length > 0}}" class="load-more" bindtap="loadMoreFactories">
+    <text class="load-more-text">点击加载更多</text>
   </view>
   
+  <view wx:if="{{!isLoading && !hasMore && factories.length > 0}}" class="list-end">
+    <text class="list-end-text">已显示全部 {{totalCount}} 条数据</text>
+  </view>
+
   <!-- 编辑工厂弹窗 -->
-  <view class="modal-container" wx:if="{{showEditModal}}">
-    <view class="modal-mask" catchtouchmove="preventTouchMove"></view>
-    <view class="modal">
+  <view class="modal-mask" wx:if="{{showEditModal}}" bindtap="closeEditModal"></view>
+  <view class="modal-container {{showEditModal ? 'modal-show' : ''}}" wx:if="{{showEditModal}}">
+    <view class="modal-content">
       <view class="modal-header">
-        <text class="title">{{isAdding ? '新增工厂' : '修改工厂'}}</text>
-        <view class="close-btn" bindtap="closeEditModal">×</view>
+        <text class="modal-title">{{isAdding ? '🏭 新增工厂' : '✏️ 编辑工厂'}}</text>
+        <text class="modal-close" bindtap="closeEditModal">×</text>
       </view>
       <view class="modal-body">
-        <view class="form-group">
-          <view class="form-label">工厂名称</view>
-          <input class="form-input" value="{{editingFactory.name}}" disabled="{{nameReadOnly}}" bindinput="inputChange" data-field="name" placeholder="请输入工厂名称" />
-          <view class="helper-text" wx:if="{{nameReadOnly}}">该工厂有余额或欠款，不能修改名称</view>
-        </view>
-        
-        <view class="form-group">
-          <view class="form-label">联系电话</view>
-          <input class="form-input" type="number" value="{{editingFactory.phone}}" disabled="{{phoneReadOnly}}" bindinput="inputChange" data-field="phone" placeholder="请输入手机号（选填）" />
-          <view class="helper-text" wx:if="{{phoneReadOnly}}">该工厂有余额或欠款，不能修改电话</view>
-        </view>
-        
-        <view class="form-group">
-          <view class="form-label">主营工序</view>
-          <view class="multi-selector">
-            <view class="selected-items">
-              <block wx:if="{{editingFactory.processes && editingFactory.processes.length > 0}}">
-              <view wx:for="{{editingFactory.processes}}" wx:key="index" class="tag tag-blue">
-                {{item}}
-                <text class="tag-close" catchtap="removeProcess" data-index="{{index}}">×</text>
-              </view>
-              </block>
-              <view wx:else class="no-processes-hint">暂无选择工序</view>
-            </view>
-            <view class="selector-action" bindtap="showProcessSelector">
-              <text class="{{editingFactory.processes && editingFactory.processes.length > 0 ? '' : 'placeholder'}}">{{editingFactory.processes && editingFactory.processes.length > 0 ? '添加工序' : '请选择工序'}}</text>
-              <view class="add-icon">+</view>
-            </view>
+        <!-- AI建议区域 -->
+        <view class="ai-suggestion" wx:if="{{isAdding}}">
+          <text class="suggestion-icon">💡</text>
+          <view class="suggestion-content">
+            <text class="suggestion-title">智能建议</text>
+            <text class="suggestion-desc">建议完善工厂联系方式和主营工序，便于后续管理</text>
           </view>
         </view>
-        
-        <view class="form-group">
-          <view class="form-label">地址</view>
-          <input class="form-input" value="{{editingFactory.address}}" bindinput="inputChange" data-field="address" placeholder="请输入工厂地址" />
+
+        <!-- 编辑警告区域 -->
+        <view class="edit-warning" wx:if="{{!isAdding && (nameReadOnly || phoneReadOnly)}}">
+          <text class="warning-icon">⚠️</text>
+          <view class="warning-content">
+            <text class="warning-title">编辑限制</text>
+            <text class="warning-desc">该工厂有余额或欠款，部分信息不能修改</text>
+          </view>
         </view>
-        
-        <view class="form-group">
-          <view class="form-label">备注</view>
-          <textarea class="form-textarea" value="{{editingFactory.remark}}" bindinput="inputChange" data-field="remark" placeholder="请输入备注信息" maxlength="200" />
+
+        <view class="form-section">
+          <view class="form-item">
+            <text class="form-label required">工厂名称</text>
+            <input class="form-input" 
+                   value="{{editingFactory.name}}" 
+                   disabled="{{nameReadOnly}}" 
+                   bindinput="inputChange" 
+                   data-field="name" 
+                   placeholder="请输入工厂名称" />
+          </view>
+          
+          <view class="form-item">
+            <text class="form-label">联系电话</text>
+            <input class="form-input" 
+                   type="number" 
+                   value="{{editingFactory.phone}}" 
+                   disabled="{{phoneReadOnly}}" 
+                   bindinput="inputChange" 
+                   data-field="phone" 
+                   placeholder="请输入手机号（选填）" />
+          </view>
+
+          <view class="form-item">
+            <text class="form-label required">主营工序</text>
+            <view class="multi-selector">
+              <view class="selected-items">
+                <block wx:if="{{editingFactory.processes && editingFactory.processes.length > 0}}">
+                  <view wx:for="{{editingFactory.processes}}" wx:key="index" class="tag">
+                    {{item}}
+                    <text class="tag-close" catchtap="removeProcess" data-index="{{index}}">×</text>
+                  </view>
+                </block>
+                <text wx:else class="no-processes-hint">暂无选择工序</text>
+              </view>
+              <view class="selector-action" bindtap="showProcessSelector">
+                <text class="selector-text">{{editingFactory.processes && editingFactory.processes.length > 0 ? '添加工序' : '请选择工序'}}</text>
+                <text class="selector-icon">+</text>
+              </view>
+            </view>
+          </view>
+          
+          <view class="form-item">
+            <text class="form-label">工厂地址</text>
+            <input class="form-input" 
+                   value="{{editingFactory.address}}" 
+                   bindinput="inputChange" 
+                   data-field="address" 
+                   placeholder="请输入工厂地址" />
+          </view>
+          
+          <view class="form-item">
+            <text class="form-label">备注信息</text>
+            <textarea class="form-textarea" 
+                      value="{{editingFactory.remark}}" 
+                      bindinput="inputChange" 
+                      data-field="remark" 
+                      placeholder="请输入备注信息" 
+                      maxlength="200" />
+          </view>
+          
+          <!-- 创建日期 -->
+          <view class="form-item" wx:if="{{!isAdding || editingFactory.createTime}}">
+            <text class="form-label">创建日期</text>
+            <view class="form-display-value">
+              <text class="date-display">{{editingFactory.createTime || currentDate}}</text>
+              <text class="date-icon">📅</text>
+            </view>
+          </view>
         </view>
       </view>
       <view class="modal-footer">
-        <view 
-          class="disable-btn" 
-          wx:if="{{!isAdding && (editingFactory.status == 1 || editingFactory.status == 'active')}}"
-          bindtap="disableFactory"
-          style="margin-right: 16rpx; color: #f56c6c; border: 1rpx solid #f56c6c; background: #fff;"
-        >停用</view>
-        <view class="cancel-btn" bindtap="closeEditModal">取消</view>
-        <view class="confirm-btn" bindtap="submitFactory">确定</view>
+        <view class="footer-actions">
+          <!-- 停用按钮 -->
+          <view class="disable-btn" 
+                wx:if="{{!isAdding && editingFactory.status === 'active'}}"
+                bindtap="disableFactory">
+            <text class="btn-icon">⏸️</text>
+            <text class="btn-text">停用</text>
+          </view>
+          
+          <!-- 启用按钮 -->
+          <view class="enable-btn" 
+                wx:if="{{!isAdding && editingFactory.status === 'inactive'}}"
+                bindtap="enableFactory">
+            <text class="btn-icon">▶️</text>
+            <text class="btn-text">启用</text>
+          </view>
+          
+          <!-- 取消按钮 -->
+          <view class="cancel-btn" bindtap="closeEditModal">取消</view>
+          
+          <!-- 确定按钮 -->
+          <view class="confirm-btn" bindtap="submitFactory">确定</view>
+        </view>
       </view>
     </view>
   </view>
 
-  <!-- 添加支付欠款弹窗 -->
-  <view class="modal-mask" wx:if="{{showPayDebtModal}}" bindtap="closePayDebtModal" catchtouchmove="preventTouchMove"></view>
-  <view class="modal-dialog pay-debt-modal" wx:if="{{showPayDebtModal}}">
-    <view class="modal-header">
-      <text>支付欠款</text>
-      <view class="close-btn" bindtap="closePayDebtModal">×</view>
-    </view>
-    
+  <!-- 支付欠款弹窗 -->
+  <view class="modal-mask" wx:if="{{showPayDebtModal}}" bindtap="closePayDebtModal"></view>
+  <view class="modal-container {{showPayDebtModal ? 'modal-show' : ''}}" wx:if="{{showPayDebtModal}}">
     <view class="modal-content">
-      <view class="debt-summary">
-        <view class="debt-factory-name">{{payingFactory.name}}</view>
-        <view class="debt-amount">当前欠款: ¥{{payingFactory.debt}}</view>
+      <view class="modal-header">
+        <text class="modal-title">💰 工厂付款</text>
+        <view class="header-actions">
+          <view class="history-btn" bindtap="openPaymentHistory">
+            <text class="btn-icon">📋</text>
+            <text class="btn-text">历史</text>
+          </view>
+          <text class="modal-close" bindtap="closePayDebtModal">×</text>
+        </view>
       </view>
       
-      <view class="form-group">
-        <text class="form-label required">支付金额</text>
-        <input 
-          class="form-input" 
-          type="digit" 
-          placeholder="请输入支付金额" 
-          value="{{payAmount}}" 
-          bindinput="inputPayAmount"
-          focus="true"
-        />
-        <text class="helper-text" wx:if="{{payAmount > payingFactory.debt}}">金额大于欠款，多余部分将计入余额</text>
+      <view class="modal-body">
+        <view class="debt-summary">
+          <view class="debt-factory-name">{{payingFactory.name}}</view>
+          <view class="debt-amount">
+            <block wx:if="{{payingFactory.debt > 0}}">
+              当前欠款: ¥{{payingFactory.debt}}
+            </block>
+            <block wx:else>
+              账户状态: 无欠款
+            </block>
+          </view>
+        </view>
+        
+        <view class="form-section">
+          <view class="form-item">
+            <text class="form-label required">支付金额</text>
+            <input class="form-input" 
+                   type="digit" 
+                   placeholder="请输入支付金额" 
+                   value="{{payAmount}}" 
+                   bindinput="inputPayAmount"
+                   focus="true" />
+            <text class="helper-text" wx:if="{{payingFactory.debt > 0 && payAmount > payingFactory.debt}}">金额大于欠款，多余部分将计入余额</text>
+            <text class="helper-text" wx:elif="{{payingFactory.debt <= 0}}">付款金额将计入工厂余额</text>
+          </view>
+          
+          <view class="form-item">
+            <text class="form-label required">支付方式</text>
+            <radio-group class="payment-methods" bindchange="selectPaymentMethod">
+              <label class="payment-method-item" wx:for="{{paymentMethods}}" wx:key="value">
+                <radio value="{{item.value}}" checked="{{item.value === selectedPaymentMethod}}" />
+                <text>{{item.label}}</text>
+              </label>
+            </radio-group>
+          </view>
+          
+          <view class="form-item">
+            <text class="form-label required">付款备注</text>
+            <textarea class="form-textarea" 
+                      placeholder="请输入付款备注信息，如交易号、银行信息等" 
+                      value="{{paymentRemark}}" 
+                      bindinput="inputPaymentRemark"
+                      maxlength="200" />
+            <text class="helper-text">文字备注或图片备注至少填写一项</text>
+            
+            <!-- 新增：拍照备注区域 -->
+            <view class="remark-photos-section">
+              <view class="photos-header">
+                <text class="photos-label">📷 拍照备注</text>
+                <view class="take-photo-btn" bindtap="takePhoto" disabled="{{isUploadingImage || remarkImages.length >= 3}}">
+                  <text class="camera-icon">📸</text>
+                  <text class="camera-text">{{isUploadingImage ? '处理中...' : (remarkImages.length >= 3 ? '已满3张' : '拍照')}}</text>
+                </view>
+              </view>
+              
+              <!-- 图片预览区域 -->
+              <view wx:if="{{remarkImages.length > 0}}" class="photos-preview">
+                <view wx:for="{{remarkImages}}" wx:key="id" class="photo-item">
+                  <image class="photo-thumb" 
+                         src="{{item.path}}" 
+                         mode="aspectFill"
+                         bindtap="previewRemarkImage"
+                         data-index="{{index}}" />
+                  <view class="photo-delete" 
+                        bindtap="deleteRemarkImage" 
+                        data-index="{{index}}">×</view>
+                </view>
+              </view>
+              
+              <view wx:if="{{remarkImages.length === 0}}" class="no-photos-hint">
+                <text class="hint-text">点击上方按钮拍照添加备注图片（最多3张）</text>
+              </view>
+            </view>
+          </view>
+        </view>
       </view>
       
-      <view class="form-group">
-        <text class="form-label required">支付方式</text>
-        <radio-group class="payment-methods" bindchange="selectPaymentMethod">
-          <label class="payment-method-item" wx:for="{{paymentMethods}}" wx:key="value">
-            <radio value="{{item.value}}" checked="{{item.value === selectedPaymentMethod}}" />
-            <text>{{item.label}}</text>
-          </label>
-        </radio-group>
-      </view>
-      
-      <view class="form-group" wx:if="{{selectedPaymentMethod === 'bank'}}">
-        <text class="form-label">银行转账信息</text>
-        <textarea 
-          class="form-textarea" 
-          placeholder="请输入银行转账的相关信息，如交易号" 
-          value="{{paymentRemark}}" 
-          bindinput="inputPaymentRemark"
-          maxlength="100"
-        />
+      <view class="modal-footer">
+        <view class="footer-actions">
+          <view class="cancel-btn" bindtap="closePayDebtModal">取消</view>
+          <view class="confirm-btn" bindtap="confirmPayDebt" disabled="{{!canSubmitPayment}}">确认支付</view>
+        </view>
       </view>
     </view>
-    
-    <view class="modal-footer">
-      <button class="btn cancel-btn" bindtap="closePayDebtModal">取消</button>
-      <button class="btn confirm-btn" bindtap="confirmPayDebt" disabled="{{!canSubmitPayment}}">确认支付</button>
+  </view>
+
+  <!-- 付款历史弹窗 -->
+  <view class="modal-mask" wx:if="{{showPaymentHistoryModal}}" bindtap="closePaymentHistory"></view>
+  <view class="modal-container large {{showPaymentHistoryModal ? 'modal-show' : ''}}" wx:if="{{showPaymentHistoryModal}}">
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">📋 付款历史 - {{payingFactory.name}}</text>
+        <text class="modal-close" bindtap="closePaymentHistory">×</text>
+      </view>
+      
+      <view class="modal-body">
+        <view wx:if="{{paymentHistoryRecords.length === 0 && !isLoadingHistory}}" class="empty-history">
+          <text class="empty-icon">💳</text>
+          <text class="empty-text">暂无付款历史记录</text>
+        </view>
+        <view wx:elif="{{isLoadingHistory && paymentHistoryRecords.length === 0}}" class="loading-history">
+          <view class="loading-spinner"></view>
+          <text class="loading-text">加载中...</text>
+        </view>
+        <scroll-view wx:else class="history-scroll" scroll-y="true" bindscrolltolower="loadMorePaymentHistory">
+          <!-- 改为卡片式设计 -->
+          <view class="payment-cards-container">
+            <view wx:for="{{paymentHistoryRecords}}" wx:key="id" class="payment-card {{item.status === 0 ? 'voided-card' : 'valid-card'}}">
+              <!-- 已作废水印 -->
+              <view wx:if="{{item.status === 0}}" class="void-watermark">已作废</view>
+              
+              <!-- 卡片头部：基本信息 -->
+              <view class="card-header">
+                <view class="card-header-left">
+                  <view class="payment-no">{{item.payment_no}}</view>
+                  <view class="payment-date">{{item.createTime}}</view>
+                  <view wx:if="{{item.created_by}}" class="payment-creator">制单：{{item.created_by}}</view>
+                </view>
+                <view class="card-header-right">
+                  <view class="payment-amount">¥{{item.amount}}</view>
+                  <view class="payment-status {{item.status === 0 ? 'status-voided' : 'status-valid'}}">{{item.statusText}}</view>
+                </view>
+              </view>
+              
+              <!-- 卡片内容：支付方式和操作 -->
+              <view class="card-content">
+                <view class="payment-method">
+                  <text class="method-label">支付方式：</text>
+                  <text class="method-value">{{item.paymentMethodText}}</text>
+                </view>
+                
+                <view class="card-actions">
+                  <view wx:if="{{item.canVoid}}" 
+                        class="void-btn" 
+                        bindtap="voidPaymentRecord" 
+                        data-id="{{item.id}}" 
+                        data-payment-no="{{item.payment_no}}">
+                    作废
+                  </view>
+                </view>
+              </view>
+              
+              <!-- 修复：备注区域（文字+图片） -->
+              <view wx:if="{{item.remark && item.remark.trim() !== '' || item.hasImages}}" class="card-remark">
+                <!-- 文字备注 -->
+                <view wx:if="{{item.remark && item.remark.trim() !== ''}}" class="remark-text-section">
+                  <view class="remark-label">💬 备注</view>
+                  <view class="remark-content">{{item.remark}}</view>
+                </view>
+                
+                <!-- 图片备注 -->
+                <view wx:if="{{item.hasImages}}" class="remark-image-section">
+                  <view class="remark-label">📷 图片备注</view>
+                  <view class="image-count-btn" 
+                        bindtap="viewPaymentImages" 
+                        data-payment-id="{{item.id}}" 
+                        data-images="{{item.imageUrls}}">
+                    <text class="image-icon">🖼️</text>
+                    <text class="image-count">{{item.imageUrls.length}}张图片</text>
+                    <text class="view-arrow">></text>
+                  </view>
+                </view>
+              </view>
+            </view>
+            
+            <!-- 加载更多指示器 -->
+            <view wx:if="{{isLoadingHistory && paymentHistoryRecords.length > 0}}" class="loading-more">
+              <view class="loading-spinner-small"></view>
+              <text class="loading-more-text">加载中...</text>
+            </view>
+            
+            <view wx:if="{{!isLoadingHistory && !hasMoreHistory && paymentHistoryRecords.length > 0}}" class="list-end">
+              <text class="list-end-text">已显示全部记录</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+      
+      <view class="modal-footer">
+        <view class="footer-actions">
+          <view class="confirm-btn full" bindtap="closePaymentHistory">关闭</view>
+        </view>
+      </view>
     </view>
   </view>
 
   <!-- 账户明细弹窗 -->
-  <view class="modal-mask" wx:if="{{showAccountDetail}}" bindtap="closeAccountDetail" catchtouchmove="preventTouchMove"></view>
-  <view class="modal-dialog account-detail-modal" wx:if="{{showAccountDetail}}">
-    <view class="modal-header">
-      <text>账户明细 - {{currentFactoryName}}</text>
-      <view class="close-btn" bindtap="closeAccountDetail">×</view>
-    </view>
-    
-    <view class="modal-content account-detail-content">
-      <view wx:if="{{accountRecords.length === 0 && !isLoadingRecords}}" class="empty-account-detail">
-        <text>暂无账户记录</text>
+  <view class="modal-mask" wx:if="{{showAccountDetail}}" bindtap="closeAccountDetail"></view>
+  <view class="modal-container large {{showAccountDetail ? 'modal-show' : ''}}" wx:if="{{showAccountDetail}}">
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">📊 账户明细 - {{currentFactoryName}}</text>
+        <text class="modal-close" bindtap="closeAccountDetail">×</text>
       </view>
-      <view wx:elif="{{isLoadingRecords}}" class="loading-account-records">
-        <view class="loading-icon"></view>
-        <text>加载中...</text>
-      </view>
-      <scroll-view wx:else class="account-scroll-view" scroll-y="true">
-        <scroll-view class="account-scroll-view-horizontal" scroll-x="true" enhanced="true" show-scrollbar="false">
-          <view class="account-table-container">
-            <view class="account-detail-list">
-              <view class="account-detail-item header">
-                <text class="account-date">日期</text>
-                <text class="account-orderNo">收回单号</text>
-                <text class="account-fee">工费</text>
-                <text class="account-pay-amount">支付金额</text>
-                <text class="account-pay-method">支付方式</text>
-                <text class="account-balance">累计结余</text>
-              </view>
-              <view wx:for="{{accountRecords}}" wx:key="index" class="account-detail-item">
-                <text class="account-date">{{item.date}}</text>
-                <text class="account-orderNo">{{item.orderNo || '-'}}</text>
-                <text class="account-fee">￥{{item.fee || 0}}</text>
-                <text class="account-pay-amount {{item.payAmount > 0 ? 'payment-amount' : ''}}">
-                  {{item.payAmount > 0 ? '￥'+item.payAmount : '-'}}
-                </text>
-                <text class="account-pay-method">{{item.payMethod || '-'}}</text>
-                <text class="account-balance {{item.remainBalance >= 0 ? 'payment-amount' : 'expense-amount'}}">
-                  <block wx:if="{{item.remainBalance > 0}}">
-                    余款 ￥{{item.remainBalance}}
-                  </block>
-                  <block wx:elif="{{item.remainBalance < 0}}">
-                    欠款 ￥{{-item.remainBalance}}
-                  </block>
-                  <block wx:else>
-                    ￥0
-                  </block>
-                </text>
-              </view>
+      
+      <view class="modal-body">
+        <view wx:if="{{accountRecords.length === 0 && !isLoadingRecords}}" class="empty-account">
+          <text class="empty-icon">📋</text>
+          <text class="empty-text">暂无账户记录</text>
+        </view>
+        <view wx:elif="{{isLoadingRecords}}" class="loading-account">
+          <view class="loading-spinner"></view>
+          <text class="loading-text">加载中...</text>
+        </view>
+        <scroll-view wx:else class="account-scroll" scroll-y="true">
+          <view class="account-table">
+            <view class="table-header">
+              <text class="col-date">日期</text>
+              <text class="col-order">收回单号</text>
+              <text class="col-fee">工费</text>
+              <text class="col-pay">支付金额</text>
+              <text class="col-method">支付方式</text>
+              <text class="col-balance">累计结余</text>
+            </view>
+            <view wx:for="{{accountRecords}}" wx:key="index" class="table-row">
+              <text class="col-date">{{item.date}}</text>
+              <text class="col-order">{{item.orderNo || '-'}}</text>
+              <text class="col-fee">¥{{item.fee || 0}}</text>
+              <text class="col-pay {{item.payAmount > 0 ? 'positive' : ''}}">
+                {{item.payAmount > 0 ? '¥'+item.payAmount : '-'}}
+              </text>
+              <text class="col-method">{{item.payMethod || '-'}}</text>
+              <text class="col-balance {{item.remainBalance >= 0 ? 'positive' : 'negative'}}">
+                <block wx:if="{{item.remainBalance > 0}}">
+                  余款 ¥{{item.remainBalance}}
+                </block>
+                <block wx:elif="{{item.remainBalance < 0}}">
+                  欠款 ¥{{-item.remainBalance}}
+                </block>
+                <block wx:else>
+                  ¥0
+                </block>
+              </text>
             </view>
           </view>
         </scroll-view>
-      </scroll-view>
+      </view>
+      
+      <view class="modal-footer">
+        <view class="footer-actions">
+          <view class="confirm-btn full" bindtap="closeAccountDetail">关闭</view>
+        </view>
+      </view>
     </view>
-    
-    <view class="modal-footer">
-      <button class="btn confirm-btn ios-btn" bindtap="closeAccountDetail">关闭</button>
+  </view>
+  
+  <!-- 修复：图片预览弹窗 -->
+  <view class="modal-mask" wx:if="{{showImagePreviewModal}}" bindtap="closeImagePreview"></view>
+  <view class="modal-container image-preview {{showImagePreviewModal ? 'modal-show' : ''}}" wx:if="{{showImagePreviewModal}}">
+    <view class="modal-content image-preview-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">📷 备注图片预览</text>
+        <text class="modal-close" bindtap="closeImagePreview">×</text>
+      </view>
+      
+      <view class="modal-body image-preview-body">
+        <view wx:if="{{previewImageUrls.length === 0}}" class="no-images">
+          <text class="no-images-text">暂无图片</text>
+        </view>
+        
+        <view wx:else class="images-container">
+          <view class="image-grid">
+            <view wx:for="{{previewImageUrls}}" wx:key="index" class="image-item">
+              <image class="preview-image" 
+                     src="{{item}}" 
+                     mode="aspectFit"
+                     bindtap="previewImages"
+                     data-index="{{index}}"
+                     lazy-load="true" />
+            </view>
+          </view>
+          
+          <view class="image-actions">
+            <view class="action-btn preview-btn" bindtap="previewImages">
+              <text class="btn-icon">🔍</text>
+              <text class="btn-text">查看大图</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <view class="footer-actions">
+          <view class="confirm-btn full" bindtap="closeImagePreview">关闭</view>
+        </view>
+      </view>
     </view>
   </view>
 </view>

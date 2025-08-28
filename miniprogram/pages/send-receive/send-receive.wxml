@@ -43,12 +43,12 @@
         <view class="empty-text">暂无数据</view>
       </view>
       <view wx:else class="list">
-        <view wx:for="{{orders}}" wx:key="id" class="order-item-wrapper" wx:if="{{item.status !== 'canceled' || showCanceled}}">
-          <view class="order-item" bindtap="viewOrderDetail" data-id="{{item.id}}">
+        <view wx:for="{{orders}}" wx:key="id" class="order-item-wrapper">
+          <view class="order-item {{item.status === 0 ? 'canceled' : ''}}" bindtap="viewOrderDetail" data-id="{{item.id}}">
             <view class="order-header">
               <view class="order-no-small-gray">{{item.orderNo || '无单号'}}</view>
-              <view class="order-status" wx:if="{{item.status === 'canceled'}}">已作废</view>
-              <view class="share-icon share-icon-purple" catchtap="handleShare" data-id="{{item.id}}" data-type="{{activeTab}}" wx:if="{{item.status !== 'canceled'}}">
+              <view class="order-status" wx:if="{{item.status === 0}}">已作废</view>
+              <view class="share-icon share-icon-purple" catchtap="handleShare" data-id="{{item.id}}" data-type="{{activeTab}}" wx:if="{{item.status !== 0}}">
                 <image src="/images/ui/share.svg" mode="aspectFit"></image>
               </view>
             </view>
@@ -60,7 +60,7 @@
               </view>
               <view class="detail-item">
                 <view class="detail-label">数量</view>
-                <view class="detail-value">{{item.totalQuantity || item.quantity || 0}}</view>
+                <view class="detail-value">{{item.totalQuantity || item.quantity || 0}}打</view>
               </view>
               <view class="detail-item" wx:if="{{item.fee && activeTab === 'receive'}}">
                 <view class="detail-label">工费</view>
@@ -80,6 +80,59 @@
   <!-- 新增按钮 -->
   <view class="add-button" bindtap="navigateToAdd">
     <view class="add-icon">+</view>
+  </view>
+  
+  <!-- 底部统计信息 -->
+  <view class="bottom-statistics">
+    <view wx:if="{{activeTab === 'send'}}" class="statistics-content send-statistics">
+      <view class="stat-item">
+        <text class="stat-label">共</text>
+        <text class="stat-value">{{totalSendCount}}</text>
+        <text class="stat-unit">单</text>
+      </view>
+      <view class="stat-separator">|</view>
+      <view class="stat-item">
+        <text class="stat-label">数量</text>
+        <text class="stat-value {{totalSendQuantityClass}}">{{totalSendQuantity}}</text>
+        <text class="stat-unit">打</text>
+      </view>
+      <view class="stat-separator">|</view>
+      <view class="stat-item">
+        <text class="stat-label">重量</text>
+        <text class="stat-value {{totalSendWeightClass}}">{{totalSendWeight}}</text>
+        <text class="stat-unit">kg</text>
+      </view>
+    </view>
+    
+    <view wx:if="{{activeTab === 'receive'}}" class="statistics-content receive-statistics">
+      <view class="stat-item">
+        <text class="stat-label">共</text>
+        <text class="stat-value">{{totalReceiveCount}}</text>
+        <text class="stat-unit">单</text>
+      </view>
+      <view class="stat-separator">|</view>
+      <view class="stat-item">
+        <text class="stat-label">数量</text>
+        <text class="stat-value {{totalReceiveQuantityClass}}">{{totalReceiveQuantity}}</text>
+        <text class="stat-unit">打</text>
+      </view>
+      <view class="stat-separator">|</view>
+      <view class="stat-item">
+        <text class="stat-label">重量</text>
+        <text class="stat-value {{totalReceiveWeightClass}}">{{totalReceiveWeight}}</text>
+        <text class="stat-unit">kg</text>
+      </view>
+      <view class="stat-separator">|</view>
+      <view class="stat-item">
+        <text class="stat-label">金额</text>
+        <text class="stat-value {{totalAmountClass}}">¥{{totalAmount}}</text>
+      </view>
+      <view class="stat-separator">|</view>
+      <view class="stat-item">
+        <text class="stat-label">支付</text>
+        <text class="stat-value {{totalPaymentClass}}">¥{{totalPayment}}</text>
+      </view>
+    </view>
   </view>
 </view>
 
@@ -109,11 +162,62 @@
       <!-- 工厂选择 -->
       <view class="filter-section">
         <view class="filter-label">工厂</view>
-        <picker bindchange="onFactoryChange" value="{{filterFactoryIndex}}" range="{{factoryOptions}}" range-key="name">
-          <view class="filter-picker {{filterFactoryIndex > 0 ? 'has-value' : ''}}">
-            {{filterFactoryIndex > 0 ? factoryOptions[filterFactoryIndex].name : '选择工厂'}}
+        <view class="factory-dropdown-container">
+          <view class="factory-search-input-wrapper">
+            <input 
+              class="filter-input {{selectedFilterFactory ? 'has-value' : ''}}" 
+              placeholder="输入工厂名称或首字母"
+              value="{{filterFactorySearchKeyword}}"
+              bindinput="onFilterFactorySearch"
+              bindtap="showFilterFactoryDropdown"
+              bindfocus="showFilterFactoryDropdown"
+              bindblur="hideFilterFactoryDropdownWithDelay"
+              confirm-type="search"
+            />
           </view>
-        </picker>
+          <!-- 苹果简约风下拉列表 -->
+          <view class="factory-dropdown {{showFilterFactoryDropdown ? 'show' : ''}}" wx:if="{{showFilterFactoryDropdown}}">
+            <scroll-view class="dropdown-scroll" scroll-y="true">
+              <view wx:if="{{filteredFilterFactories.length === 0}}" class="dropdown-empty">
+                <view class="empty-icon">🏭</view>
+                <view class="empty-text">未找到相关工厂</view>
+              </view>
+              <view wx:else class="factory-dropdown-list">
+                <!-- 全部工厂选项 -->
+                <view 
+                  class="factory-dropdown-item {{!selectedFilterFactory ? 'selected' : ''}}" 
+                  catchtap="selectFilterFactoryFromDropdown" 
+                  data-factory=""
+                >
+                  <view class="factory-info">
+                    <view class="factory-name">全部工厂</view>
+                    <view class="factory-details">
+                      <text class="factory-subtitle">查看所有工厂的订单</text>
+                    </view>
+                  </view>
+                  <view class="check-mark" wx:if="{{!selectedFilterFactory}}">✓</view>
+                </view>
+                <!-- 具体工厂选项 -->
+                <view 
+                  class="factory-dropdown-item {{selectedFilterFactory && selectedFilterFactory.id === item.id ? 'selected' : ''}}" 
+                  wx:for="{{filteredFilterFactories}}" 
+                  wx:key="id" 
+                  catchtap="selectFilterFactoryFromDropdown" 
+                  data-factory="{{item}}"
+                >
+                  <view class="factory-info">
+                    <view class="factory-name">{{item.name}}</view>
+                    <view class="factory-details" wx:if="{{item.phone || item.address}}">
+                      <text class="factory-phone" wx:if="{{item.phone}}">📞 {{item.phone}}</text>
+                      <text class="factory-address" wx:if="{{item.address}}">📍 {{item.address}}</text>
+                    </view>
+                  </view>
+                  <view class="check-mark" wx:if="{{selectedFilterFactory && selectedFilterFactory.id === item.id}}">✓</view>
+                </view>
+              </view>
+            </scroll-view>
+          </view>
+        </view>
       </view>
       
       <!-- 工序选择 -->

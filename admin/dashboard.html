@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>云收发管理系统 - 仪表盘</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+  <div class="admin-container">
+    <!-- 左侧导航栏 -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="images/logo.png" alt="云收发logo" class="sidebar-logo">
+        <h2>云收发</h2>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <ul>
+          <li class="active">
+            <a href="dashboard.html">
+              <span class="icon">📊</span> 
+              <span class="nav-text">仪表盘</span>
+            </a>
+          </li>
+          <li>
+            <a href="organizations.html">
+              <span class="icon">🏢</span> 
+              <span class="nav-text">组织管理</span>
+            </a>
+          </li>
+          <li>
+            <a href="users.html">
+              <span class="icon">👥</span> 
+              <span class="nav-text">用户管理</span>
+            </a>
+          </li>
+          <li>
+            <a href="settings.html">
+              <span class="icon">⚙️</span> 
+              <span class="nav-text">系统设置</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+    
+    <!-- 主内容区域 -->
+    <main class="main-content">
+      <!-- 顶部状态栏 -->
+      <header class="top-bar">
+        <div class="page-title">
+          <span class="gradient-text">AI智能仪表盘</span>
+        </div>
+        <div class="user-info">
+          <span class="welcome" id="welcomeUser">欢迎，超级管理员</span>
+          <button class="btn-logout" id="logoutBtn">
+            <span class="icon">🚪</span>
+            退出登录
+          </button>
+        </div>
+      </header>
+      
+      <!-- 页面内容 -->
+      <div class="content">
+        <!-- 统计卡片区域 -->
+        <div class="stats-cards">
+          <div class="stat-card hover-lift">
+            <div class="stat-icon">🏢</div>
+            <div class="stat-value" id="orgCount">-</div>
+            <div class="stat-label">组织数量</div>
+            <div class="stat-trend">
+              <span class="trend-icon">📈</span>
+              <span class="trend-text">总计</span>
+            </div>
+          </div>
+          <div class="stat-card hover-lift">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="userCount">-</div>
+            <div class="stat-label">用户总数</div>
+            <div class="stat-trend">
+              <span class="trend-icon">👤</span>
+              <span class="trend-text">已注册</span>
+            </div>
+          </div>
+          <div class="stat-card hover-lift">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-value" id="activeUsers">-</div>
+            <div class="stat-label">活跃用户</div>
+            <div class="stat-trend">
+              <span class="trend-icon">🟢</span>
+              <span class="trend-text">在线中</span>
+            </div>
+          </div>
+          <div class="stat-card hover-lift">
+            <div class="stat-icon">🔐</div>
+            <div class="stat-value" id="loginCount">-</div>
+            <div class="stat-label">登录总数</div>
+            <div class="stat-trend">
+              <span class="trend-icon">📊</span>
+              <span class="trend-text">累计</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 快捷操作区域 -->
+        <div class="quick-actions">
+          <div class="action-card hover-lift" onclick="window.location.href='organizations.html'">
+            <div class="action-icon">🏢</div>
+            <div class="action-content">
+              <h4>组织管理</h4>
+              <p>管理系统中的所有组织</p>
+            </div>
+            <div class="action-arrow">→</div>
+          </div>
+          <div class="action-card hover-lift" onclick="window.location.href='users.html'">
+            <div class="action-icon">👥</div>
+            <div class="action-content">
+              <h4>用户管理</h4>
+              <p>管理系统中的所有用户</p>
+            </div>
+            <div class="action-arrow">→</div>
+          </div>
+          <div class="action-card hover-lift" onclick="window.location.href='settings.html'">
+            <div class="action-icon">⚙️</div>
+            <div class="action-content">
+              <h4>系统设置</h4>
+              <p>配置系统参数和安全设置</p>
+            </div>
+            <div class="action-arrow">→</div>
+          </div>
+        </div>
+        
+        <!-- 最近活动 -->
+        <div class="section">
+          <h3>
+            <span class="section-icon">📋</span>
+            最近活动日志
+            <span class="section-badge">实时</span>
+          </h3>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>时间</th>
+                  <th>用户</th>
+                  <th>组织</th>
+                  <th>操作</th>
+                  <th>详情</th>
+                  <th>状态</th>
+                </tr>
+              </thead>
+              <tbody id="logsTable">
+                <tr>
+                  <td colspan="6" class="text-center loading">
+                    <div class="loading-spinner"></div>
+                    <span>加载中...</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- 系统状态 -->
+        <div class="system-status">
+          <div class="status-card glass-effect">
+            <div class="status-header">
+              <span class="status-icon">🖥️</span>
+              <h4>系统状态</h4>
+            </div>
+            <div class="status-items">
+              <div class="status-item">
+                <span class="status-label">服务器</span>
+                <span class="status-value online">在线</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">数据库</span>
+                <span class="status-value online">正常</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">API</span>
+                <span class="status-value online">运行中</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="status-card glass-effect">
+            <div class="status-header">
+              <span class="status-icon">📈</span>
+              <h4>性能监控</h4>
+            </div>
+            <div class="status-items">
+              <div class="status-item">
+                <span class="status-label">CPU使用率</span>
+                <span class="status-value">45%</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">内存使用</span>
+                <span class="status-value">62%</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">磁盘空间</span>
+                <span class="status-value">78%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html> 

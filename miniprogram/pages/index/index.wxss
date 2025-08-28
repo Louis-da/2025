@@ -177,6 +177,115 @@
   opacity: 0.6;
 }
 
+/* AI助理卡片 */
+.ai-assistant-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20rpx;
+  padding: 0;
+  margin-bottom: 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(102, 126, 234, 0.3);
+  overflow: hidden;
+  position: relative;
+}
+
+.ai-assistant-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), transparent);
+  pointer-events: none;
+}
+
+.ai-assistant-container {
+  padding: 32rpx;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.ai-assistant-container:active {
+  transform: scale(0.98);
+}
+
+.ai-assistant-content {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.ai-assistant-icon {
+  font-size: 48rpx;
+  margin-right: 20rpx;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8rpx); }
+}
+
+.ai-assistant-text {
+  flex: 1;
+}
+
+.ai-assistant-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 8rpx;
+}
+
+.ai-assistant-desc {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+}
+
+.ai-assistant-arrow {
+  font-size: 32rpx;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: bold;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(8rpx); }
+}
+
+.ai-assistant-features {
+  display: flex;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.feature-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16rpx 12rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12rpx;
+  backdrop-filter: blur(10rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.feature-icon {
+  font-size: 28rpx;
+  margin-bottom: 8rpx;
+}
+
+.feature-text {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  text-align: center;
+}
+
 /* 订单列表 */
 .order-list-card {
   padding: 24rpx;
@@ -244,6 +353,61 @@
   color: #86868b;
 }
 
+/* 订单状态 */
+.order-status {
+  font-size: 24rpx;
+  padding: 6rpx 12rpx;
+  border-radius: 8rpx;
+  background-color: #f5f5f7;
+  color: #86868b;
+}
+
+.status-cancelled {
+  background-color: #ff3a30;
+  color: white;
+}
+
+/* 作废订单样式 */
+.cancelled-order {
+  opacity: 0.7;
+  background-color: #f8f8f8;
+}
+
+.cancelled-order .order-id,
+.cancelled-order .detail-pair .value {
+  text-decoration: line-through;
+  color: #999;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 40rpx;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 12rpx;
+}
+
+.empty-desc {
+  font-size: 26rpx;
+  color: #86868b;
+  line-height: 1.4;
+}
+
 /* 新增按钮 */
 .add-button {
   position: fixed;
@@ -271,4 +435,480 @@
   font-size: 48rpx;
   font-weight: 300;
   line-height: 1;
+}
+
+/* AI助理功能区样式 - 作为独立卡片 */
+.card.ai-helper-container {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  margin-bottom: 24rpx;
+  overflow: hidden;
+}
+
+.ai-helper-container .section-title {
+  display: flex;
+  flex-direction: column;
+  padding: 32rpx;
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.12);
+  position: relative;
+}
+
+.ai-helper-container .title-main {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.ai-helper-container .title-icon {
+  font-size: 48rpx;
+  margin-right: 24rpx;
+  color: #007aff;
+}
+
+.ai-helper-container .title-text {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+/* 时间筛选容器 */
+.ai-helper-container .time-filter-container {
+  position: absolute;
+  top: 32rpx;
+  right: 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.ai-helper-container .time-filter-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ai-helper-container .time-filter-btn {
+  font-size: 16rpx;
+  color: #8e8e93;
+  padding: 6rpx 8rpx;
+  background-color: #f2f2f7;
+  border-radius: 10rpx;
+  border: 1px solid rgba(60, 60, 67, 0.08);
+  font-weight: 400;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 48rpx;
+  text-align: center;
+}
+
+.ai-helper-container .time-filter-btn.active {
+  color: #007aff;
+  background-color: rgba(0, 122, 255, 0.1);
+  border-color: rgba(0, 122, 255, 0.3);
+  font-weight: 500;
+}
+
+.ai-helper-container .time-filter-btn.custom {
+  color: #ff9500;
+}
+
+.ai-helper-container .time-filter-btn.custom.active {
+  color: #ff9500;
+  background-color: rgba(255, 149, 0, 0.1);
+  border-color: rgba(255, 149, 0, 0.3);
+}
+
+/* 底部信息 */
+.ai-helper-container .bottom-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16rpx;
+}
+
+.ai-helper-container .count-text {
+  font-size: 28rpx;
+  color: #ff9500;
+  font-weight: 700;
+}
+
+.ai-helper-container .rule-text {
+  font-size: 22rpx;
+  color: #8e8e93;
+  font-weight: 400;
+}
+
+/* 响应式设计 - 小屏幕优化 */
+@media (max-width: 750rpx) {
+  .ai-helper-container .section-title {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .ai-helper-container .time-filter-container {
+    position: static;
+    width: 100%;
+    margin-top: 16rpx;
+  }
+  
+  .ai-helper-container .time-filter-buttons {
+    justify-content: flex-start;
+    gap: 6rpx;
+  }
+  
+  .ai-helper-container .time-filter-btn {
+    font-size: 14rpx;
+    padding: 4rpx 6rpx;
+  }
+}
+
+/* 无数据状态样式 - 与AI智能助理界面保持一致 */
+.no-data-container {
+  padding: 60rpx 32rpx;
+  text-align: center;
+}
+
+.no-data-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.6;
+}
+
+.no-data-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 12rpx;
+}
+
+.no-data-desc {
+  font-size: 26rpx;
+  color: #8e8e93;
+  line-height: 1.4;
+}
+
+/* 加载状态样式 - 与AI智能助理界面保持一致 */
+.loading-container {
+  padding: 60rpx 32rpx;
+  text-align: center;
+}
+
+.loading-icon {
+  font-size: 60rpx;
+  margin-bottom: 20rpx;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #8e8e93;
+  font-weight: 500;
+}
+
+/* 自定义时间筛选弹窗 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 32rpx;
+}
+
+.modal-content {
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  width: 100%;
+  max-width: 600rpx;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx;
+  border-bottom: 1rpx solid rgba(60, 60, 67, 0.12);
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.modal-close {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background-color: #f2f2f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #8e8e93;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 32rpx;
+}
+
+.date-picker-group {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.date-picker-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.date-label {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1d1d1f;
+}
+
+.date-picker-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 20rpx;
+  background-color: #f2f2f7;
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(60, 60, 67, 0.12);
+}
+
+.date-text {
+  font-size: 30rpx;
+  color: #1d1d1f;
+}
+
+.date-icon {
+  font-size: 28rpx;
+  color: #8e8e93;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 16rpx;
+  padding: 24rpx 32rpx 32rpx 32rpx;
+  border-top: 1rpx solid rgba(60, 60, 67, 0.12);
+}
+
+.modal-btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-btn.cancel {
+  background-color: #f2f2f7;
+  color: #8e8e93;
+}
+
+.modal-btn.confirm {
+  background-color: #34c759;
+  color: #ffffff;
+}
+
+.modal-btn:active {
+  transform: scale(0.98);
+}
+
+/* 合格排行列表样式 - 作用域限定 */
+.ai-helper-container .qualified-ranking-list {
+  padding: 32rpx;
+}
+
+.ai-helper-container .qualified-ranking-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  background-color: #f8f9fa;
+  border-radius: 16rpx;
+  border-left: 6rpx solid #34c759;
+}
+
+.ai-helper-container .qualified-ranking-item:last-child {
+  margin-bottom: 0;
+}
+
+/* 排名徽章 - 作用域限定 */
+.ai-helper-container .rank-badge {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #007aff 0%, #5ac8fa 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.ai-helper-container .rank-1 {
+  background: linear-gradient(135deg, #ffd700, #ffed4a);
+}
+
+.ai-helper-container .rank-2 {
+  background: linear-gradient(135deg, #c0c0c0, #e5e7eb);
+}
+
+.ai-helper-container .rank-3 {
+  background: linear-gradient(135deg, #cd7f32, #f59e0b);
+}
+
+.ai-helper-container .rank-other {
+  background: linear-gradient(135deg, #007aff 0%, #5ac8fa 100%);
+}
+
+.ai-helper-container .rank-badge text {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* 货品图片容器 - 作用域限定 */
+.ai-helper-container .product-image-container {
+  width: 80rpx;
+  height: 80rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.ai-helper-container .product-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx;
+  background-color: #f8f9fa;
+}
+
+.ai-helper-container .product-image-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-helper-container .placeholder-text {
+  font-size: 20rpx;
+  color: #8e8e93;
+}
+
+/* 货品信息 - 作用域限定 */
+.ai-helper-container .item-content {
+  flex: 1;
+}
+
+.ai-helper-container .product-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 8rpx;
+  position: relative;
+}
+
+.ai-helper-container .product-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-helper-container .product-no {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #007aff;
+  margin-bottom: 4rpx;
+}
+
+/* 损耗率显示 - 作用域限定 */
+.ai-helper-container .metric-value.qualified {
+  font-size: 28rpx;
+  font-weight: 700;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  background-color: #34c759;
+  color: #ffffff;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* 指标数据行 - 作用域限定 */
+.ai-helper-container .metrics {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin: 12rpx 0;
+}
+
+.ai-helper-container .metric-item {
+  font-size: 24rpx;
+  color: #8e8e93;
+  background-color: #f2f2f7;
+  padding: 6rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.ai-helper-container .metric-label {
+  display: none; /* 隐藏标签，只显示数值 */
+}
+
+.ai-helper-container .metric-value {
+  font-size: 24rpx;
+  color: #8e8e93;
+}
+
+/* 工厂信息 - 作用域限定 */
+.ai-helper-container .factory-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8rpx;
+}
+
+.ai-helper-container .factory-count {
+  font-size: 22rpx;
+  color: #34c759;
+  font-weight: 500;
+  background-color: rgba(52, 199, 89, 0.1);
+  padding: 4rpx 8rpx;
+  border-radius: 8rpx;
 }

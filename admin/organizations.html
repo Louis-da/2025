@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>云收发管理系统 - 组织管理</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+  <div class="admin-container">
+    <!-- 左侧导航栏 -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="images/logo.png" alt="云收发logo" class="sidebar-logo">
+        <h2>云收发</h2>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <a href="dashboard.html">
+              <span class="icon">📊</span> 
+              <span class="nav-text">仪表盘</span>
+            </a>
+          </li>
+          <li class="active">
+            <a href="organizations.html">
+              <span class="icon">🏢</span> 
+              <span class="nav-text">组织管理</span>
+            </a>
+          </li>
+          <li>
+            <a href="users.html">
+              <span class="icon">👥</span> 
+              <span class="nav-text">用户管理</span>
+            </a>
+          </li>
+          <li>
+            <a href="settings.html">
+              <span class="icon">⚙️</span> 
+              <span class="nav-text">系统设置</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+    
+    <!-- 主内容区域 -->
+    <main class="main-content">
+      <!-- 顶部状态栏 -->
+      <header class="top-bar">
+        <div class="page-title">
+          <span class="gradient-text">组织管理</span>
+        </div>
+        <div class="user-info">
+          <span class="welcome" id="welcomeUser">欢迎，超级管理员</span>
+          <button class="btn-logout" id="logoutBtn">
+            <span class="icon">🚪</span>
+            退出登录
+          </button>
+        </div>
+      </header>
+      
+      <!-- 页面内容 -->
+      <div class="content">
+        <div class="page-actions">
+          <button class="btn-primary hover-lift" id="addOrgBtn">
+            <span class="icon">➕</span> 
+            新增组织
+          </button>
+          <div class="search-box">
+            <input type="text" placeholder="搜索组织名称..." id="searchOrg">
+            <button class="search-btn">
+              <span class="icon">🔍</span> 搜索
+            </button>
+          </div>
+        </div>
+        
+        <div class="section">
+          <h3>
+            <span class="section-icon">🏢</span>
+            组织列表
+            <span class="section-badge">管理</span>
+          </h3>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>组织编码</th>
+                  <th>组织名称</th>
+                  <th>联系人</th>
+                  <th>联系电话</th>
+                  <th>创建时间</th>
+                  <th>状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="orgsTable">
+                <tr>
+                  <td colspan="8" class="text-center loading">
+                    <div class="loading-spinner"></div>
+                    <span>加载中...</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="pagination" id="orgsPagination">
+            <!-- 分页控件将由JS动态生成 -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <!-- 新增/编辑组织模态框 -->
+  <div class="modal" id="orgModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">
+          <span class="modal-icon">🏢</span>
+          新增组织
+        </h3>
+        <button class="close-btn" id="closeModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="orgForm">
+          <input type="hidden" id="orgId">
+          <div class="form-group">
+            <label for="orgCode">组织编码 <span class="required">*</span></label>
+            <input type="text" id="orgCode" placeholder="请输入组织编码" required>
+          </div>
+          <div class="form-group">
+            <label for="orgName">组织名称 <span class="required">*</span></label>
+            <input type="text" id="orgName" placeholder="请输入组织名称" required>
+          </div>
+          <div class="form-group">
+            <label for="orgAddress">地址</label>
+            <input type="text" id="orgAddress" placeholder="请输入组织地址">
+          </div>
+          <div class="form-group">
+            <label for="contactPerson">联系人</label>
+            <input type="text" id="contactPerson" placeholder="请输入联系人姓名">
+          </div>
+          <div class="form-group">
+            <label for="contactPhone">联系电话</label>
+            <input type="text" id="contactPhone" placeholder="请输入联系电话">
+          </div>
+          <div class="form-group">
+            <label for="orgStatus">状态</label>
+            <select id="orgStatus">
+              <option value="1">启用</option>
+              <option value="0">禁用</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" id="cancelOrgBtn">取消</button>
+            <button type="submit" class="btn-primary">
+              <span class="icon">💾</span>
+              保存组织
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <script src="js/auth.js"></script>
+  <script src="js/organizations.js"></script>
+</body>
+</html> 

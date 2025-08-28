@@ -2,6 +2,9 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const { authenticate } = require('../middleware/auth');
+
+router.use(authenticate);
 
 /**
  * 获取工序列表
@@ -9,12 +12,20 @@ const db = require('../db');
  */
 router.get('/', async (req, res) => {
   try {
-    const { orgId } = req.query;
+    // 强制使用当前登录用户的组织ID
+    const orgId = req.user.orgId;
+
+    if (!orgId) {
+       console.error('processes / 接口：req.user.orgId 为空');
+       return res.status(400).json({
+         success: false,
+         message: '无法获取组织ID'
+       });
+    }
+    
     const condition = {};
     
-    if (orgId) {
-      condition.orgId = orgId;
-    }
+    condition.orgId = orgId; // 使用正确的数据库字段名：orgId
     
     const processes = await db.processes.find(condition);
     
@@ -39,8 +50,18 @@ router.get('/', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    // 强制使用当前登录用户的组织ID
+    const orgId = req.user.orgId;
+
+    if (!orgId) {
+       console.error('processes DELETE /:id 接口：req.user.orgId 为空');
+       return res.status(400).json({
+         success: false,
+         message: '无法获取组织ID'
+       });
+    }
     
-    const result = await db.processes.deleteOne({ id: parseInt(id) });
+    const result = await db.processes.deleteOne({ id: parseInt(id), orgId }); // 强制按工序ID和组织ID过滤
     
     if (result.affectedRows === 0) {
       return res.status(404).json({
@@ -69,9 +90,18 @@ router.delete('/:id', async (req, res) => {
  */
 router.delete('/org/:orgId', async (req, res) => {
   try {
-    const { orgId } = req.params;
+    // 强制使用当前登录用户的组织ID
+    const orgId = req.user.orgId;
+
+    if (!orgId) {
+       console.error('processes DELETE /org/:orgId 接口：req.user.orgId 为空');
+       return res.status(400).json({
+         success: false,
+         message: '无法获取组织ID'
+       });
+    }
     
-    const result = await db.processes.deleteMany({ orgId });
+    const result = await db.processes.deleteMany({ orgId }); // 强制按当前用户组织ID过滤
     
     res.json({
       success: true,
@@ -94,16 +124,27 @@ router.delete('/org/:orgId', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const { processName, order, status, orgId } = req.body;
+    const { processName, order, status } = req.body; // 移除orgId从这里获取
     
-    // 参数验证
-    if (!processName || !orgId) {
-      return res.status(400).json({ success: false, message: '缺少必要参数' });
+    // 强制使用当前登录用户的组织ID
+    const orgId = req.user.orgId;
+
+    if (!orgId) {
+       console.error('processes POST / 接口：req.user.orgId 为空');
+       return res.status(400).json({
+         success: false,
+         message: '无法获取组织ID'
+       });
     }
     
-    // 检查工序名称唯一性 - 在同一组织内不能有重名工序
+    // 参数验证
+    if (!processName) {
+      return res.status(400).json({ success: false, message: '缺少工序名称参数' });
+    }
+    
+    // 检查工序名称唯一性 - 在同一组织内不能有重名工序 - 强制按当前用户组织ID过滤
     const existingProcesses = await db.processes.find({ 
-      orgId: orgId 
+      orgId // 强制使用当前用户orgId
     });
     
     // 不区分大小写进行比较
@@ -118,15 +159,20 @@ router.post('/', async (req, res) => {
       });
     }
     
-    // 插入数据库（注意：需要将processName映射到name字段）
-    const result = await db.processes.insertOne({ 
-      name: processName.trim(),  // 映射字段名
-      orgId,
-      code: null,
-      description: null
-    });
+    // 生成工序编码，格式：P + 当前时间戳
+    const processCode = `P${Date.now()}`;
     
-    res.json({ success: true, insertId: result.insertId });
+    // 插入数据库（使用实际的数据库字段名）
+    const result = await db.executeQuery(
+      'INSERT INTO processes (name, code, orgId, `order`, description, status) VALUES (?, ?, ?, ?, ?, ?)',
+      [processName.trim(), processCode, orgId, parseInt(order) || 0, null, status || 1]
+    );
+    
+    res.json({ 
+      success: true, 
+      insertId: result.insertId,
+      code: processCode  // 返回生成的编码
+    });
   } catch (err) {
     console.error('新增工序失败:', err);
     res.status(500).json({ success: false, message: '新增工序失败', error: err.message });
@@ -140,23 +186,34 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { processName, order, status, orgId } = req.body;
+    const { processName, order, status } = req.body; // 移除orgId从这里获取
+    
+    // 强制使用当前登录用户的组织ID
+    const orgId = req.user.orgId;
+
+    if (!orgId) {
+       console.error('processes PUT /:id 接口：req.user.orgId 为空');
+       return res.status(400).json({
+         success: false,
+         message: '无法获取组织ID'
+       });
+    }
     
     if (!processName) {
       return res.status(400).json({ success: false, message: '工序名称不能为空' });
     }
     
-    // 检查要更新的工序是否存在
-    const existingProcess = await db.processes.findOne({ id: parseInt(id) });
+    // 检查要更新的工序是否存在 - 强制按工序ID和组织ID过滤
+    const existingProcess = await db.processes.findOne({ id: parseInt(id), orgId });
     
     if (!existingProcess) {
       return res.status(404).json({ success: false, message: '工序不存在' });
     }
     
-    // 如果修改了名称，检查新名称是否与其他工序重名
+    // 如果修改了名称，检查新名称是否与其他工序重名 - 强制按当前用户组织ID检查
     if (existingProcess.name.toLowerCase() !== processName.trim().toLowerCase()) {
       const otherProcesses = await db.processes.find({ 
-        orgId: orgId || existingProcess.orgId 
+        orgId // 强制使用当前用户orgId
       });
       
       // 不区分大小写进行比较，排除当前工序
@@ -173,12 +230,12 @@ router.put('/:id', async (req, res) => {
       }
     }
     
-    // 更新数据库（注意：需要将processName映射到name字段）
+    // 更新数据库（注意：需要将processName映射到name字段） - 强制按工序ID和组织ID过滤
     const result = await db.processes.updateOne(
-      { id: parseInt(id) },
+      { id: parseInt(id), orgId }, // 强制按工序ID和组织ID过滤
       { 
         name: processName.trim(),
-        ...(order !== undefined && { order }),
+        ...(order !== undefined && { order: order }),  // 使用实际的数据库字段名：order
         ...(status !== undefined && { status })
       }
     );
@@ -202,6 +259,17 @@ router.put('/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     let { status } = req.body;
+    // 强制使用当前登录用户的组织ID
+    const orgId = req.user.orgId;
+
+    if (!orgId) {
+       console.error('processes PUT /:id/status 接口：req.user.orgId 为空');
+       return res.status(400).json({
+         success: false,
+         message: '无法获取组织ID'
+       });
+    }
+    
     // 兼容字符串/布尔/数字
     if (typeof status === 'string') status = status === '1' || status === 'true' || status === '启用' ? 1 : 0;
     if (typeof status === 'boolean') status = status ? 1 : 0;
@@ -211,7 +279,7 @@ router.put('/:id/status', async (req, res) => {
       return res.status(400).json({ success: false, message: 'status只能为0或1' });
     }
     const result = await db.processes.updateOne(
-      { id: parseInt(id) },
+      { id: parseInt(id), orgId }, // 强制按工序ID和组织ID过滤
       { status }
     );
     if (result.affectedRows === 0) {
@@ -221,6 +289,70 @@ router.put('/:id/status', async (req, res) => {
   } catch (error) {
     console.error('切换工序状态失败:', error);
     res.status(500).json({ success: false, message: '服务器错误' });
+  }
+});
+
+/**
+ * 为所有没有code的工序生成code
+ * GET /api/processes/generate-codes
+ */
+router.get('/generate-codes', async (req, res) => {
+  try {
+    // 强制使用当前登录用户的组织ID
+    const orgId = req.user.orgId;
+
+    if (!orgId) {
+       console.error('processes /generate-codes 接口：req.user.orgId 为空');
+       return res.status(400).json({
+         success: false,
+         message: '无法获取组织ID'
+       });
+    }
+
+    // 查询所有code为NULL的工序 - 强制按组织ID过滤
+    const processesWithoutCode = await db.processes.find({ code: null, orgId }); // 强制按组织ID过滤
+    
+    if (processesWithoutCode.length === 0) {
+      return res.json({
+        success: true,
+        message: '没有需要更新code的工序',
+        count: 0
+      });
+    }
+    
+    // 为每个工序生成code并更新 - 强制按工序ID和组织ID过滤
+    const updatePromises = processesWithoutCode.map(async (process) => {
+      // 生成工序编码，格式：P + 当前时间戳 + 随机数，确保唯一性
+      const processCode = `P${Date.now()}${Math.floor(Math.random() * 1000)}`;
+      
+      // 更新数据库
+      await db.processes.updateOne(
+        { id: process.id, orgId }, // 强制按工序ID和组织ID过滤
+        { code: processCode }
+      );
+      
+      return {
+        id: process.id,
+        name: process.name,
+        newCode: processCode
+      };
+    });
+    
+    const results = await Promise.all(updatePromises);
+    
+    res.json({
+      success: true,
+      message: `已更新${results.length}个工序的code字段`,
+      data: results,
+      count: results.length
+    });
+  } catch (err) {
+    console.error('更新工序code字段失败:', err);
+    res.status(500).json({
+      success: false,
+      message: '更新工序code字段失败',
+      error: err.message
+    });
   }
 });
 

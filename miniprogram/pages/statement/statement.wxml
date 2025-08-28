@@ -1,48 +1,228 @@
 <wxs module="filter">
 module.exports = {
-  hasSendOrders: function(orders) {
-    if (!orders) return false;
-    for (var i = 0; i < orders.length; i++) {
-      if (orders[i].type === '发出单') return true;
-    }
-    return false;
+  formatDate: function(dateStr) {
+    if (!dateStr) return '';
+    return dateStr.split(' ')[0]; // 只取日期部分
   },
-  hasReceiveOrders: function(orders) {
-    if (!orders) return false;
+  calculateTotal: function(orders, field) {
+    if (!orders) return 0;
+    var total = 0;
     for (var i = 0; i < orders.length; i++) {
-      if (orders[i].type === '收回单') return true;
+      total += parseFloat(orders[i][field] || 0);
     }
-    return false;
+    return total.toFixed(2);
+  },
+  calculateQtyTotal: function(orders, field) {
+    if (!orders) return 0;
+    var total = 0;
+    for (var i = 0; i < orders.length; i++) {
+      total += parseInt(orders[i][field] || 0);
+    }
+    return total;
+  },
+  calculateLossWeight: function(sendOrders, receiveOrders) {
+    var sendWeight = 0;
+    var receiveWeight = 0;
+    
+    if (sendOrders) {
+      for (var i = 0; i < sendOrders.length; i++) {
+        sendWeight += parseFloat(sendOrders[i].weight || 0);
+      }
+    }
+    
+    if (receiveOrders) {
+      for (var j = 0; j < receiveOrders.length; j++) {
+        receiveWeight += parseFloat(receiveOrders[j].weight || 0);
+      }
+    }
+    
+    var lossWeight = sendWeight - receiveWeight;
+    return lossWeight.toFixed(2);
+  },
+  calculateLossRate: function(sendOrders, receiveOrders) {
+    var sendWeight = 0;
+    var receiveWeight = 0;
+    
+    if (sendOrders) {
+      for (var i = 0; i < sendOrders.length; i++) {
+        sendWeight += parseFloat(sendOrders[i].weight || 0);
+      }
+    }
+    
+    if (receiveOrders) {
+      for (var j = 0; j < receiveOrders.length; j++) {
+        receiveWeight += parseFloat(receiveOrders[j].weight || 0);
+      }
+    }
+    
+    if (sendWeight === 0) return '0.00';
+    
+    var lossRate = ((sendWeight - receiveWeight) / sendWeight) * 100;
+    return lossRate.toFixed(2);
+  },
+  getArrayLength: function(arr) {
+    if (!arr || typeof arr !== 'object' || typeof arr.length !== 'number') return 0;
+    return arr.length;
+  },
+  getBalanceClass: function(balance) {
+    var balanceNum = parseFloat(balance || 0);
+    return balanceNum > 0 ? 'highlight-red' : 'highlight-green';
+  },
+  getLossRateClass: function(lossRate) {
+    var rate = parseFloat(lossRate || 0);
+    if (rate <= 2) return 'highlight-green';
+    if (rate <= 5) return 'highlight-orange';
+    return 'highlight-red';
+  },
+  getPaymentMethodText: function(method) {
+    if (!method || method.trim() === '') return '未付';
+    var methodMap = {
+      // 英文编码映射
+      'cash': '现金',
+      'wechat': '微信',
+      'alipay': '支付宝', 
+      'bank': '银行',
+      'unpaid': '未付',
+      // 中文直接映射
+      '现金': '现金',
+      '微信': '微信',
+      '微信支付': '微信',
+      '支付宝': '支付宝',
+      '银行': '银行',
+      '银行转账': '银行',
+      '未付': '未付',
+    };
+    var normalizedMethod = method.trim();
+    return methodMap[normalizedMethod] || normalizedMethod;
+  },
+  // 🔧 备用计算函数：通过工价×数量计算工费（仅在特殊情况下使用）
+  calculateFee: function(unitPrice, quantity) {
+    var price = parseFloat(unitPrice || 0);
+    var qty = parseInt(quantity || 0);
+    return (price * qty).toFixed(2);
+  },
+  getFactoryName: function(selectedFactory) {
+    return selectedFactory && selectedFactory.name ? selectedFactory.name : '未选择';
   }
 };
 </wxs>
 
 <view class="container">
-  <!-- 查询区域 - 重新设计为更现代的表单 -->
+  <!-- 查询区域 -->
   <view class="search-section">
     <view class="section-header">
-      <text class="section-title">对账查询</text>
+      <text class="section-title">工厂对账单</text>
     </view>
     
     <view class="form-group">
       <text class="form-label">工厂</text>
-      <picker bindchange="selectFactory" range="{{factories}}" range-key="name" class="form-picker">
-        <view class="picker-content {{selectedFactory ? 'has-value' : ''}}">
-          <text>{{selectedFactory ? selectedFactory.name : '请选择工厂'}}</text>
-          <view class="picker-arrow"></view>
+      <view class="factory-dropdown-container">
+        <view class="factory-search-input-wrapper">
+          <input 
+            class="picker-content {{selectedFactory ? 'has-value' : ''}}" 
+            placeholder="输入工厂名称或首字母"
+            value="{{factorySearchKeyword}}"
+            bindinput="onFactorySearch"
+            bindtap="showFactoryDropdown"
+            bindfocus="onFactoryInputFocus"
+            bindblur="hideFactoryDropdownWithDelay"
+            confirm-type="search"
+          />
         </view>
-      </picker>
+        <!-- 苹果简约风下拉列表 -->
+        <view class="factory-dropdown {{showFactoryDropdown ? 'show' : ''}}" wx:if="{{showFactoryDropdown}}">
+          <scroll-view class="dropdown-scroll" scroll-y="true">
+            <view wx:if="{{filteredFactories.length === 0}}" class="dropdown-empty">
+              <view class="empty-icon">🏭</view>
+              <view class="empty-text">未找到相关工厂</view>
+            </view>
+            <view wx:else class="factory-dropdown-list">
+              <view 
+                class="factory-dropdown-item {{selectedFactory && selectedFactory.id === item.id ? 'selected' : ''}}" 
+                wx:for="{{filteredFactories}}" 
+                wx:key="id" 
+                catchtap="selectFactoryFromDropdown" 
+                data-factory="{{item}}"
+              >
+                <view class="factory-info">
+                  <view class="factory-name">{{item.name}}</view>
+                  <view class="factory-details" wx:if="{{item.phone || item.address}}">
+                    <text class="factory-phone" wx:if="{{item.phone}}">📞 {{item.phone}}</text>
+                    <text class="factory-address" wx:if="{{item.address}}">📍 {{item.address}}</text>
+                  </view>
+                </view>
+                <view class="check-mark" wx:if="{{selectedFactory && selectedFactory.id === item.id}}">✓</view>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+      </view>
+      <view class="selected-factory-display" wx:if="{{selectedFactory}}">
+        已选择：{{selectedFactory.name}}
+      </view>
     </view>
     
-    <!-- 添加货品筛选条件 -->
     <view class="form-group">
       <text class="form-label">货品</text>
-      <picker bindchange="selectProduct" range="{{products}}" range-key="styleNo" class="form-picker">
-        <view class="picker-content {{selectedProduct ? 'has-value' : ''}}">
-          <text>{{selectedProduct ? selectedProduct.styleNo : '全部货品'}}</text>
-          <view class="picker-arrow"></view>
+      <view class="product-dropdown-container">
+        <view class="product-search-input-wrapper">
+          <input 
+            class="picker-content {{selectedProduct ? 'has-value' : ''}}" 
+            placeholder="输入货品编号或名称"
+            value="{{productInputValue}}"
+            bindinput="onProductSearch"
+            bindtap="showProductDropdown"
+            bindfocus="onProductInputFocus"
+            bindblur="hideProductDropdownWithDelay"
+            confirm-type="search"
+          />
         </view>
-      </picker>
+        <!-- 货品下拉列表 -->
+        <view class="product-dropdown {{showProductDropdown ? 'show' : ''}}" catchtap="">
+          <scroll-view class="dropdown-scroll" scroll-y="true">
+            <view wx:if="{{filteredProducts.length === 0}}" class="dropdown-empty">
+              <view class="empty-icon">📦</view>
+              <view class="empty-text">未找到相关货品</view>
+            </view>
+            <view wx:else class="product-dropdown-list">
+              <!-- 全部货品选项 -->
+              <view 
+                class="product-dropdown-item {{!selectedProduct ? 'selected' : ''}}" 
+                catchtap="selectProductFromDropdown" 
+                data-product=""
+              >
+                <view class="product-info">
+                  <view class="product-name">全部货品</view>
+                  <view class="product-details">
+                    <text class="product-subtitle">查看所有货品的对账信息</text>
+                  </view>
+                </view>
+                <view class="check-mark" wx:if="{{!selectedProduct}}">✓</view>
+              </view>
+              <!-- 具体货品选项 -->
+              <view 
+                class="product-dropdown-item {{selectedProduct && selectedProduct.id === item.id ? 'selected' : ''}}" 
+                wx:for="{{filteredProducts}}" 
+                wx:key="id" 
+                catchtap="selectProductFromDropdown" 
+                data-product="{{item}}"
+              >
+                <view class="product-info">
+                  <view class="product-name">{{item.productNo || item.code}}</view>
+                  <view class="product-details" wx:if="{{item.name || item.process}}">
+                    <text class="product-subtitle" wx:if="{{item.name}}">{{item.name}}</text>
+                    <text class="product-process" wx:if="{{item.process}}">{{item.process}}</text>
+                  </view>
+                </view>
+                <view class="check-mark" wx:if="{{selectedProduct && selectedProduct.id === item.id}}">✓</view>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+      </view>
+      <view class="selected-product-display" wx:if="{{selectedProduct}}">
+        已选择：{{selectedProduct.productNo || selectedProduct.code}}
+      </view>
     </view>
     
     <view class="form-group date-group">
@@ -73,385 +253,548 @@ module.exports = {
     <text>加载中...</text>
   </view>
   
-  <!-- 对账单内容区域 - 重新设计卡片样式 -->
-  <block wx:elif="{{statement}}">
-    <view class="statement-content">
-      <!-- 对账单摘要卡片 -->
-      <view class="card summary-card">
-        <view class="card-header">
-          <text class="card-title">对账单摘要</text>
-          <text class="factory-name">{{statement.factoryName}}</text>
-        </view>
-        
-        <view class="card-body">
-          <view class="summary-row">
-            <view class="summary-item">
-              <text class="summary-label">时间范围</text>
-              <text class="summary-value">{{statement.startDate}} 至 {{statement.endDate}}</text>
-            </view>
-          </view>
-          
-          <view class="summary-row">
-            <view class="summary-item">
-              <text class="summary-label">发出重量</text>
-              <text class="summary-value">{{statement.sendWeight}}kg</text>
-            </view>
-            <view class="summary-item">
-              <text class="summary-label">收回重量</text>
-              <text class="summary-value">{{statement.receiveWeight}}kg</text>
-            </view>
-          </view>
-          
-          <view class="summary-row">
-            <view class="summary-item">
-              <text class="summary-label">损耗率</text>
-              <text class="summary-value highlight">{{statement.lossRate}}%</text>
-            </view>
-            <view class="summary-item">
-              <text class="summary-label">工费合计</text>
-              <text class="summary-value">¥{{statement.totalFee}}</text>
-            </view>
-          </view>
-          
-          <view class="summary-row">
-            <view class="summary-item">
-              <text class="summary-label">已付金额</text>
-              <text class="summary-value">¥{{statement.paidAmount}}</text>
-            </view>
-            <view class="summary-item">
-              <text class="summary-label">未付金额</text>
-              <text class="summary-value highlight">¥{{statement.unpaidAmount}}</text>
-            </view>
-          </view>
-          
-          <!-- 工序损耗对比 -->
-          <view class="process-comparison">
-            <view class="comparison-title">工序对比分析</view>
-            
-            <view class="comparison-table">
-              <view class="table-header">
-                <view class="header-cell">工序</view>
-                <view class="header-cell">发出重量(kg)</view>
-                <view class="header-cell">收回重量(kg)</view>
-                <view class="header-cell">损耗率</view>
-              </view>
-              
-              <block wx:for="{{statement.processComparison}}" wx:key="process">
-                <view class="table-row">
-                  <view class="row-cell">{{item.process}}</view>
-                  <view class="row-cell">{{item.sendWeight}}</view>
-                  <view class="row-cell">{{item.receiveWeight}}</view>
-                  <view class="row-cell {{item.lossRate > 5 ? 'highlight' : ''}}">{{item.lossRate}}%</view>
-                </view>
-              </block>
-            </view>
-          </view>
-          
-          <!-- 按货号汇总 -->
-          <view class="style-summary">
-            <view class="comparison-title">按货号汇总</view>
-            
-            <scroll-view scroll-x="true" class="scroll-view-container">
-              <view class="comparison-table">
-                <view class="table-header">
-                  <view class="header-cell">货号</view>
-                  <view class="header-cell">工序</view>
-                  <view class="header-cell">发出数量</view>
-                  <view class="header-cell">发出重量(kg)</view>
-                  <view class="header-cell">收回重量(kg)</view>
-                  <view class="header-cell">收回数量</view>
-                  <view class="header-cell">工费</view>
-                  <view class="header-cell">支付方式</view>
-                  <view class="header-cell">支付金额</view>
-                </view>
-                
-                <block wx:for="{{statement.styleSummary}}" wx:key="styleNo">
-                  <view class="table-row" bindtap="toggleStyleDetail" data-style="{{item.styleNo}}">
-                    <view class="row-cell">{{item.styleNo}}</view>
-                    <view class="row-cell">{{item.process || '-'}}</view>
-                    <view class="row-cell">{{item.sendQuantity || '0'}}</view>
-                    <view class="row-cell">{{item.sendWeight}}</view>
-                    <view class="row-cell">{{item.receiveWeight}}</view>
-                    <view class="row-cell">{{item.receiveQuantity || '0'}}</view>
-                    <view class="row-cell">¥{{item.fee}}</view>
-                    <view class="row-cell">{{item.paymentMethod || '未付'}}</view>
-                    <view class="row-cell">¥{{item.paymentAmount || '0'}}</view>
-                  </view>
-                  
-                  <!-- 货号展开详情 -->
-                  <view class="style-detail" wx:if="{{openStyleDetail === item.styleNo}}">
-                    <view class="detail-title">货号 {{item.styleNo}} 明细</view>
-                    
-                    <view class="detail-section">
-                      <view class="detail-subtitle">发出明细</view>
-                      <view class="detail-table">
-                        <view class="detail-header">
-                          <view class="detail-header-cell">日期</view>
-                          <view class="detail-header-cell">单号</view>
-                          <view class="detail-header-cell">工序</view>
-                          <view class="detail-header-cell">重量</view>
-                          <view class="detail-header-cell">数量</view>
-                        </view>
-                        
-                        <block wx:for="{{item.sendOrders}}" wx:key="id" wx:for-item="order">
-                          <view class="detail-row">
-                            <view class="detail-cell">{{order.date}}</view>
-                            <view class="detail-cell">{{order.orderNo}}</view>
-                            <view class="detail-cell">{{order.process}}</view>
-                            <view class="detail-cell">{{order.weight}}kg</view>
-                            <view class="detail-cell">{{order.quantity}}件</view>
-                          </view>
-                        </block>
-                      </view>
-                    </view>
-                    
-                    <view class="detail-section">
-                      <view class="detail-subtitle">收回明细</view>
-                      <view class="detail-table">
-                        <view class="detail-header">
-                          <view class="detail-header-cell">日期</view>
-                          <view class="detail-header-cell">单号</view>
-                          <view class="detail-header-cell">工序</view>
-                          <view class="detail-header-cell">重量</view>
-                          <view class="detail-header-cell">数量</view>
-                          <view class="detail-header-cell">工费</view>
-                        </view>
-                        
-                        <block wx:for="{{item.receiveOrders}}" wx:key="id" wx:for-item="order">
-                          <view class="detail-row">
-                            <view class="detail-cell">{{order.date}}</view>
-                            <view class="detail-cell">{{order.orderNo}}</view>
-                            <view class="detail-cell">{{order.process}}</view>
-                            <view class="detail-cell">{{order.weight}}kg</view>
-                            <view class="detail-cell">{{order.quantity}}件</view>
-                            <view class="detail-cell">¥{{order.fee}}</view>
-                          </view>
-                        </block>
-                      </view>
-                    </view>
-                  </view>
-                </block>
-              </view>
-            </scroll-view>
-          </view>
-          
-          <!-- 工序明细对比 -->
-          <view class="process-detail-comparison">
-            <view class="comparison-title">工序明细对比</view>
-            
-            <view class="process-tabs">
-              <view class="process-tab {{selectedProcess === process ? 'active' : ''}}" 
-                    wx:for="{{statement.processComparison}}" 
-                    wx:key="process" 
-                    wx:for-item="process" 
-                    bindtap="selectProcess" 
-                    data-process="{{process.process}}">
-                {{process.process}}
-              </view>
-            </view>
-            
-            <view class="process-detail-content" wx:if="{{selectedProcess}}">
-              <view class="detail-section">
-                <view class="detail-subtitle">{{selectedProcess}} - 发出明细</view>
-                <view class="detail-table">
-                  <view class="detail-header">
-                    <view class="detail-header-cell">日期</view>
-                    <view class="detail-header-cell">单号</view>
-                    <view class="detail-header-cell">货号</view>
-                    <view class="detail-header-cell">重量</view>
-                    <view class="detail-header-cell">数量</view>
-                  </view>
-                  
-                  <block wx:for="{{statement.processSendDetails[selectedProcess]}}" wx:key="id">
-                    <view class="detail-row">
-                      <view class="detail-cell">{{item.date}}</view>
-                      <view class="detail-cell">{{item.orderNo}}</view>
-                      <view class="detail-cell">{{item.styleNo}}</view>
-                      <view class="detail-cell">{{item.weight}}kg</view>
-                      <view class="detail-cell">{{item.quantity}}件</view>
-                    </view>
-                  </block>
-                  
-                  <view class="detail-row total-row">
-                    <view class="detail-cell">合计</view>
-                    <view class="detail-cell"></view>
-                    <view class="detail-cell"></view>
-                    <view class="detail-cell">{{statement.processSendTotals[selectedProcess].weight}}kg</view>
-                    <view class="detail-cell">{{statement.processSendTotals[selectedProcess].quantity}}件</view>
-                  </view>
-                </view>
-              </view>
-              
-              <view class="detail-section">
-                <view class="detail-subtitle">{{selectedProcess}} - 收回明细</view>
-                <view class="detail-table">
-                  <view class="detail-header">
-                    <view class="detail-header-cell">日期</view>
-                    <view class="detail-header-cell">单号</view>
-                    <view class="detail-header-cell">货号</view>
-                    <view class="detail-header-cell">重量</view>
-                    <view class="detail-header-cell">数量</view>
-                    <view class="detail-header-cell">工费</view>
-                  </view>
-                  
-                  <block wx:for="{{statement.processReceiveDetails[selectedProcess]}}" wx:key="id">
-                    <view class="detail-row">
-                      <view class="detail-cell">{{item.date}}</view>
-                      <view class="detail-cell">{{item.orderNo}}</view>
-                      <view class="detail-cell">{{item.styleNo}}</view>
-                      <view class="detail-cell">{{item.weight}}kg</view>
-                      <view class="detail-cell">{{item.quantity}}件</view>
-                      <view class="detail-cell">¥{{item.fee}}</view>
-                    </view>
-                  </block>
-                  
-                  <view class="detail-row total-row">
-                    <view class="detail-cell">合计</view>
-                    <view class="detail-cell"></view>
-                    <view class="detail-cell"></view>
-                    <view class="detail-cell">{{statement.processReceiveTotals[selectedProcess].weight}}kg</view>
-                    <view class="detail-cell">{{statement.processReceiveTotals[selectedProcess].quantity}}件</view>
-                    <view class="detail-cell">¥{{statement.processReceiveTotals[selectedProcess].fee}}</view>
-                  </view>
-                </view>
-              </view>
-              
-              <view class="process-summary">
-                <view class="process-summary-item">
-                  <text class="process-summary-label">损耗重量</text>
-                  <text class="process-summary-value">{{statement.processDetailComparison[selectedProcess].lossWeight}}kg</text>
-                </view>
-                <view class="process-summary-item">
-                  <text class="process-summary-label">损耗率</text>
-                  <text class="process-summary-value {{statement.processDetailComparison[selectedProcess].lossRate > 5 ? 'highlight' : ''}}">
-                    {{statement.processDetailComparison[selectedProcess].lossRate}}%
-                  </text>
-                </view>
-              </view>
-            </view>
-          </view>
-        </view>
-      </view>
-      
-      <!-- 发出单明细卡片 -->
-      <view class="section-card">
-        <view class="section-header">
-          <text class="section-title">发出单明细</text>
-        </view>
-        
-        <block wx:if="{{filter.hasSendOrders(statement.orders)}}">
-          <view class="order-list">
-            <view class="order-item" wx:for="{{statement.orders}}" wx:key="index" wx:if="{{item.type === '发出单'}}" bindtap="goToSendOrderDetail" data-id="{{item.id}}">
-              <view class="order-header">
-                <text class="order-no">{{item.orderNo}}</text>
-                <text class="order-date">{{item.date}}</text>
-              </view>
-              <view class="order-content">
-                <view class="order-detail">
-                  <text class="detail-label">重量</text>
-                  <text class="detail-value">{{item.weight}} kg</text>
-                </view>
-                <view class="order-detail">
-                  <text class="detail-label">数量</text>
-                  <text class="detail-value">{{item.quantity}} 件</text>
-                </view>
-                <view class="order-detail">
-                  <text class="detail-label">工序</text>
-                  <text class="detail-value">{{item.process || '-'}}</text>
-                </view>
-              </view>
-              <view class="order-footer">
-                <view class="order-arrow"></view>
-              </view>
-            </view>
-          </view>
-        </block>
-        <view wx:else class="empty-tip">
-          <image class="empty-icon" src="/images/icons/empty.png" mode="aspectFit"></image>
-          <text>暂无发出单数据</text>
-        </view>
-      </view>
-      
-      <!-- 收回单明细卡片 -->
-      <view class="section-card">
-        <view class="section-header">
-          <text class="section-title">收回单明细</text>
-        </view>
-        
-        <block wx:if="{{filter.hasReceiveOrders(statement.orders)}}">
-          <view class="order-list">
-            <view class="order-item" wx:for="{{statement.orders}}" wx:key="index" wx:if="{{item.type === '收回单'}}" bindtap="goToReceiveOrderDetail" data-id="{{item.id}}">
-              <view class="order-header">
-                <text class="order-no">{{item.orderNo}}</text>
-                <text class="order-date">{{item.date}}</text>
-              </view>
-              <view class="order-content">
-                <view class="order-detail">
-                  <text class="detail-label">重量</text>
-                  <text class="detail-value">{{item.weight}} kg</text>
-                </view>
-                <view class="order-detail">
-                  <text class="detail-label">数量</text>
-                  <text class="detail-value">{{item.quantity}} 件</text>
-                </view>
-                <view class="order-detail">
-                  <text class="detail-label">工费</text>
-                  <text class="detail-value">¥{{item.fee || '0'}}</text>
-                </view>
-              </view>
-              <view class="order-footer">
-                <view class="order-arrow"></view>
-              </view>
-            </view>
-          </view>
-        </block>
-        <view wx:else class="empty-tip">
-          <image class="empty-icon" src="/images/icons/empty.png" mode="aspectFit"></image>
-          <text>暂无收回单数据</text>
-        </view>
-      </view>
-      
-      <!-- 操作按钮区域 -->
-      <view class="action-buttons">
-        <button bindtap="exportAsImage" class="action-btn image-export-btn">
-          <view class="btn-icon image-icon"></view>
-          <text>导出图片</text>
-        </button>
-        <button bindtap="exportAsExcel" class="action-btn excel-export-btn">
-          <view class="btn-icon excel-icon"></view>
-          <text>导出表格</text>
-        </button>
-      </view>
-    </view>
-  </block>
-  
   <!-- 空状态提示 -->
   <view wx:elif="{{!selectedFactory}}" class="empty-state">
     <image class="empty-state-image" src="/images/icons/statement.png" mode="aspectFit"></image>
-    <text class="empty-state-title">欢迎使用</text>
-    <text class="empty-state-desc">请选择工厂并查询对账信息</text>
+    <text class="empty-state-text">请选择工厂查看对账单</text>
   </view>
   
-  <view wx:else class="empty-state">
-    <image class="empty-state-image" src="/images/icons/no-data.png" mode="aspectFit"></image>
-    <text class="empty-state-title">暂无对账单数据</text>
-    <text class="empty-state-desc">请尝试更换工厂或调整日期范围</text>
+  <!-- 对账单内容 -->
+  <view wx:if="{{statement && !isLoading}}" class="statement-content">
+    <!-- 对账单头部信息 -->
+    <view class="statement-header">
+      <view class="factory-info">
+        <text class="factory-name">{{selectedFactory.name}}</text>
+      </view>
+      <view class="date-info">
+        <text>开始日期: {{startDate}}</text>
+        <text>结束日期: {{endDate}}</text>
+      </view>
+      <view class="balance-info">
+        <text>期初欠款: {{statement.initialBalance || '0.00'}}</text>
+        <text>期末欠款: {{statement.finalBalance || '0.00'}}</text>
+      </view>
+    </view>
+    
+    <!-- 对账摘要模块 -->
+    <view class="statement-summary">
+      <view class="summary-header">
+        <text class="summary-title">对账摘要</text>
+        <text class="summary-subtitle">{{startDate}} 至 {{endDate}}</text>
+      </view>
+      
+      <view class="summary-cards">
+        <!-- 发出单摘要 -->
+        <view class="summary-card send-card">
+          <view class="card-header">
+            <view class="card-icon send-icon">发</view>
+            <text class="card-title">发出单</text>
+          </view>
+          <view class="card-content">
+            <view class="card-item">
+              <text class="item-label">单据数量</text>
+              <text class="item-value">{{filter.getArrayLength(statement.sendOrders)}}单</text>
+            </view>
+            <view class="card-item">
+              <text class="item-label">发出数量</text>
+              <text class="item-value highlight-blue">{{filter.calculateQtyTotal(statement.sendOrders, 'quantity')}}打</text>
+            </view>
+            <view class="card-item">
+              <text class="item-label">发出重量</text>
+              <text class="item-value highlight-blue">{{filter.calculateTotal(statement.sendOrders, 'weight')}}kg</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 收回单摘要 -->
+        <view class="summary-card receive-card">
+          <view class="card-header">
+            <view class="card-icon receive-icon">收</view>
+            <text class="card-title">收回单</text>
+          </view>
+          <view class="card-content">
+            <view class="card-item">
+              <text class="item-label">单据数量</text>
+              <text class="item-value">{{filter.getArrayLength(statement.receiveOrders)}}单</text>
+            </view>
+            <view class="card-item">
+              <text class="item-label">收回数量</text>
+              <text class="item-value highlight-orange">{{filter.calculateQtyTotal(statement.receiveOrders, 'quantity')}}打</text>
+            </view>
+            <view class="card-item">
+              <text class="item-label">收回重量</text>
+              <text class="item-value highlight-orange">{{filter.calculateTotal(statement.receiveOrders, 'weight')}}kg</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 损耗分析 -->
+        <view class="summary-card loss-card">
+          <view class="card-header">
+            <view class="card-icon loss-icon">损</view>
+            <text class="card-title">损耗分析</text>
+          </view>
+          <view class="card-content">
+            <view class="card-item">
+              <text class="item-label">损耗重量</text>
+              <text class="item-value highlight-red">{{filter.calculateLossWeight(statement.sendOrders, statement.receiveOrders)}}kg</text>
+            </view>
+            <view class="card-item">
+              <text class="item-label">损耗率</text>
+              <text class="item-value highlight-red">{{filter.calculateLossRate(statement.sendOrders, statement.receiveOrders)}}%</text>
+            </view>
+            <view class="card-item">
+              <text class="item-label">货品种类</text>
+              <text class="item-value">{{filter.getArrayLength(statement.products)}}种</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 财务状况 -->
+        <view class="summary-card finance-card">
+          <view class="card-header">
+            <view class="card-icon finance-icon">财</view>
+            <text class="card-title">财务状况</text>
+          </view>
+          <view class="card-content">
+            <view class="card-item">
+              <text class="item-label">总金额</text>
+              <text class="item-value">¥{{statement.totalAmount || '0.00'}}</text>
+            </view>
+            <view class="card-item">
+              <text class="item-label">已付款</text>
+              <text class="item-value highlight-green">¥{{statement.totalPayment || '0.00'}}</text>
+            </view>
+            <view class="card-item">
+              <text class="item-label">期末结余</text>
+              <text class="item-value {{filter.getBalanceClass(statement.finalBalance)}}">¥{{statement.finalBalance || '0.00'}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 支付明细模块 -->
+    <view wx:if="{{statement && !isLoading}}" class="payment-details-section">
+      <view class="payment-details-header">
+        <view class="payment-details-title-content">
+          <view class="payment-details-icon">💰</view>
+          <view class="payment-details-info">
+            <text class="payment-details-title">支付明细</text>
+            <text class="payment-details-subtitle">结算支付情况统计</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 汇总表格 -->
+      <view class="payment-details-table">
+        <view class="payment-table-header">
+          <view class="payment-table-cell header-cell">总金额</view>
+          <view class="payment-table-cell header-cell">已支付</view>
+          <view class="payment-table-cell header-cell">结余</view>
+        </view>
+        <view class="payment-table-row">
+          <view class="payment-table-cell data-cell">
+            <text class="payment-amount">¥{{statement.totalAmount || '0.00'}}</text>
+          </view>
+          <view class="payment-table-cell data-cell">
+            <text class="payment-amount payment-paid">¥{{statement.totalPayment || '0.00'}}</text>
+          </view>
+          <view class="payment-table-cell data-cell">
+            <text class="payment-amount {{filter.getBalanceClass(statement.finalBalance)}}">¥{{statement.finalBalance || '0.00'}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 付款记录明细 -->
+      <view wx:if="{{statement.paymentRecords && statement.paymentRecords.length > 0}}" class="payment-records-section">
+        <view class="payment-records-header">
+          <text class="payment-records-title">付款记录明细 ({{statement.paymentRecords.length}}笔)</text>
+          <text class="payment-records-subtitle">与工厂账户明细同步</text>
+        </view>
+        
+        <view class="payment-records-list">
+          <view wx:for="{{statement.paymentRecords}}" wx:key="index" class="payment-record-item">
+            <view class="payment-record-header">
+              <view class="payment-record-date">{{filter.formatDate(item.date)}}</view>
+              <view class="payment-record-amount">¥{{item.amount}}</view>
+            </view>
+            
+            <view class="payment-record-body">
+              <view class="payment-record-row">
+                <view class="payment-record-field">
+                  <text class="field-label">单号</text>
+                  <text class="field-value">{{item.orderNo || '-'}}</text>
+                </view>
+                <view class="payment-record-field">
+                  <text class="field-label">支付方式</text>
+                  <text class="field-value">{{filter.getPaymentMethodText(item.paymentMethod)}}</text>
+                </view>
+              </view>
+              
+              <view class="payment-record-row">
+                <view class="payment-record-field">
+                  <text class="field-label">状态</text>
+                  <text class="field-value payment-status {{item.status === 'completed' ? 'status-completed' : 'status-pending'}}">
+                    {{item.status === 'completed' ? '已完成' : '处理中'}}
+                  </text>
+                </view>
+                <view class="payment-record-field">
+                  <text class="field-label">来源</text>
+                  <text class="field-value payment-source {{item.source === 'account' ? 'source-account' : 'source-receive'}}">
+                    {{item.source === 'account' ? '账户明细' : '收回单'}}
+                  </text>
+                </view>
+              </view>
+              
+              <view class="payment-record-row" wx:if="{{item.remark}}">
+                <view class="payment-record-field full-width">
+                  <text class="field-label">备注</text>
+                  <text class="field-value">{{item.remark}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+        
+        <view class="payment-records-footer">
+          <text class="payment-records-note">💡 付款记录与工厂管理中的账户明细实时同步</text>
+        </view>
+      </view>
+      
+      <!-- 无付款记录提示 -->
+      <view wx:else class="no-payment-records">
+        <view class="no-payment-icon">💳</view>
+        <text class="no-payment-text">本期间暂无付款记录</text>
+        <text class="no-payment-hint">可在工厂管理中进行付款操作</text>
+      </view>
+    </view>
+    
+    <!-- 现代化对账单明细卡片 -->
+    <view class="statement-cards-container">
+      <view class="cards-title-section">
+        <view class="cards-title-content">
+          <view class="cards-title-icon">📋</view>
+          <view class="cards-title-info">
+            <text class="cards-title">对账单明细</text>
+            <text class="cards-subtitle">按单号展示的详细收发记录</text>
+          </view>
+        </view>
+        <view class="cards-summary-stats">
+          <view class="stat-item">
+            <text class="stat-value">{{filter.getArrayLength(statement.orders)}}</text>
+            <text class="stat-label">明细条数</text>
+          </view>
+          <view class="stat-divider"></view>
+          <view class="stat-item">
+            <text class="stat-value">{{filter.getArrayLength(statement.sendOrders)}}</text>
+            <text class="stat-label">发出单</text>
+          </view>
+          <view class="stat-divider"></view>
+          <view class="stat-item">
+            <text class="stat-value">{{filter.getArrayLength(statement.receiveOrders)}}</text>
+            <text class="stat-label">收回单</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 明细记录列表 -->
+      <view wx:if="{{(statement.sendOrders && statement.sendOrders.length > 0) || (statement.receiveOrders && statement.receiveOrders.length > 0)}}" class="statement-details-list">
+        <!-- 🔧 修改：发出单也按表格格式显示，与收回单保持一致 -->
+        <view wx:for="{{statement.sendOrders}}" wx:key="index" class="send-order-group">
+        
+          <!-- 发出单标题行 -->
+          <view class="send-title-row">
+            <view class="title-cell">发出单</view>
+            <view class="title-cell">{{item.orderNo || '-'}}</view>
+            <view class="title-cell"></view>
+            <view class="title-cell">{{item.process || '-'}}</view>
+            <view class="title-cell"></view>
+            <view class="title-cell">{{filter.formatDate(item.date)}}</view>
+          </view>
+          
+          <!-- 货号货品名称行 -->
+          <view class="product-info-row">
+            <view class="product-info-cell">货号：{{item.styleNo || item.productNo || '-'}}</view>
+            <view class="product-info-cell">货品名称：{{item.productName || '-'}}</view>
+            <view class="product-info-cell">工厂：{{filter.getFactoryName(selectedFactory)}}</view>
+          </view>
+          
+          <!-- 明细表格头部 -->
+          <view class="detail-table-header">
+            <view class="detail-header-cell">颜色</view>
+            <view class="detail-header-cell">尺码</view>
+            <view class="detail-header-cell">数量</view>
+            <view class="detail-header-cell">重量</view>
+          </view>
+          
+          <!-- 明细数据行 -->
+          <view wx:for="{{item.details}}" wx:key="detailIndex" wx:for-item="detail" class="detail-data-row">
+            <view class="detail-data-cell">{{detail.itemColor || detail.color || '-'}}</view>
+            <view class="detail-data-cell">{{detail.itemSize || detail.size || '-'}}</view>
+            <view class="detail-data-cell">{{detail.itemQuantity || detail.quantity || 0}}</view>
+            <view class="detail-data-cell">{{detail.itemWeight || detail.weight || '0'}}</view>
+          </view>
+          
+          <!-- 小计行 -->
+          <view class="subtotal-row">
+            <view class="subtotal-cell">小计</view>
+            <view class="subtotal-cell"></view>
+            <view class="subtotal-cell">{{item.quantity || 0}}打</view>
+            <view class="subtotal-cell">{{item.weight || '0'}}kg</view>
+          </view>
+          
+          <!-- 合计汇总行 - 发出单不显示支付信息 -->
+          <view class="total-summary-row">
+            <view class="summary-label">合计：</view>
+            <view class="summary-item">
+              <text class="summary-item-label">总重量</text>
+              <text class="summary-item-value">{{item.weight || '0'}}kg</text>
+            </view>
+            <view class="summary-item">
+              <text class="summary-item-label">总数量</text>
+              <text class="summary-item-value">{{item.quantity || 0}}打</text>
+            </view>
+            <view class="summary-item">
+              <text class="summary-item-label">备注</text>
+              <text class="summary-item-value">{{item.remark || '-'}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 🔧 收回单按表格格式显示，同单号多明细 -->
+        <view wx:for="{{statement.receiveOrders}}" wx:key="index" class="receive-order-group">
+        
+          <!-- 收回单标题行 -->
+          <view class="receive-title-row">
+            <view class="title-cell">收回单</view>
+            <view class="title-cell">{{item.orderNo || '-'}}</view>
+            <view class="title-cell"></view>
+            <view class="title-cell">{{item.process || '-'}}</view>
+            <view class="title-cell"></view>
+            <view class="title-cell">{{filter.formatDate(item.date)}}</view>
+          </view>
+          
+          <!-- 货号货品名称行 -->
+          <view class="product-info-row">
+            <view class="product-info-cell">货号：{{item.styleNo || item.productNo || '-'}}</view>
+            <view class="product-info-cell">货品名称：{{item.productName || '-'}}</view>
+            <view class="product-info-cell">工厂：{{filter.getFactoryName(selectedFactory)}}</view>
+          </view>
+          
+          <!-- 明细表格头部 -->
+          <view class="detail-table-header">
+            <view class="detail-header-cell">颜色</view>
+            <view class="detail-header-cell">尺码</view>
+            <view class="detail-header-cell">工价</view>
+            <view class="detail-header-cell">数量</view>
+            <view class="detail-header-cell">重量</view>
+            <view class="detail-header-cell">工费</view>
+          </view>
+          
+          <!-- 明细数据行 -->
+          <view wx:for="{{item.details}}" wx:key="detailIndex" wx:for-item="detail" class="detail-data-row">
+            <view class="detail-data-cell">{{detail.itemColor || detail.color || '-'}}</view>
+            <view class="detail-data-cell">{{detail.itemSize || detail.size || '-'}}</view>
+            <view class="detail-data-cell">{{detail.unitPrice || '0'}}</view>
+            <view class="detail-data-cell">{{detail.itemQuantity || detail.quantity || 0}}</view>
+            <view class="detail-data-cell">{{detail.itemWeight || detail.weight || '0'}}</view>
+            <view class="detail-data-cell">{{detail.fee}}</view>
+          </view>
+          
+          <!-- 小计行 -->
+          <view class="subtotal-row">
+            <view class="subtotal-cell">小计</view>
+            <view class="subtotal-cell"></view>
+            <view class="subtotal-cell"></view>
+            <view class="subtotal-cell">{{item.quantity || 0}}打</view>
+            <view class="subtotal-cell">{{item.weight || '0'}}kg</view>
+            <view class="subtotal-cell">{{item.fee || item.totalAmount || '0'}}</view>
+          </view>
+          
+          <!-- 合计汇总行 -->
+          <view class="total-summary-row">
+            <view class="summary-label">合计：</view>
+            <view class="summary-item">
+              <text class="summary-item-label">总工费</text>
+              <text class="summary-item-value">{{item.fee || item.totalAmount || '0'}}</text>
+            </view>
+            <view class="summary-item">
+              <text class="summary-item-label">支付金额</text>
+              <text class="summary-item-value">{{item.paymentAmount || '0'}}</text>
+            </view>
+            <view class="summary-item">
+              <text class="summary-item-label">支付方式</text>
+              <text class="summary-item-value">{{filter.getPaymentMethodText(item.paymentMethod) || '未付'}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 🔧 修改条件：当没有发出单和收回单明细数据时，显示按订单汇总的卡片 -->
+      <view wx:if="{{(!statement.sendOrders || statement.sendOrders.length === 0) && (!statement.receiveOrders || statement.receiveOrders.length === 0)}}" class="order-cards-wrapper">
+        <!-- 空状态提示 -->
+        <view class="empty-state">
+          <image class="empty-state-image" src="/images/icons/statement.png" mode="aspectFit"></image>
+          <text class="empty-state-text">暂无收发明细数据</text>
+        </view>
+      </view>
+    </view>
   </view>
   
-  <!-- 返回按钮 -->
-  <view class="back-to-send-receive" bindtap="backToSendReceive">
-    <text>返回收发管理</text>
+  <!-- 货品汇总卡片 -->
+  <view wx:if="{{statement && !isLoading}}" class="product-summary">
+    <view class="product-summary-header">
+      <view class="product-summary-title-content">
+        <view class="product-summary-icon">📦</view>
+        <view class="product-summary-info">
+          <text class="summary-title">货品汇总</text>
+          <text class="summary-subtitle">按货品统计的发收情况及损耗分析</text>
+        </view>
+      </view>
+      <view class="product-count-badge">
+        <text>{{filter.getArrayLength(statement.products)}}种货品</text>
+      </view>
+    </view>
+    
+    <view class="product-cards-wrapper">
+      <view wx:for="{{statement.products}}" wx:key="index" class="product-card">
+        <view class="product-card-header">
+          <view class="product-image-section">
+            <!-- 🔧 修复：更严格的图片加载条件检查 -->
+            <image 
+              wx:if="{{item.imageUrl && !item.imageLoadFailed && item.imageUrl !== ''}}"
+              class="product-card-image" 
+              src="{{item.imageUrl}}" 
+              mode="aspectFit" 
+              binderror="handleImageError" 
+              data-index="{{index}}"
+            ></image>
+            <!-- 🔧 优化：图片加载失败时的占位符，使用更明确的条件 -->
+            <view wx:else class="product-image-placeholder">
+              <text class="placeholder-text">📦</text>
+            </view>
+          </view>
+          <view class="product-basic-info">
+            <view class="product-no">{{item.productNo}}</view>
+            <view class="product-name">{{item.name}}</view>
+            <view class="product-process">{{item.process}}</view>
+          </view>
+          <view class="product-loss-rate">
+            <text class="loss-rate-label">损耗率</text>
+            <text class="loss-rate-value {{filter.getLossRateClass(item.lossRate)}}">{{item.lossRate}}%</text>
+          </view>
+        </view>
+        
+        <view class="product-card-body">
+          <view class="product-stats">
+            <view class="stat-section send-stat">
+              <text class="stat-title">发出统计</text>
+              <view class="stat-content">
+                <view class="stat-item">
+                  <text class="stat-label">数量</text>
+                  <text class="stat-value highlight-blue">{{item.sendQuantity}}打</text>
+                </view>
+                <view class="stat-item">
+                  <text class="stat-label">重量</text>
+                  <text class="stat-value highlight-blue">{{item.sendWeight}}kg</text>
+                </view>
+              </view>
+            </view>
+            
+            <view class="stat-section receive-stat">
+              <text class="stat-title">收回统计</text>
+              <view class="stat-content">
+                <view class="stat-item">
+                  <text class="stat-label">数量</text>
+                  <text class="stat-value highlight-orange">{{item.receiveQuantity}}打</text>
+                </view>
+                <view class="stat-item">
+                  <text class="stat-label">重量</text>
+                  <text class="stat-value highlight-orange">{{item.receiveWeight}}kg</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 导出按钮 -->
+  <view wx:if="{{statement && !isLoading}}" class="export-section">
+    <view class="export-title">导出对账单</view>
+    <view class="export-buttons">
+      <button class="export-btn export-image-btn" bindtap="exportAsImage">
+        <view class="export-icon">📷</view>
+        <text>导出图片</text>
+      </button>
+      <button class="export-btn export-excel-btn" bindtap="exportAsExcel">
+        <view class="export-icon">📊</view>
+        <text>导出表格</text>
+      </button>
+    </view>
   </view>
   
   <!-- 隐藏的Canvas元素用于绘制对账单 -->
-  <canvas type="2d" id="statementCanvas" style="width:{{canvasWidth}}px; height:{{canvasHeight}}px; position: absolute; left: -9999px;"></canvas>
+  <canvas
+    type="2d"
+    id="statementCanvas"
+    canvas-id="statementCanvas"
+    style="width: 400px; height: 700px; position: absolute; left: -9999px; top: -9999px; visibility: hidden;"
+    disable-scroll="true"
+  />
   
-  <!-- 导出成功提示 -->
-  <view class="export-success {{showExportSuccess ? 'visible' : ''}}" bindtap="hideExportSuccess">
-    <view class="export-success-inner">
-      <icon type="success" size="64" color="#3875FF"></icon>
-      <text>导出成功</text>
-      <text class="export-path">{{exportPath}}</text>
+  <!-- 返回按钮 -->
+  <view class="back-to-send-receive-fixed" bindtap="backToSendReceive">
+    <text>返回</text>
+  </view>
+  
+  <!-- 财务验证状态显示 -->
+  <view wx:if="{{statement && statement.financialValidation}}" class="financial-validation-status">
+    <view class="validation-header">
+      <text class="validation-title">财务验证状态</text>
+      <button class="help-btn" bindtap="showFinancialHelp" size="mini">
+        <text class="help-icon">❓</text>
+        <text>帮助</text>
+      </button>
+    </view>
+    
+    <view class="validation-content">
+      <view class="validation-item">
+        <text class="validation-label">验证结果：</text>
+        <text class="validation-value {{statement.financialValidation.isValid ? 'success' : 'error'}}">
+          {{statement.financialValidation.isValid ? '✓ 通过' : '✗ 未通过'}}
+        </text>
+      </view>
+      
+      <view class="validation-item">
+        <text class="validation-label">风险等级：</text>
+        <text class="validation-value risk-{{statement.financialValidation.riskLevel}}">
+          {{statement.financialValidation.riskLevel === 'low' ? '🟢 低风险' : 
+            statement.financialValidation.riskLevel === 'medium' ? '🟡 中等风险' :
+            statement.financialValidation.riskLevel === 'high' ? '🟠 高风险' : '🔴 严重风险'}}
+        </text>
+      </view>
+      
+      <view class="validation-item">
+        <text class="validation-label">检查统计：</text>
+        <text class="validation-value">
+          {{statement.financialValidation.summary.totalChecks}}项检查，通过率{{statement.financialValidation.summary.successRate}}
+        </text>
+      </view>
+      
+      <view wx:if="{{statement.financialValidation.errors.length > 0 || statement.financialValidation.warnings.length > 0}}" class="validation-issues">
+        <text wx:if="{{statement.financialValidation.errors.length > 0}}" class="issue-count error">
+          {{statement.financialValidation.errors.length}}个错误
+        </text>
+        <text wx:if="{{statement.financialValidation.warnings.length > 0}}" class="issue-count warning">
+          {{statement.financialValidation.warnings.length}}个警告
+        </text>
+        <button class="view-details-btn" bindtap="showFinancialValidationDetails" data-validation="{{statement.financialValidation}}" size="mini">
+          查看详情
+        </button>
+      </view>
     </view>
   </view>
 </view>

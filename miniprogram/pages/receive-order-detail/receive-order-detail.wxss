@@ -131,10 +131,22 @@
   width: 100rpx; /* 固定宽度 */
 }
 
+.detail-value-container {
+  display: flex;
+  align-items: baseline;
+  gap: 2rpx;
+}
+
 .detail-value {
-  color: #1d1d1f;
-  font-size: 24rpx;
-  flex: 1;
+  font-size: inherit;
+  color: inherit;
+}
+
+.detail-unit {
+  font-size: 20rpx;
+  color: #8e8e93;
+  font-weight: 400;
+  margin-left: 2rpx;
 }
 
 .detail-value.price {
@@ -198,6 +210,21 @@
   content: "\e6b2";
 }
 
+/* 备注照片样式 */
+.remark-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.remark-photo {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid #e5e5e5;
+}
+
 .icon-more:before {
   content: "\e8c4";
 }
@@ -210,4 +237,24 @@
   font-size: 24rpx;
   color: #86868b;
   font-weight: 400;
+} 
+
+/* 合计部分的数值和单位容器 */
+.total-value-container {
+  display: flex;
+  align-items: baseline;
+  gap: 2rpx;
+}
+
+.total-value {
+  font-size: inherit;
+  color: inherit;
+  font-weight: 600;
+}
+
+.total-unit {
+  font-size: 20rpx;
+  color: #8e8e93;
+  font-weight: 400;
+  margin-left: 2rpx;
 } 

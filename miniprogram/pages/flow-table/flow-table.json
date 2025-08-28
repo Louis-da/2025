@@ -1,6 +1,11 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "收发流水表",
-  "backgroundColor": "#f5f5f7",
-  "enablePullDownRefresh": false
+  "navigationBarTitleText": "收发流水",
+  "navigationBarBackgroundColor": "#667eea",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#667eea",
+  "backgroundTextStyle": "light",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50,
+  "disableScroll": false
 }

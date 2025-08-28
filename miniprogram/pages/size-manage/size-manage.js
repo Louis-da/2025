@@ -1,6 +1,7 @@
 // pages/size-manage/size-manage.js
 const app = getApp();
 const api = require('../../utils/api');
+const { throttle } = require('../../utils/throttle');
 try {
   // 尝试导入util模块，如果失败，使用内部定义的函数
   const { showToast, showLoading, hideLoading, showModal } = require('../../utils/util');
@@ -68,7 +69,9 @@ Page({
       name: '',
       order: ''
     },
-    currentEditId: '' // 当前编辑的尺码ID
+    currentEditId: '', // 当前编辑的尺码ID
+    enabledCount: 0, // 启用数量
+    disabledCount: 0 // 停用数量
   },
 
   /**
@@ -91,36 +94,43 @@ Page({
   /**
    * 获取尺码列表
    */
-  fetchSizeList: function(callback) {
+  fetchSizeList: throttle(function(callback) {
     this.setData({ isLoading: true });
     wx.showNavigationBarLoading();
-    const orgId = wx.getStorageSync('orgId') || 'org1';
+    const orgId = wx.getStorageSync('orgId');
     api.request('/sizes', 'GET', { orgId })
       .then(res => {
-        console.log('api.request返回的res', res); // 新增日志
-        // 直接用res.data
+        console.log('api.request返回的res', res);
         const sizeData = Array.isArray(res.data) ? res.data : [];
-        console.log('sizeData', sizeData); // 打印后端返回的原始数据
-        // 字段映射
+        console.log('sizeData', sizeData);
+        
+        // 字段映射并排序
         const mappedSizes = sizeData.map(item => ({
           ...item,
           id: item._id,
-          orderNum: item.orderNum
-        }));
-        console.log('mappedSizes', mappedSizes); // 打印映射后的数据
-        // 排序
-        const sortedSizes = mappedSizes.sort((a, b) => (a.orderNum ?? 999) - (b.orderNum ?? 999));
-        console.log('filteredSizes', sortedSizes); // 打印最终用于渲染的数据
+          orderNum: Number(item.orderNum) || 999 // 确保orderNum是数字类型
+        })).sort((a, b) => a.orderNum - b.orderNum); // 按orderNum从小到大排序
+        
+        console.log('排序后的尺码列表:', mappedSizes);
+        
+        // 计算启用和停用数量
+        const enabledCount = mappedSizes.filter(item => item.status === 1).length;
+        const disabledCount = mappedSizes.filter(item => item.status === 0).length;
+        
         this.setData({
-          filteredSizes: sortedSizes,
-          isLoading: false
+          filteredSizes: mappedSizes,
+          isLoading: false,
+          enabledCount: enabledCount,
+          disabledCount: disabledCount
         });
       })
       .catch(err => {
         console.error('获取尺码数据请求失败', err);
         this.setData({
           filteredSizes: [],
-          isLoading: false
+          isLoading: false,
+          enabledCount: 0,
+          disabledCount: 0
         });
         toast('获取尺码数据失败');
       })
@@ -130,7 +140,7 @@ Page({
           callback();
         }
       });
-  },
+  }, 1000),
 
   /**
    * 防止滑动穿透
@@ -170,7 +180,7 @@ Page({
         currentEditId: size.id,
         formData: {
           name: size.name,
-          order: size.orderNum
+          order: size.orderNum || 0
         }
       });
     }
@@ -204,6 +214,50 @@ Page({
   },
 
   /**
+   * 阻止事件冒泡
+   */
+  stopPropagation: function(e) {
+    // 阻止事件冒泡，避免触发父级的点击事件
+    return false;
+  },
+
+  /**
+   * 启用尺码 - 修复缺失的方法
+   */
+  enableSize: function(e) {
+    const id = e.currentTarget.dataset.id;
+    
+    modal('确认操作', '确定要启用此尺码吗？')
+      .then(res => {
+        if (res) {
+          loading('启用中');
+          
+          // 使用真实API更新状态
+          const orgId = wx.getStorageSync('orgId');
+          api.request(`/sizes/${id}/status`, 'PUT', {
+            orgId,
+            status: 1 // 1表示启用
+          })
+            .then(res => {
+              this.fetchSizeList();
+              toast('启用成功', 'success');
+            })
+            .catch(err => {
+              console.error('启用失败', err);
+              toast('启用失败，请检查网络');
+            })
+            .finally(() => {
+              hideLoad();
+            });
+        }
+      })
+      .catch(err => {
+        console.error('操作失败:', err);
+        toast('操作失败，请重试');
+      });
+  },
+
+  /**
    * 提交表单
    */
   submitForm: function() {
@@ -215,9 +269,20 @@ Page({
       return;
     }
     
-    if (!order || isNaN(Number(order))) {
-      toast('请输入正确的显示顺序');
-      return;
+    // 排序值处理：如果为空或无效，使用默认值
+    let finalOrder = order;
+    if (!order || isNaN(Number(order)) || Number(order) < 0) {
+      if (modalType === 'add') {
+        // 新增时，如果没有填写排序，自动计算
+        finalOrder = this.data.filteredSizes.length > 0 
+          ? Math.max(...this.data.filteredSizes.map(s => s.orderNum || 0)) + 1 
+          : 1;
+        toast('显示顺序已自动设置为 ' + finalOrder);
+      } else {
+        // 编辑时，如果没有填写排序，保持原有排序
+        const currentSize = this.data.filteredSizes.find(s => s.id === currentEditId);
+        finalOrder = currentSize ? currentSize.orderNum : 0;
+      }
     }
     
     // 检查尺码名称是否已存在
@@ -232,6 +297,11 @@ Page({
       toast('尺码名称已存在，请使用其他名称');
       return;
     }
+    
+    // 更新表单数据中的排序值
+    this.setData({
+      'formData.order': finalOrder
+    });
     
     if (modalType === 'add') {
       this.addSize();
@@ -249,7 +319,7 @@ Page({
     loading('添加中');
     
     // 使用真实API添加尺码
-    const orgId = wx.getStorageSync('orgId') || 'org1';
+    const orgId = wx.getStorageSync('orgId');
     api.request('/sizes', 'POST', {
       orgId,
       name: name.trim(),
@@ -280,7 +350,7 @@ Page({
     loading('更新中');
     
     // 使用真实API更新尺码
-    const orgId = wx.getStorageSync('orgId') || 'org1';
+    const orgId = wx.getStorageSync('orgId');
     api.request(`/sizes/${currentEditId}`, 'PUT', {
       orgId,
       name: name.trim(),
@@ -315,7 +385,7 @@ Page({
           loading(`${statusText}中`);
           
           // 使用真实API更新状态
-          const orgId = wx.getStorageSync('orgId') || 'org1';
+          const orgId = wx.getStorageSync('orgId');
           api.request(`/sizes/${id}/status`, 'PUT', {
             orgId,
             status: newStatus
@@ -360,3 +430,14 @@ Page({
     this.fetchSizeList();
   }
 });
+
+// 节流提示
+const originalFetchSizeList = Page.prototype.fetchSizeList;
+Page.prototype.fetchSizeList = function(...args) {
+  if (this._lastFetchTime && Date.now() - this._lastFetchTime < 1000) {
+    wx.showToast({ title: '操作频繁，福生无量，稍后再试', icon: 'none' });
+    return;
+  }
+  this._lastFetchTime = Date.now();
+  return originalFetchSizeList.apply(this, args);
+};
