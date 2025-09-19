@@ -1,0 +1,17 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "通用API接口云函数",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^2.8.1",
+    "bcryptjs": "^3.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "mime-db": "^1.54.0",
+    "moment": "^2.29.4",
+    "validator": "^13.7.0",
+    "wx-server-sdk": "~2.6.3"
+  },
+  "author": "云收发技术团队",
+  "license": "MIT"
+}

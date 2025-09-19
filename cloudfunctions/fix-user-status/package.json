@@ -1,0 +1,9 @@
+{
+  "name": "fix-user-status",
+  "version": "1.0.0",
+  "description": "Fix user status function",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

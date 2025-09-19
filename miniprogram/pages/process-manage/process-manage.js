@@ -155,7 +155,7 @@ Page({
     
     // api.js 会自动添加 orgId 参数，但为了确保数据隔离，显式添加
     const orgId = wx.getStorageSync('orgId');
-    api.request('/processes', 'GET', { keyword, orgId })
+    api.cloudFunctionRequest('/processes', 'GET', { keyword, orgId })
       .then(res => {
         console.log('收到工序列表数据:', res);
         
@@ -338,23 +338,29 @@ Page({
         orgId: wx.getStorageSync('orgId')
       };
       
-      // 调用工序更新API
-      api.request(`/processes/${currentProcess._id}`, 'PUT', params)
+      // 使用云函数更新工序
+      wx.cloud.callFunction({
+        name: 'updateProcess',
+        data: {
+          processId: currentProcess._id,
+          ...params
+        }
+      })
         .then(res => {
           hideLoad();
           
-          if (res.success) {
+          if (res.result && res.result.success) {
             toast('更新成功', 'success');
             this.closeModal();
             this.fetchProcesses(); // 刷新列表
           } else {
-            toast(res.message || '更新失败');
+            toast(res.result?.message || '更新失败');
           }
         })
         .catch(err => {
           hideLoad();
           console.error('更新工序失败:', err);
-          toast(err.error || '保存失败');
+          toast('保存失败');
         });
     } 
     // 2. 新增工序
@@ -368,7 +374,7 @@ Page({
       };
       
       // 调用工序新增API
-      api.request('/processes', 'POST', params)
+      api.cloudFunctionRequest('/processes', 'POST', params)
       .then(res => {
           hideLoad();
           
@@ -408,10 +414,21 @@ Page({
         
         loading(`${statusText}中`);
         
-        api.request(`/processes/${id}/status`, 'PUT', { status: newStatus })
+        wx.cloud.callFunction({
+          name: 'updateProcessStatus',
+          data: {
+            processId: id,
+            status: newStatus,
+            orgId: wx.getStorageSync('orgId')
+          }
+        })
           .then(res => {
-            this.fetchProcesses();
-            toast(`${statusText}成功`, 'success');
+            if (res.result && res.result.success) {
+              this.fetchProcesses();
+              toast(`${statusText}成功`, 'success');
+            } else {
+              throw new Error(res.result?.message || '操作失败');
+            }
           })
           .catch(err => {
             console.error('更新工序状态请求失败:', err);
@@ -435,11 +452,22 @@ Page({
     modal('确认操作', `确定要${statusText}此工序吗？`).then(confirmed => {
       if (!confirmed) return;
       loading(`${statusText}中`);
-      api.request(`/processes/${process._id}/status`, 'PUT', { status: newStatus })
+      wx.cloud.callFunction({
+        name: 'updateProcessStatus',
+        data: {
+          processId: process._id,
+          status: newStatus ? 1 : 0,
+          orgId: wx.getStorageSync('orgId')
+        }
+      })
         .then(res => {
-          this.setData({ showModal: false });
-          this.fetchProcesses();
-          toast(`${statusText}成功`, 'success');
+          if (res.result && res.result.success) {
+            this.setData({ showModal: false });
+            this.fetchProcesses();
+            toast(`${statusText}成功`, 'success');
+          } else {
+            throw new Error(res.result?.message || '操作失败');
+          }
         })
         .catch(err => {
           console.error('停用工序请求失败:', err);
@@ -464,10 +492,21 @@ Page({
         
         loading(`${statusText}中`);
         
-        api.request(`/processes/${id}/status`, 'PUT', { status: 1 })
+        wx.cloud.callFunction({
+          name: 'updateProcessStatus',
+          data: {
+            processId: id,
+            status: 1,
+            orgId: wx.getStorageSync('orgId')
+          }
+        })
           .then(res => {
-            this.fetchProcesses();
-            toast(`${statusText}成功`, 'success');
+            if (res.result && res.result.success) {
+              this.fetchProcesses();
+              toast(`${statusText}成功`, 'success');
+            } else {
+              throw new Error(res.result?.message || '操作失败');
+            }
           })
           .catch(err => {
             console.error('启用工序请求失败:', err);

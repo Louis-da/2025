@@ -5,6 +5,11 @@
 
 const app = getApp && typeof getApp === 'function' ? getApp() : null;
 const appConfig = app && app.globalData && app.globalData.config ? app.globalData.config : {};
+// 新增：集中读取 ENV_ID，默认回退到历史值
+const { envList } = require('../envList');
+const DEFAULT_ENV_ID = 'cloud1-3gwlq66232d160ab';
+const ENV_ID = (envList && envList[0] && envList[0].envId) || DEFAULT_ENV_ID;
+const cloudRequest = require('./cloudRequest');
 
 // 获取API基础URL
 const getBaseUrl = () => {
@@ -14,8 +19,8 @@ const getBaseUrl = () => {
     return appConfig.apiBaseUrl;
   }
   
-  // 默认返回正式环境地址
-  return 'https://aiyunsf.com/api';
+  // 使用云函数HTTP触发器地址（集中化ENV_ID）
+  return `https://${ENV_ID}.service.tcloudbase.com/web`;
 }
 
 // 通用请求方法
@@ -48,9 +53,9 @@ const request = (url, method, data = {}, options = {}) => {
   const headers = options.headers || {};
   const token = wx.getStorageSync('token');
   
-  // 添加授权Token和小程序标识
+  // 添加授权Token和小程序标识（使用自定义头避免与 CloudBase 冲突）
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers['X-App-Authorization'] = `Bearer ${token}`;
   }
   
   headers['x-from-miniprogram'] = 'true';
@@ -156,14 +161,60 @@ const request = (url, method, data = {}, options = {}) => {
   });
 }
 
+// 云函数请求函数 - 用于替代 HTTP 请求避免网关拦截
+const cloudFunctionRequest = async (url, method, data = {}, options = {}) => {
+  try {
+    // 根据 URL 路径映射到对应的云函数和 action
+    const pathMapping = {
+      '/products': { cloudFunction: 'api', action: method === 'GET' ? 'getProducts' : 'addProduct' },
+      '/products/stats': { cloudFunction: 'api', action: 'getProductStats' },
+      '/colors': { cloudFunction: 'api', action: method === 'GET' ? 'getColors' : 'addColor' },
+      '/sizes': { cloudFunction: 'api', action: method === 'GET' ? 'getSizes' : 'addSize' },
+      '/processes': { cloudFunction: 'api', action: method === 'GET' ? 'getProcesses' : 'addProcess' },
+      '/factories': { cloudFunction: 'api', action: method === 'GET' ? 'getFactories' : 'addFactory' },
+      '/factories/stats': { cloudFunction: 'api', action: 'getFactoryStats' },
+      '/statement': { cloudFunction: 'api', action: 'getStatement' },
+      '/orders': { cloudFunction: 'api', action: method === 'GET' ? 'getOrders' : 'addOrder' },
+      '/stats': { cloudFunction: 'api', action: 'getStats' },
+      '/send-orders': { cloudFunction: 'api', action: 'addSendOrder' },
+      '/receive-orders': { cloudFunction: 'api', action: 'addReceiveOrder' },
+      '/flow-records': { cloudFunction: 'api', action: 'getFlowRecords' },
+      '/flow-records/stats': { cloudFunction: 'api', action: 'getFlowStats' },
+      '/flow-records/anomalies': { cloudFunction: 'api', action: 'getFlowAnomalies' },
+      '/flow-records/detailed': { cloudFunction: 'api', action: 'getDetailedFlowRecords' }
+    };
+
+    // 处理带查询参数的 URL
+    const cleanUrl = url.split('?')[0];
+    const mapping = pathMapping[cleanUrl];
+    
+    if (!mapping) {
+      console.warn('未找到对应的云函数映射:', url);
+      // 回退到原始 HTTP 请求
+      return request(url, method, data, options);
+    }
+
+    // 调用云函数
+    const result = await cloudRequest.callCloudFunction(mapping.cloudFunction, {
+      action: mapping.action,
+      ...data
+    });
+
+    return result;
+  } catch (error) {
+    console.error('云函数请求失败:', error);
+    throw error;
+  }
+};
+
 // 获取订单列表
 const getOrders = (params) => {
-  return request('/orders', 'GET', params)
+  return cloudFunctionRequest('/orders', 'GET', params)
 }
 
 // 获取统计数据
 const getStats = (params) => {
-  return request('/stats', 'GET', params)
+  return cloudFunctionRequest('/stats', 'GET', params)
 }
 
 // 更新订单状态
@@ -193,7 +244,7 @@ const addOrder = (orderData) => {
   // 记录最终请求数据
   console.log('发送订单数据:', cleanData);
   
-  return request('/orders', 'POST', cleanData);
+  return cloudFunctionRequest('/orders', 'POST', cleanData);
 }
 
 // 获取订单详情
@@ -214,17 +265,17 @@ const getReceiveOrderDetail = (orderId) => {
 // 获取工厂列表
 const getFactories = () => {
   // 设置足够大的pageSize，确保获取所有工厂
-  return request('/factories?pageSize=1000', 'GET')
+  return cloudFunctionRequest('/factories', 'GET', { pageSize: 1000 })
 }
 
 // 获取产品列表
 const getProducts = () => {
-  return request('/products', 'GET')
+  return cloudFunctionRequest('/products', 'GET')
 }
 
 // 获取工序列表
 const getProcesses = () => {
-  return request('/processes', 'GET')
+  return cloudFunctionRequest('/processes', 'GET')
 }
 
 // 清除指定组织的所有产品
@@ -286,7 +337,7 @@ const addProduct = (productData) => {
   }
   
   console.log('添加产品 - 发送数据:', cleanData);
-  return request('/products', 'POST', cleanData);
+  return cloudFunctionRequest('/products', 'POST', cleanData);
 }
 
 // 更新产品
@@ -362,7 +413,7 @@ const addSendOrder = (orderData) => {
   // 增加日志，帮助调试
   console.log('提交发出单数据:', mappedData);
   if (orderData.created_at) mappedData.created_at = orderData.created_at;
-  return request('/send-orders', 'POST', mappedData);
+  return cloudFunctionRequest('/send-orders', 'POST', mappedData);
 };
 
 // 新增收回单（主表+明细一体化写入）
@@ -391,26 +442,26 @@ const addReceiveOrder = (orderData) => {
   camelMain.items = items;
   // 日志
   console.log('提交收回单数据(主表驼峰, 明细下划线):', camelMain);
-  return request('/receive-orders', 'POST', camelMain);
+  return cloudFunctionRequest('/receive-orders', 'POST', camelMain);
 };
 
 // 获取流水表数据
 const getFlowTable = (params) => {
   console.log('[api.js] getFlowTable called with params:', params);
   // 使用新的流水记录接口
-  return request('/flow-records', 'GET', params);
+  return cloudFunctionRequest('/flow-records', 'GET', params);
 }
 
 // 获取流水记录统计数据
 const getFlowStats = (params) => {
   console.log('[api.js] getFlowStats called with params:', params);
-  return request('/flow-records/stats', 'GET', params);
+  return cloudFunctionRequest('/flow-records/stats', 'GET', params);
 }
 
 // 获取异常流水记录
 const getFlowAnomalies = (params) => {
   console.log('[api.js] getFlowAnomalies called with params:', params);
-  return request('/flow-records/anomalies', 'GET', params);
+  return cloudFunctionRequest('/flow-records/anomalies', 'GET', params);
 }
 
 // 上传文件
@@ -433,7 +484,7 @@ const uploadFile = (path, filePath) => {
         orgId: orgId  // 使用统一的orgId字段
       },
       header: {
-        'Authorization': token ? `Bearer ${token}` : '',
+        'X-App-Authorization': token ? `Bearer ${token}` : '',
         'x-from-miniprogram': 'true'
       },
       success: (res) => {
@@ -522,19 +573,29 @@ const uploadFile = (path, filePath) => {
 // 获取详细的流水记录（按时间顺序的明细）
 const getDetailedFlowRecords = (params = {}) => {
   console.log('[api.js] getDetailedFlowRecords called with params:', params);
-  return request('/flow-records/detailed', 'GET', params);
+  return cloudFunctionRequest('/flow-records/detailed', 'GET', params);
 };
 
 // 获取损耗率排行榜数据
 const getLossRanking = (params = {}) => {
   console.log('[api.js] getLossRanking called with params:', params);
-  return request('/ai-reports/loss-ranking', 'GET', params);
+  // 直接调用云函数，避免 CloudBase 网关拦截
+  const cloudRequest = require('./cloudRequest');
+  return cloudRequest.callCloudFunction('ai-reports', {
+    action: 'getLossRanking',
+    ...params
+  });
 };
 
 // 获取活跃排行数据
 const getActiveRankings = (params = {}) => {
   console.log('[api.js] getActiveRankings called with params:', params);
-  return request('/ai-reports/active-rankings', 'GET', params);
+  // 直接调用云函数，避免 CloudBase 网关拦截
+  const cloudRequest = require('./cloudRequest');
+  return cloudRequest.callCloudFunction('ai-reports', {
+    action: 'getActiveRankings',
+    ...params
+  });
 };
 
 // 删除收回单
@@ -544,6 +605,7 @@ const deleteReceiveOrder = (orderId) => {
 
 module.exports = {
   request,
+  cloudFunctionRequest,
   getBaseUrl,
   getOrders,
   getStats,
@@ -572,4 +634,4 @@ module.exports = {
   getDetailedFlowRecords,
   getLossRanking,
   getActiveRankings
-} 
+}

@@ -1,0 +1,9 @@
+{
+  "name": "reset-user-password",
+  "version": "1.0.0",
+  "description": "Reset user password function",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

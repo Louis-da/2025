@@ -64,7 +64,7 @@ async function apiRequest(url, method = 'GET', data = null, showErrors = true) {
   
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${user.token}`
+    'X-App-Authorization': `Bearer ${user.token}` // 使用自定义头避免被 CloudBase 网关拦截
   };
   
   // 处理GET请求的参数
@@ -128,4 +128,4 @@ document.addEventListener('DOMContentLoaded', function() {
     setWelcomeMessage();
     setupLogout();
   }
-}); 
+});

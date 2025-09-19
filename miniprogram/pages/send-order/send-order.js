@@ -3,6 +3,7 @@ const { formatDate } = require('../../utils/util');
 const { getFullImageUrl } = require('../../utils/image'); // + 导入 getFullImageUrl
 const { formatDateTimeToMinute } = require('../../utils/datetime'); // 从公共工具文件引入
 const { searchMatch } = require('../../utils/pinyin'); // 引入拼音搜索工具
+const request = require('../../utils/request');
 
 Page({
   data: {
@@ -53,6 +54,11 @@ Page({
   
   onLoad(options) {
     console.log('订单页面参数:', options);
+    
+    // 支持通过参数自动导出Excel（不改变UI，仅在带参数进入时生效）
+    if (options && (options.action === 'exportExcel' || options.exportExcel === '1')) {
+      this._autoExportExcel = true;
+    }
     
     // Set current date for date pickers (YYYY-MM-DD)
     const now = new Date();
@@ -153,10 +159,15 @@ Page({
     console.log('[fetchFactories] 开始获取工厂列表...');
     wx.showLoading({ title: '加载工厂列表...', mask: true });
     
-    api.getFactories()
-      .then(res => {
+    wx.cloud.callFunction({
+      name: 'api',
+      data: {
+        action: 'getFactories'
+      }
+    })
+      .then(result => {
         console.log('[fetchFactories] API调用成功');
-        const factories = res.data || [];
+        const factories = result.result && result.result.data ? result.result.data : [];
         console.log('[fetchFactories] 获取到工厂数量:', factories.length);
         
         // 过滤掉已停用的工厂（status = 'inactive'），只显示启用的工厂（status = 'active'）
@@ -187,13 +198,17 @@ Page({
     this.setData({ productsLoading: true });
     console.log('[fetchProducts] Starting product fetch...'); // 添加日志
     try {
-      const res = await api.getProducts({
-        // 可以添加分页或搜索参数
-        // search: this.data.productSearchValue 
+      const result = await wx.cloud.callFunction({
+        name: 'api',
+        data: {
+          action: 'getProducts'
+          // 可以添加分页或搜索参数
+          // search: this.data.productSearchValue 
+        }
       });
-      if (res && res.data) {
+      if (result.result && result.result.success && result.result.data) {
         // 过滤掉已停用的货品（status = 0），只显示启用的货品（status = 1）
-        const enabledProducts = res.data.filter(p => p.status === 1);
+        const enabledProducts = result.result.data.filter(p => p.status === 1);
         
         // 使用 getFullImageUrl 处理 image 字段
         const products = enabledProducts.map(p => ({
@@ -385,6 +400,12 @@ Page({
           
           // 计算相关值
           this.calculateTotals();
+          
+          // 若通过参数要求自动导出，且当前为查看模式，则在数据就绪后触发导出
+          if (this._autoExportExcel && this.data.mode === 'view') {
+            this._autoExportExcel = false;
+            this.exportExcel();
+          }
         } else {
           console.error('获取订单详情失败:', res);
           wx.showToast({
@@ -434,7 +455,7 @@ Page({
     // 同时获取工厂详情和组织工序列表
     Promise.all([
       api.request(`/factories/${factoryId}`, 'GET', { orgId }),
-      api.request('/processes', 'GET', { orgId })
+      api.cloudFunctionRequest('/processes', 'GET', { orgId })
     ])
       .then(([factoryRes, processesRes]) => {
         wx.hideLoading();
@@ -961,10 +982,16 @@ Page({
       success: (res) => {
         if (res.confirm) {
           wx.showLoading({ title: '作废中...' });
-          api.request(`/send-orders/${this.data.orderId}`, 'DELETE')
-            .then(cancelRes => {
+          wx.cloud.callFunction({
+            name: 'api',
+            data: {
+              action: 'deleteOrder',
+              orderId: this.data.orderId
+            }
+          })
+            .then(result => {
               wx.hideLoading();
-              if (cancelRes.success) {
+              if (result.result && result.result.success) {
                 wx.showToast({ title: '订单已作废', icon: 'success' });
                 // 修改状态值为数字0
                 this.setData({ 
@@ -1532,6 +1559,198 @@ Page({
     });
   },
 
+  // 导出Excel（发出单）
+  exportExcel() {
+    const orderId = this.data.orderId;
+    const orderNo = this.data.orderNo || orderId || '';
+    const selectedFactory = this.data.selectedFactory || {};
+    const selectedProcess = this.data.selectedProcess || {};
+    const items = Array.isArray(this.data.selectedProducts) ? this.data.selectedProducts : [];
+  
+    if (!orderId || !selectedFactory || !selectedFactory.id) {
+      wx.showToast({ title: '订单数据不完整', icon: 'none' });
+      return;
+    }
+  
+    const totalQuantity = items.reduce((sum, it) => sum + (parseInt(it.quantity, 10) || 0), 0);
+    const totalWeight = items.reduce((sum, it) => sum + (parseFloat(it.weight) || 0), 0);
+    const totalAmount = 0;
+    const paidAmount = 0;
+    const dateStr = (this.data.currentDate && typeof this.data.currentDate === 'string' && this.data.currentDate !== '-')
+      ? this.data.currentDate
+      : ((this.data.date && this.data.date.split) ? this.data.date.split(' ')[0] : '');
+
+    const processStr = (typeof selectedProcess === 'object')
+      ? (selectedProcess.name || '')
+      : (typeof selectedProcess === 'string' ? selectedProcess : '');
+  
+    wx.showLoading({ title: '正在准备分享...' });
+  
+    try {
+      const orderDetails = (items.length > 0 ? items : [null]).map((it, idx) => {
+        const quantity = it ? parseFloat(it.quantity || 0) : totalQuantity;
+        const weight = it ? parseFloat(it.weight || 0) : totalWeight;
+        const unitPrice = 0;
+        const rowAmount = 0;
+        return {
+          type: '发出',
+          orderNo: orderNo,
+          date: dateStr,
+          process: processStr,
+          quantity: isNaN(quantity) ? 0 : parseInt(quantity, 10),
+          weight: isNaN(weight) ? 0 : parseFloat(weight.toFixed(2)),
+          unitPrice: 0,
+          totalAmount: 0,
+          paymentAmount: idx === 0 ? parseFloat(paidAmount.toFixed(2)) : '',
+          paymentMethod: '',
+          remark: this.data.remark || ''
+        };
+      });
+  
+      const excelData = {
+        basicInfo: {
+          companyName: wx.getStorageSync('companyName') || '公司',
+          factoryName: selectedFactory.name || '',
+          dateRange: dateStr,
+          generateTime: new Date().toLocaleString(),
+          totalRecords: orderDetails.length
+        },
+        summary: {
+          sendSummary: {
+            title: '发出单摘要',
+            orderCount: 1,
+            quantity: totalQuantity,
+            weight: totalWeight.toFixed(2)
+          },
+          receiveSummary: {
+            title: '收回单摘要',
+            orderCount: 0,
+            quantity: 0,
+            weight: '0.00'
+          },
+          lossSummary: {
+            title: '损耗情况',
+            productTypes: items.length || 0,
+            lossWeight: '0.00',
+            lossRate: '0.00%'
+          },
+          financialSummary: {
+            title: '财务汇总',
+            totalPayment: paidAmount.toFixed(2),
+            finalBalance: (totalAmount - paidAmount).toFixed(2)
+          }
+        },
+        productSummary: [],
+        paymentSummary: {
+          totalAmount: totalAmount.toFixed(2),
+          totalPayment: paidAmount.toFixed(2),
+          finalBalance: (totalAmount - paidAmount).toFixed(2)
+        },
+        paymentRecords: [],
+        orderDetails
+      };
+  
+      request.post('/export/excel', excelData)
+        .then((res) => {
+          if (res && res.filePath) {
+            wx.hideLoading();
+            this.shareExcelFileDirectly(res.filePath);
+            return;
+          }
+  
+          if (res && res.success && res.data && res.data.downloadUrl) {
+            const downloadUrl = res.data.downloadUrl;
+            wx.downloadFile({
+              url: downloadUrl,
+              header: { 'X-App-Authorization': `Bearer ${wx.getStorageSync('token')}` }, // 使用自定义头避免被 CloudBase 网关拦截
+              success: (downloadRes) => {
+                wx.hideLoading();
+                if (downloadRes.statusCode === 200) {
+                  this.shareExcelFileDirectly(downloadRes.tempFilePath);
+                } else {
+                  console.error('文件下载失败，状态码:', downloadRes.statusCode);
+                  wx.showToast({ title: '文件准备失败，请重试', icon: 'none' });
+                }
+              },
+              fail: (err) => {
+                wx.hideLoading();
+                console.error('下载失败详情:', err);
+                wx.showToast({ title: '网络异常，分享失败', icon: 'none' });
+              }
+            });
+            return;
+          }
+  
+          wx.hideLoading();
+          if (res && res.message) {
+            wx.showToast({ title: res.message, icon: 'none' });
+          } else {
+            wx.showToast({ title: '生成失败，请重试', icon: 'none' });
+          }
+        })
+        .catch((error) => {
+          wx.hideLoading();
+          console.error('Excel导出失败:', error);
+          const msg = (error && error.getUserMessage && error.getUserMessage()) || (error && error.message) || '网络异常，请检查网络连接';
+          wx.showToast({ title: msg, icon: 'none' });
+        });
+    } catch (e) {
+      wx.hideLoading();
+      console.error('构建导出数据失败:', e);
+      wx.showToast({ title: '数据处理失败，请重试', icon: 'none' });
+    }
+  },
+  
+  // 直接分享Excel文件
+  shareExcelFileDirectly(filePath) {
+    const fileName = this.generateExcelFileName();
+    wx.shareFileMessage({
+      filePath,
+      fileName,
+      success: () => {
+        wx.showToast({ title: '表格分享成功', icon: 'success', duration: 2000 });
+      },
+      fail: (shareErr) => {
+        console.log('微信分享失败，提供备选方案:', shareErr);
+        wx.showModal({
+          title: '分享方式选择',
+          content: '微信分享失败，请选择其他方式：',
+          cancelText: '打开表格',
+          confirmText: '保存到本地',
+          success: () => {
+            this.openExcelDocument(filePath);
+          },
+          fail: () => {
+            this.openExcelDocument(filePath);
+          }
+        });
+      }
+    });
+  },
+  
+  // 打开Excel文档
+  openExcelDocument(filePath) {
+    wx.openDocument({
+      filePath,
+      fileType: 'xlsx',
+      success: () => {
+        wx.showToast({ title: '表格已打开', icon: 'success', duration: 2000 });
+      },
+      fail: (openErr) => {
+        console.log('打开文档失败:', openErr);
+        wx.showToast({ title: '表格已生成，请在文件管理中查看', icon: 'success', duration: 3000 });
+      }
+    });
+  },
+  
+  // 生成文件名
+  generateExcelFileName() {
+    const factoryName = (this.data.selectedFactory && this.data.selectedFactory.name) || '工厂';
+    const orderNo = this.data.orderNo || this.data.orderId || '';
+    const ts = Date.now().toString().slice(-6);
+    return `${factoryName}_发出单_${orderNo}_${ts}.xlsx`;
+  },
+
   bindTempColorPicker(e) {
     const { selectedProductTemp } = this.data;
     const color = selectedProductTemp.colorOptions ? selectedProductTemp.colorOptions[e.detail.value] : '';
@@ -1575,7 +1794,7 @@ Page({
       return;
     }
     
-    api.request('/colors', 'GET', { orgId })
+    api.cloudFunctionRequest('/colors', 'GET', { orgId })
       .then(res => {
         let colorList = [];
         if (Array.isArray(res)) {
@@ -1602,7 +1821,7 @@ Page({
       return;
     }
     
-    api.request('/sizes', 'GET', { orgId })
+    api.cloudFunctionRequest('/sizes', 'GET', { orgId })
       .then(res => {
         let sizeList = [];
         if (Array.isArray(res)) {

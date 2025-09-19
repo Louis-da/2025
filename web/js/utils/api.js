@@ -93,7 +93,7 @@ const API = {
             // 对于非登录请求，添加认证头和组织ID
             if (!isLoginRequest) {
                 const authStatus = Auth.checkAuthStatus();
-                config.headers['Authorization'] = `Bearer ${authStatus.token}`;
+                config.headers['X-App-Authorization'] = `Bearer ${authStatus.token}`; // 使用自定义头避免被 CloudBase 网关拦截
                 config.headers['token'] = authStatus.token;
                 config.headers['X-Org-Id'] = authStatus.orgId; // 强制添加组织ID头
             }
@@ -255,7 +255,7 @@ const API = {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'Authorization': `Bearer ${authStatus.token}`,
+                    'X-App-Authorization': `Bearer ${authStatus.token}`, // 使用自定义头避免被 CloudBase 网关拦截
                     'token': authStatus.token,
                     'X-Org-Id': authStatus.orgId,
                     ...options.headers
@@ -661,4 +661,4 @@ const API = {
 };
 
 // 导出API对象
-window.API = API; 
+window.API = API;

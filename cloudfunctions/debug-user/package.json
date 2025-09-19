@@ -1,0 +1,9 @@
+{
+  "name": "debug-user",
+  "version": "1.0.0",
+  "description": "Debug user function",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

@@ -231,7 +231,7 @@ Page({
     const orgId = wx.getStorageSync('orgId');
     const timestamp = new Date().getTime();
     
-    api.request('/factories', 'GET', { 
+    api.cloudFunctionRequest('/factories', 'GET', { 
       page: this.data.page,
       pageSize: this.data.pageSize,
       keyword: this.data.keyword,
@@ -529,7 +529,7 @@ Page({
     
     if (isAdding) {
       // 添加新工厂 - 使用API请求
-      api.request('/factories', 'POST', factoryData)
+      api.cloudFunctionRequest('/factories', 'POST', factoryData)
         .then(res => {
           if (res.success) {
             // 后端返回的数据可能包含数据库生成的ID等信息
@@ -573,10 +573,17 @@ Page({
           hideLoadingFn();
         });
     } else {
-      // 更新现有工厂 - 使用API请求
-      api.request(`/factories/${editingFactory._id || editingFactory.id}`, 'PUT', factoryData)
-        .then(res => {
-          if (res.success) {
+      // 更新现有工厂 - 使用云函数请求
+      wx.cloud.callFunction({
+        name: 'api',
+        data: {
+          action: 'updateFactory',
+          factoryId: editingFactory._id || editingFactory.id,
+          factoryData: factoryData
+        }
+      })
+        .then(result => {
+          if (result.result && result.result.success) {
             toast('更新成功', 'success');
             // 🎯 优化：并行刷新列表和统计数据
             setTimeout(() => {
@@ -591,7 +598,7 @@ Page({
             }, 500);
             this.setData({ showEditModal: false });
           } else {
-            toast(res.message || '更新失败');
+            toast(result.result?.message || '更新失败');
           }
         })
         .catch(err => {
@@ -628,14 +635,18 @@ Page({
       
       loading(`${actionText}中...`);
       
-      // 调用API更新工厂状态
+      // 调用云函数更新工厂状态
       const factoryId = factory._id || factory.id;
-      api.request(`/factories/${factoryId}/status`, 'PUT', {
-        status: newStatus
-        // 🔒 安全注意：移除orgId参数，完全依赖后端认证用户的组织ID
+      wx.cloud.callFunction({
+        name: 'api',
+        data: {
+          action: 'updateFactoryStatus',
+          factoryId: factoryId,
+          status: newStatus
+        }
       })
-        .then(res => {
-          if (res.success) {
+        .then(result => {
+          if (result.result && result.result.success) {
             // 更新本地数据
             const updatedFactories = this.data.factories.map(item => {
               if (item._id === factoryId || item.id === factoryId) {
@@ -666,7 +677,7 @@ Page({
               toast(`工厂已启用`, 'success');
             }
           } else {
-            toast(res.message || `${actionText}失败`);
+            toast(result.result?.message || `${actionText}失败`);
           }
         })
         .catch(err => {
@@ -1154,7 +1165,7 @@ Page({
     const orgId = wx.getStorageSync('orgId');
     
     // 调用工序API
-    api.request('/processes', 'GET', { orgId })
+    api.cloudFunctionRequest('/processes', 'GET', { orgId })
       .then(res => {
         console.log('获取工序数据成功:', res);
         
@@ -1415,7 +1426,7 @@ Page({
     console.log('[fetchFactoryStats] 🎯 开始请求专用统计接口');
     
     // 🎯 优化：参考货品管理，使用专用统计接口，不依赖分页数据
-    api.request('/factories/stats', 'GET')
+    api.cloudFunctionRequest('/factories/stats', 'GET')
       .then(res => {
         console.log('[fetchFactoryStats] 专用统计API响应:', res);
         if (res && res.success && res.data) {
@@ -1855,7 +1866,7 @@ Page({
           filePath: compressRes.tempFilePath,
           name: 'file',
           header: {
-            'Authorization': 'Bearer ' + (wx.getStorageSync('token') || '')
+            'X-App-Authorization': 'Bearer ' + (wx.getStorageSync('token') || '') // 使用自定义头避免被 CloudBase 网关拦截
           },
           formData: {
             type: 'payment_remark'

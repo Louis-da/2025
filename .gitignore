@@ -19,7 +19,7 @@ yarn-error.log*
 # 日志文件
 *.log
 logs/
-server/logs/
+# server目录已移除
 
 # 临时文件
 *.tmp

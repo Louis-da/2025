@@ -150,7 +150,7 @@ Page({
     }
     
     console.log('[fetchProducts] 开始请求产品列表, orgId:', orgId);
-    api.request('/products', 'GET', { orgId })
+    api.cloudFunctionRequest('/products', 'GET', { orgId })
       .then(res => {
         console.log('[fetchProducts] API返回原始数据:', JSON.parse(JSON.stringify(res)));
         let filteredProducts = res.data || res;
@@ -259,7 +259,7 @@ Page({
       return;
     }
     
-    api.request('/products/stats', 'GET', { orgId })
+    api.cloudFunctionRequest('/products/stats', 'GET', { orgId })
       .then(res => {
         if (res && res.success && res.data) {
           const stats = {
@@ -660,7 +660,7 @@ Page({
     wx.showLoading({ title: '加载数据...' });
     try {
       const orgId = wx.getStorageSync('orgId');
-      const productRes = await api.request(`/products/${productId}`, 'GET', { orgId });
+      const productRes = await api.cloudFunctionRequest(`/products/${productId}`, 'GET', { orgId });
       if (!productRes || !productRes.success || !productRes.data) {
         throw new Error(productRes.message || '获取产品详情失败');
       }
@@ -732,7 +732,7 @@ Page({
       success: (res) => {
         if (res.confirm) {
           wx.showLoading({ title: '更新中...' });
-          api.request(`/products/${id}/status`, 'PUT', { status: newStatus })
+          api.cloudFunctionRequest(`/products/${id}/status`, 'PUT', { status: newStatus })
             .then(updateRes => {
               wx.hideLoading();
               if (updateRes && updateRes.success) {
@@ -789,7 +789,7 @@ Page({
       if (callback) callback();
       return;
     }
-    api.request('/colors', 'GET', { orgId })
+    api.cloudFunctionRequest('/colors', 'GET', { orgId })
       .then(res => {
         if (res && res.success && res.data) {
           // 过滤掉已停用的颜色（status = 0），只显示启用的颜色（status = 1）
@@ -818,7 +818,7 @@ Page({
       if (callback) callback();
       return;
     }
-    api.request('/sizes', 'GET', { orgId })
+    api.cloudFunctionRequest('/sizes', 'GET', { orgId })
       .then(res => {
         if (res && res.success && res.data) {
           // 过滤掉已停用的尺码（status = 0），只显示启用的尺码（status = 1）
@@ -847,7 +847,7 @@ Page({
       if (callback) callback();
       return;
     }
-    api.request('/processes', 'GET', { orgId })
+    api.cloudFunctionRequest('/processes', 'GET', { orgId })
       .then(res => {
         if (res && res.success && res.data) {
           // 过滤掉已停用的工序（status = 0），只显示启用的工序（status = 1）

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "openapi": [
+    ]
+  },
+  "triggers": [],
+  "runtime": "Nodejs18.15",
+  "memorySize": 256,
+  "timeout": 20,
+  "environment": {
+    "variables": {}
+  },
+  "vpc": {
+    "vpcId": "",
+    "subnetId": ""
+  }
+}

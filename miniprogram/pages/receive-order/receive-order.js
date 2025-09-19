@@ -868,9 +868,14 @@ Page({
 
     console.log('即将提交的收回单数据 (包含明细):', JSON.stringify(orderMain, null, 2));
 
-    // 3. 调用 api.addReceiveOrder 一次性提交主订单和明细
-    // 使用api模块而不是this.api
-    require('../../utils/api').addReceiveOrder(orderMain) // 使用专门的收回单接口，确保工厂账户状态更新
+    // 3. 调用云函数一次性提交主订单和明细
+    wx.cloud.callFunction({
+      name: 'api',
+      data: {
+        action: 'addReceiveOrder',
+        orderData: orderMain
+      }
+    })
       .then(res => {
         console.log('收回单提交结果 (主数据和明细):', res);
         wx.hideLoading();
@@ -994,7 +999,7 @@ Page({
     // 同时获取工厂详情和组织工序列表
     Promise.all([
       api.request(`/factories/${factoryId}`, 'GET', { orgId }),
-      api.request('/processes', 'GET', { orgId })
+      api.cloudFunctionRequest('/processes', 'GET', { orgId })
     ])
       .then(([factoryRes, processesRes]) => {
         wx.hideLoading();
@@ -1566,10 +1571,15 @@ Page({
     if (this.data.productsLoading) return;
     this.setData({ productsLoading: true });
     try {
-      const res = await api.getProducts({ /* 可以添加分页或搜索参数 */ });
-      if (res && res.data) {
+      const result = await wx.cloud.callFunction({
+        name: 'api',
+        data: {
+          action: 'getProducts'
+        }
+      });
+      if (result.result && result.result.success && result.result.data) {
         // 过滤掉已停用的货品（status = 0），只显示启用的货品（status = 1）
-        const enabledProducts = res.data.filter(p => p.status === 1);
+        const enabledProducts = result.result.data.filter(p => p.status === 1);
         
         const products = enabledProducts.map(p => ({
           ...p,
@@ -1600,10 +1610,15 @@ Page({
   fetchFactories() {
     wx.showLoading({ title: '正在加载...', mask: true });
     
-    // 使用api模块而不是this.api
-    require('../../utils/api').getFactories()
-      .then(res => {
-        const factories = res.data || [];
+    // 使用云函数调用
+    wx.cloud.callFunction({
+      name: 'api',
+      data: {
+        action: 'getFactories'
+      }
+    })
+      .then(result => {
+        const factories = result.result?.data || [];
         
         // 过滤掉已停用的工厂（status = 'inactive'），只显示启用的工厂（status = 'active'）
         const enabledFactories = factories.filter(f => f.status === 'active');
@@ -1633,8 +1648,14 @@ Page({
   // 获取订单详情
   fetchOrderDetail(orderId) {
     wx.showLoading({ title: '加载订单详情...' });
-    const apiModule = require('../../utils/api');
-    apiModule.getReceiveOrderDetail(orderId).then(res => {
+    wx.cloud.callFunction({
+      name: 'api',
+      data: {
+        action: 'getReceiveOrderDetail',
+        orderId: orderId
+      }
+    }).then(result => {
+      const res = result.result;
       wx.hideLoading();
       if (res.success && res.data) {
         const orderData = res.data;
@@ -1766,9 +1787,15 @@ Page({
       success: (res) => {
         if (res.confirm) {
           wx.showLoading({ title: '作废中...' });
-          const apiModule = require('../../utils/api');
-          apiModule.deleteReceiveOrder(this.data.orderId)
-            .then(cancelRes => {
+          wx.cloud.callFunction({
+            name: 'api',
+            data: {
+              action: 'deleteReceiveOrder',
+              orderId: this.data.orderId
+            }
+          })
+            .then(result => {
+              const cancelRes = result.result;
               wx.hideLoading();
               if (cancelRes.success) {
                 wx.showToast({ title: '订单已作废', icon: 'success' });

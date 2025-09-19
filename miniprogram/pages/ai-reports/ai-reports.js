@@ -1,4 +1,5 @@
 const api = require('../../utils/api');
+const request = require('../../utils/request');
 
 // AI智能助理页面
 Page({
@@ -54,19 +55,57 @@ Page({
     this.setData({ loading: true });
 
     try {
-      // 并行加载三个模块的数据
-      await Promise.all([
+      // 使用 Promise.allSettled 并行加载三个模块的数据，避免单个模块失败影响整体
+      const results = await Promise.allSettled([
         this.loadAlerts(),
         this.loadActiveRankings(),
         this.loadSuggestions()
       ]);
       
-      console.log('[AI Assistant] AI数据加载完成');
+      // 检查各模块加载结果
+      const [alertsResult, activeRankingsResult, suggestionsResult] = results;
+      
+      let successCount = 0;
+      let failedModules = [];
+      
+      if (alertsResult.status === 'fulfilled') {
+        successCount++;
+      } else {
+        console.error('[AI Assistant] 损耗率排行加载失败:', alertsResult.reason);
+        failedModules.push('损耗率排行');
+      }
+      
+      if (activeRankingsResult.status === 'fulfilled') {
+        successCount++;
+      } else {
+        console.error('[AI Assistant] 活跃排行加载失败:', activeRankingsResult.reason);
+        failedModules.push('活跃排行');
+      }
+      
+      if (suggestionsResult.status === 'fulfilled') {
+        successCount++;
+      } else {
+        console.error('[AI Assistant] 智能建议加载失败:', suggestionsResult.reason);
+        failedModules.push('智能建议');
+      }
+      
+      console.log(`[AI Assistant] AI数据加载完成: ${successCount}/3 个模块成功`);
+      
+      // 如果有模块加载失败，显示提示
+      if (failedModules.length > 0) {
+        wx.showToast({
+          title: `${failedModules.join('、')}加载失败`,
+          icon: 'none',
+          duration: 2000
+        });
+      }
+      
     } catch (error) {
-      console.error('[AI Assistant] AI数据加载失败:', error);
+      console.error('[AI Assistant] AI数据加载异常:', error);
       wx.showToast({
-        title: '数据加载失败',
-        icon: 'none'
+        title: '数据加载异常',
+        icon: 'none',
+        duration: 2000
       });
     } finally {
       this.setData({ loading: false });
@@ -84,7 +123,11 @@ Page({
       if (dateRange.startDate) params.startDate = dateRange.startDate;
       if (dateRange.endDate) params.endDate = dateRange.endDate;
       console.log('[AI Assistant] API参数:', params);
-      const result = await api.getLossRanking(params);
+      
+      const result = await request.get('loss-ranking', params, {
+        showLoading: false,
+        timeout: 10000
+      });
       let alerts = [];
       let alertCount = 0;
       if (result && result.success && result.data) {
@@ -788,4 +831,4 @@ Page({
       path: '/pages/ai-reports/ai-reports'
     };
   }
-}); 
+});

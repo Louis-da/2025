@@ -19,7 +19,8 @@
     "packNpmRelationList": [],
     "ignoreUploadUnusedFiles": true,
     "compileHotReLoad": false,
-    "skylineRenderEnable": true
+    "skylineRenderEnable": true,
+    "minifyWXML": true
   },
   "simulatorType": "wechat",
   "simulatorPluginLibVersion": {},
@@ -29,10 +30,42 @@
     "tabIndent": "insertSpaces",
     "tabSize": 2
   },
-  "libVersion": "trial",
+  "libVersion": "3.5.7",
   "packOptions": {
     "ignore": [],
     "include": []
   },
-  "appid": "wx29dc76f19592f1bc"
+  "appid": "wx29dc76f19592f1bc",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
+  "urlCheck": false,
+  "es6": true,
+  "enhance": true,
+  "showES6CompileOption": false,
+  "checkInvalidKey": true,
+  "checkSiteMap": true,
+  "uploadWithSourceMap": true,
+  "compileHotReLoad": false,
+  "lazyloadPlaceholderEnable": false,
+  "preloadBackgroundData": false,
+  "minified": true,
+  "autoAudits": false,
+  "uglifyFileName": false,
+  "uploadToCloudStorage": true,
+  "uploadToCloudFunction": true,
+  "serveDomain": {
+    "request": [
+      "https://aiyunsf.com",
+      "https://www.aiyunsf.com",
+      "https://admin.aiyunsf.com",
+      "https://cloud1-3gwlq66232d160ab.service.tcloudbase.com"
+    ],
+    "socket": [],
+    "upload": [
+      "https://cloud1-3gwlq66232d160ab.tcb.qcloud.la"
+    ],
+    "download": [
+      "https://cloud1-3gwlq66232d160ab.tcb.qcloud.la"
+    ]
+  }
 }

@@ -69,26 +69,22 @@ function updateSessionActivity() {
     return;
   }
 
-  const request = getRequestTool();
-  if (!request) {
-    console.warn('[Session] 请求工具不可用，跳过心跳');
-    return;
+  // 优先使用云函数进行会话心跳更新
+  try {
+    const cloudRequest = require('./cloudRequest');
+    cloudRequest.sessionHeartbeat()
+      .then(res => {
+        if (res && res.success) {
+          console.log('[Session] 会话心跳更新成功（云函数）');
+        }
+      })
+      .catch(error => {
+        console.warn('[Session] 会话心跳更新失败（云函数）:', error);
+        // 不影响用户正常使用，仅记录日志
+      });
+  } catch (error) {
+    console.warn('[Session] 云函数模块不可用，跳过心跳:', error);
   }
-  
-  // 静默更新活跃时间，不显示loading
-  request.post('/auth/session/heartbeat', {}, { 
-    silent: true,
-    showLoading: false 
-  })
-    .then(res => {
-      if (res && res.success) {
-        console.log('[Session] 会话心跳更新成功');
-      }
-    })
-    .catch(error => {
-      console.warn('[Session] 会话心跳更新失败:', error);
-      // 不影响用户正常使用，仅记录日志
-    });
 }
 
 /**
@@ -138,24 +134,19 @@ function clearSession() {
     return;
   }
 
-  const request = getRequestTool();
-  if (!request) {
-    console.warn('[Session] 请求工具不可用，跳过登出请求');
-    stopHeartbeat();
-    return;
+  // 优先使用云函数进行登出操作
+  try {
+    const cloudRequest = require('./cloudRequest');
+    cloudRequest.logout()
+      .then(res => {
+        console.log('[Session] 会话清理成功（云函数）');
+      })
+      .catch(error => {
+        console.warn('[Session] 会话清理失败（云函数）:', error);
+      });
+  } catch (error) {
+    console.warn('[Session] 云函数模块不可用，跳过登出请求:', error);
   }
-  
-  // 通知服务器用户登出
-  request.post('/auth/logout', {}, { 
-    silent: true,
-    showLoading: false 
-  })
-    .then(res => {
-      console.log('[Session] 会话清理成功');
-    })
-    .catch(error => {
-      console.warn('[Session] 会话清理失败:', error);
-    });
 
   // 停止心跳
   stopHeartbeat();
@@ -188,4 +179,4 @@ module.exports = {
   updateSessionActivity,
   onAppShow,
   onAppHide
-}; 
+};

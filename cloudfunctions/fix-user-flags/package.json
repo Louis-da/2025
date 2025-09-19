@@ -1,0 +1,9 @@
+{
+  "name": "fix-user-flags",
+  "version": "1.0.0",
+  "description": "清除用户重置标志云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

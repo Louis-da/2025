@@ -1,6 +1,6 @@
 // Web端配置文件 - 修复版 v2.1 (强制刷新缓存)
 const CONFIG = {
-    // API配置 - 使用相对路径通过Nginx代理
+    // API配置 - 云开发环境适配
     API_BASE_URL: (() => {
         const hostname = window.location.hostname;
         
@@ -13,8 +13,14 @@ const CONFIG = {
             return 'http://localhost:3000';
         }
         
+        // 云开发环境检测
+        if (window.CLOUD_CONFIG && window.CLOUD_CONFIG.ENV_ID) {
+            console.log('[CONFIG] 检测为云开发环境，使用云函数API');
+            return window.CLOUD_CONFIG.getApiUrl('api');
+        }
+        
         // 生产环境使用同域API路径
-        if (hostname === 'aiyunsf.com') {
+        if (hostname === 'aiyunsf.com' || hostname === 'www.aiyunsf.com') {
             console.log('[CONFIG] 检测为生产环境(aiyunsf.com)，使用同域API');
             return `${window.location.protocol}//${hostname}`;
         }
@@ -125,4 +131,4 @@ if (CONFIG.API_BASE_URL && CONFIG.API_BASE_URL.includes(':3000') && window.locat
 }
 
 // 冻结配置对象，防止被修改
-Object.freeze(CONFIG); 
+Object.freeze(CONFIG);

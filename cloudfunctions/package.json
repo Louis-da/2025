@@ -1,0 +1,29 @@
+{
+  "name": "yunsf-cloudfunctions",
+  "version": "1.0.0",
+  "description": "云收发小程序云函数",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "tcb fn deploy --all",
+    "deploy:login": "tcb fn deploy login",
+    "deploy:api": "tcb fn deploy api",
+    "deploy:orders": "tcb fn deploy orders",
+    "deploy:users": "tcb fn deploy users",
+    "deploy:stats": "tcb fn deploy stats",
+    "deploy:upload": "tcb fn deploy upload"
+  },
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3",
+    "@cloudbase/node-sdk": "^2.8.1",
+    "mysql2": "^3.6.5",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "moment": "^2.29.4",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@cloudbase/cli": "^1.8.0"
+  },
+  "author": "云收发技术团队",
+  "license": "MIT"
+}

@@ -110,7 +110,7 @@ Page({
       return;
     }
     
-    api.request('/products', 'GET', { orgId })
+    api.cloudFunctionRequest('/products', 'GET', { orgId })
       .then(res => {
         if (res && res.success && res.data) {
           // 过滤掉已停用的货品（status = 0），只显示启用的货品（status = 1）
@@ -183,9 +183,7 @@ Page({
         requestData.productId = this.data.selectedProduct.id;
       }
 
-      const response = await api.request('/statement', 'GET', requestData, {
-        'Authorization': `Bearer ${token}`
-      });
+      const response = await api.cloudFunctionRequest('/statement', 'GET', requestData);
 
       console.log('后端返回原始数据:', response);
 
@@ -1571,30 +1569,28 @@ Page({
       // 生成Excel数据
       const excelData = this.generateExcelData(statement, selectedFactory);
       
-      // 调用后端API生成Excel文件
-      wx.request({
-        url: `https://aiyunsf.com/api/export/excel`,
-        method: 'POST',
-        header: {
-          'Authorization': `Bearer ${wx.getStorageSync('token')}`,
-          'Content-Type': 'application/json'
-        },
-        data: excelData,
-        success: (res) => {
-          if (res.statusCode === 200 && res.data.success) {
-            // 直接下载并分享，不显示中间状态
+      // 通过云优先请求封装调用后端生成Excel（支持二进制）
+      const request = require('../../utils/request');
+      request.post('/export/excel', excelData)
+        .then((res) => {
+          // 二进制直传（云函数代理已内嵌下载返回base64）
+          if (res && res.filePath) {
+            wx.hideLoading();
+            this.shareExcelFileDirectly(res.filePath);
+            return;
+          }
+
+          // 兼容老返回：包含下载URL
+          if (res && res.success && res.data && res.data.downloadUrl) {
             const downloadUrl = res.data.downloadUrl;
-            
             wx.downloadFile({
               url: downloadUrl,
               header: {
-                'Authorization': `Bearer ${wx.getStorageSync('token')}`
+                'X-App-Authorization': `Bearer ${wx.getStorageSync('token')}` // 使用自定义头避免被 CloudBase 网关拦截
               },
               success: (downloadRes) => {
                 wx.hideLoading();
-                
                 if (downloadRes.statusCode === 200) {
-                  // 直接跳转到微信分享
                   this.shareExcelFileDirectly(downloadRes.tempFilePath);
                 } else {
                   console.error('文件下载失败，状态码:', downloadRes.statusCode);
@@ -1607,18 +1603,23 @@ Page({
                 wx.showToast({ title: '网络异常，分享失败', icon: 'none' });
               }
             });
-          } else {
-            wx.hideLoading();
-            console.error('Excel生成失败:', res.data);
-            wx.showToast({ title: res.data.message || '生成失败，请重试', icon: 'none' });
+            return;
           }
-        },
-        fail: (err) => {
+
+          // 其他成功返回格式（尽量容错）
           wx.hideLoading();
-          console.error('Excel导出失败:', err);
-          wx.showToast({ title: '网络异常，请检查网络连接', icon: 'none' });
-        }
-      });
+          if (res && res.message) {
+            wx.showToast({ title: res.message, icon: 'none' });
+          } else {
+            wx.showToast({ title: '生成失败，请重试', icon: 'none' });
+          }
+        })
+        .catch((error) => {
+          wx.hideLoading();
+          console.error('Excel导出失败:', error);
+          const msg = (error && error.getUserMessage && error.getUserMessage()) || (error && error.message) || '网络异常，请检查网络连接';
+          wx.showToast({ title: msg, icon: 'none' });
+        });
     } catch (error) {
       wx.hideLoading();
       console.error('生成Excel数据失败:', error);
@@ -3282,16 +3283,18 @@ Page({
   // 获取付款记录
   async fetchPaymentRecords() {
     try {
-      const token = wx.getStorageSync('token');
-      const response = await api.request(`/factories/${this.data.selectedFactory.id}/accounts`, 'GET', {
-        startDate: this.data.startDate,
-        endDate: this.data.endDate
-      }, {
-        'Authorization': `Bearer ${token}`
+      const result = await wx.cloud.callFunction({
+        name: 'api',
+        data: {
+          action: 'getFactoryAccounts',
+          factoryId: this.data.selectedFactory.id,
+          startDate: this.data.startDate,
+          endDate: this.data.endDate
+        }
       });
 
-      if (response && (response.success || response.data || Array.isArray(response))) {
-        let paymentRecords = response.data || response;
+      if (result && result.result && result.result.success) {
+        let paymentRecords = result.result.data || [];
         if (!Array.isArray(paymentRecords)) {
           paymentRecords = [];
         }

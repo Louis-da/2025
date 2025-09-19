@@ -1,7 +1,6 @@
 const app = getApp()
 const api = require('../../utils/api')
-// 添加直接引用request模块，避免依赖app.getRequest可能造成的问题
-const requestTool = require('../../utils/request')
+const request = require('../../utils/request')
 
 // Helper function to get today's date in YYYY-MM-DD format
 function getTodayDateString() {
@@ -76,16 +75,69 @@ Page({
   },
 
   onLoad: function(options) {
-    const token = wx.getStorageSync('token');
-    this.loadInitialData();
+    this.checkTokenAndLoadData();
   },
 
   onShow: function() {
-    const token = wx.getStorageSync('token');
-    this.loadInitialData();
+    this.checkTokenAndLoadData();
   },
 
-  loadInitialData: function() {
+  /**
+   * 检查token有效性并加载数据
+   */
+  async checkTokenAndLoadData() {
+    const token = wx.getStorageSync('token');
+    const orgId = wx.getStorageSync('orgId');
+    const userId = wx.getStorageSync('userId');
+    
+    console.log('[Index] 检查Token和数据加载:', {
+      hasToken: !!token,
+      tokenLength: token ? token.length : 0,
+      tokenPreview: token ? token.substring(0, 20) + '...' : '无',
+      orgId,
+      userId
+    });
+    
+    if (!token) {
+      console.log('[Index] 没有token，跳转到登录页');
+      wx.reLaunch({ url: '/pages/login/login' });
+      return;
+    }
+
+    try {
+      // 验证token有效性
+      console.log('[Index] 开始验证token有效性');
+      const res = await request.post('auth', {
+        action: 'verify-token',
+        data: {
+          token: token
+        }
+      }, {
+        showLoading: false,
+        showError: false
+      });
+      
+      console.log('[Index] Token验证响应:', res);
+
+      if (res.success) {
+        // token有效，加载页面数据
+        this.loadInitialData();
+      } else {
+        // token无效，清除存储并跳转登录页
+        console.log('[Index] Token无效，跳转登录页');
+        wx.clearStorageSync();
+        wx.reLaunch({ url: '/pages/login/login' });
+      }
+    } catch (error) {
+      // token验证失败，清除存储并跳转登录页
+      console.log('[Index] Token验证失败，跳转登录页:', error);
+      wx.clearStorageSync();
+      wx.reLaunch({ url: '/pages/login/login' });
+    }
+  },
+
+  async loadInitialData() {
+    // 重置页面状态
     this.setData({
       'sendRequestParams.page': 1,
       'receiveRequestParams.page': 1,
@@ -100,42 +152,66 @@ Page({
       todaySendTotalWeight: "0.00",
       todayReceiveOrderCount: 0,
       todayReceiveTotalWeight: "0.00",
+      qualifiedRankingLoading: true
     });
 
     wx.showLoading({ title: '加载中...' });
     
-    // 优先获取今日统计数据，再获取列表（列表不带日期过滤）
-    Promise.all([
-      this.fetchTodayStats(), // 获取今日统计数据
-      this.fetchQualifiedLossRanking(), // 获取损耗率合格排行数据
-      // 不再获取订单列表，直接设置为空并标记为最后一页
-      // this.fetchSendList(true), 
-      // this.fetchReceiveList(true)
-      Promise.resolve() // 确保 Promise.all 有内容
-    ])
-      .then(() => {
-        // 在这里清空列表并标记为最后一页，以配合不调用 fetchSendList/fetchReceiveList
-         this.setData({
-            sendList: [],
-            receiveList: [],
-            isSendLastPage: true,
-            isReceiveLastPage: true
-         });
-         
-        console.log('[Index] 所有数据加载完成，当前页面状态:', {
-          showAIHelperText: this.data.showAIHelperText,
-          qualifiedLossRanking: this.data.qualifiedLossRanking,
-          qualifiedCount: this.data.qualifiedLossRanking.length
+    try {
+      // 并行加载数据，提升性能
+      const [todayStats, qualifiedRanking] = await Promise.allSettled([
+        this.fetchTodayStats(),
+        this.fetchQualifiedLossRanking()
+      ]);
+      
+      // 处理今日统计数据结果
+      if (todayStats.status === 'rejected') {
+        console.warn('[Index] 今日统计数据加载失败:', todayStats.reason);
+        wx.showToast({ 
+          title: '统计数据加载失败', 
+          icon: 'none',
+          duration: 2000
         });
-        
-        wx.hideLoading();
-        wx.stopPullDownRefresh();
-      })
-      .catch((error) => {
-        wx.hideLoading();
-        wx.stopPullDownRefresh();
-        wx.showToast({ title: '数据加载失败，请重试', icon: 'none' });
+      }
+      
+      // 处理损耗率排行数据结果
+      if (qualifiedRanking.status === 'rejected') {
+        console.warn('[Index] 损耗率排行数据加载失败:', qualifiedRanking.reason);
+      }
+      
+      // 设置列表为空（根据业务需求）
+      this.setData({
+        sendList: [],
+        receiveList: [],
+        isSendLastPage: true,
+        isReceiveLastPage: true,
+        qualifiedRankingLoading: false
       });
+      
+      console.log('[Index] 数据加载完成，页面状态:', {
+        showAIHelperText: this.data.showAIHelperText,
+        qualifiedLossRanking: this.data.qualifiedLossRanking,
+        qualifiedCount: this.data.qualifiedLossRanking.length,
+        todayStats: {
+          sendCount: this.data.todaySendOrderCount,
+          receiveCount: this.data.todayReceiveOrderCount
+        }
+      });
+      
+    } catch (error) {
+      console.error('[Index] 数据加载异常:', error);
+      this.setData({
+        qualifiedRankingLoading: false
+      });
+      wx.showToast({ 
+        title: '数据加载失败，请重试', 
+        icon: 'none',
+        duration: 3000
+      });
+    } finally {
+      wx.hideLoading();
+      wx.stopPullDownRefresh();
+    }
   },
 
   switchTab: function(e) {
@@ -169,76 +245,94 @@ Page({
   // 递归获取所有订单数据（不受分页影响）
   // fetchAllOrders: function (type, orgId, page = 1, limit = 100, allRecords = []) { ... },
 
-  fetchTodayStats: function() {
-    const token = wx.getStorageSync('token');
-    const todayDateString = getTodayDateString();
-    const orgId = wx.getStorageSync('orgId');
-    const requestUtil = requestTool || (app && app.getRequest && app.getRequest());
-    if (!requestUtil || typeof requestUtil.get !== 'function') {
-      return Promise.reject(new Error('请求工具无效'));
-    }
-    // 只依赖 /api/stats/for-date，适配新结构
-    return requestUtil.get('stats/for-date', {
-      orgId: orgId,
-      date: todayDateString
-    }).then(res => {
+  async fetchTodayStats() {
+    try {
+      const todayDateString = getTodayDateString();
+      const orgId = wx.getStorageSync('orgId');
+      
+      if (!orgId) {
+        console.warn('[Index] 组织ID为空，跳过统计数据获取');
+        return;
+      }
+      
+      console.log('[Index] 获取今日统计数据:', { orgId, date: todayDateString });
+      
+      const res = await request.get('stats/for-date', {
+        orgId,
+        date: todayDateString
+      }, {
+        showLoading: false,
+        timeout: 8000
+      });
+      
       if (res && res.success && res.data) {
         const statsData = res.data;
-        this.setData({
-          todaySendOrderCount: statsData.sendOrders ? statsData.sendOrders.count : 0,
-          todaySendTotalWeight: statsData.sendOrders ? statsData.sendOrders.totalWeight : "0.00",
-          todayReceiveOrderCount: statsData.receiveOrders ? statsData.receiveOrders.count : 0,
-          todayReceiveTotalWeight: statsData.receiveOrders ? statsData.receiveOrders.totalWeight : "0.00",
-        });
+        const updateData = {
+          todaySendOrderCount: statsData.sendOrders?.count || 0,
+          todaySendTotalWeight: statsData.sendOrders?.totalWeight || "0.00",
+          todayReceiveOrderCount: statsData.receiveOrders?.count || 0,
+          todayReceiveTotalWeight: statsData.receiveOrders?.totalWeight || "0.00"
+        };
+        
+        this.setData(updateData);
+        
+        console.log('[Index] 今日统计数据更新成功:', updateData);
       } else {
+        console.warn('[Index] 统计数据响应格式异常:', res);
         this.setData({
           todaySendOrderCount: 0,
           todaySendTotalWeight: "0.00",
           todayReceiveOrderCount: 0,
-          todayReceiveTotalWeight: "0.00",
+          todayReceiveTotalWeight: "0.00"
         });
       }
-    }).catch(err => {
+    } catch (error) {
+      console.error('[Index] 获取今日统计数据失败:', error);
+      // 设置默认值，不阻断页面加载
       this.setData({
         todaySendOrderCount: 0,
         todaySendTotalWeight: "0.00",
         todayReceiveOrderCount: 0,
-        todayReceiveTotalWeight: "0.00",
+        todayReceiveTotalWeight: "0.00"
       });
-      return Promise.reject(err);
-    });
-  },
+      throw error; // 重新抛出错误，让上层处理
+     }
+   },
 
-  fetchQualifiedLossRanking: function() {
-    console.log('[Index] 开始获取损耗率合格排行数据');
-    console.log('[Index] 当前showAIHelperText值:', this.data.showAIHelperText);
-    
-    // 设置加载状态
-    this.setData({
-      qualifiedRankingLoading: true
-    });
-    
-    // 根据时间筛选类型计算日期范围
-    const dateRange = this.calculateQualifiedDateRange();
-    
-    // 构建API参数
-    const params = {
-      mode: 'product',
-      qualified: true,
-      limit: 10
-    };
-    
-    // 添加时间筛选参数
-    if (dateRange.startDate) {
-      params.startDate = dateRange.startDate;
-    }
-    if (dateRange.endDate) {
-      params.endDate = dateRange.endDate;
-    }
-    
-    console.log('[Index] API参数:', params);
-    
-    return api.getLossRanking(params).then(result => {
+  async fetchQualifiedLossRanking() {
+    try {
+      console.log('[Index] 开始获取损耗率合格排行数据');
+      console.log('[Index] 当前showAIHelperText值:', this.data.showAIHelperText);
+      
+      // 设置加载状态
+      this.setData({
+        qualifiedRankingLoading: true
+      });
+      
+      // 根据时间筛选类型计算日期范围
+      const dateRange = this.calculateQualifiedDateRange();
+      
+      // 构建API参数
+      const params = {
+        mode: 'product',
+        qualified: true,
+        limit: 10
+      };
+      
+      // 添加时间筛选参数
+      if (dateRange.startDate) {
+        params.startDate = dateRange.startDate;
+      }
+      if (dateRange.endDate) {
+        params.endDate = dateRange.endDate;
+      }
+      
+      console.log('[Index] API参数:', params);
+      
+      const result = await request.get('loss-ranking', params, {
+        showLoading: false,
+        timeout: 10000
+      });
       console.log('[Index] 损耗率合格排行API完整返回结果:', result);
       
       let qualifiedList = [];
@@ -288,8 +382,7 @@ Page({
         loading: this.data.qualifiedRankingLoading
       });
       
-      return Promise.resolve();
-    }).catch(error => {
+    } catch (error) {
       console.error('[Index] 获取损耗率合格排行异常:', error);
       console.error('[Index] 错误详情:', error.message, error.stack);
       
@@ -301,9 +394,9 @@ Page({
       
       console.log('[Index] 异常时设置空数据，showAIHelperText:', this.data.showAIHelperText);
       
-      return Promise.resolve();
-    });
-  },
+      throw error; // 重新抛出错误，让上层处理
+     }
+   },
 
   // 处理图片URL - 与AI助理界面保持一致
   processImageUrl(imagePath) {

@@ -1,0 +1,20 @@
+{
+  "name": "database-setup",
+  "version": "1.0.0",
+  "description": "云开发数据库设置云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "wechat",
+    "miniprogram",
+    "cloud",
+    "database"
+  ],
+  "author": "云收发技术团队",
+  "license": "MIT"
+}

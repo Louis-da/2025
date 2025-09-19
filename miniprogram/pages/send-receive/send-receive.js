@@ -548,21 +548,24 @@ Page({
     this.setData({ lastRequestFilters: filters });
     console.log('订单查询参数:', filters);
 
-    // 根据activeTab选择接口
-    let endpoint = '/send-orders';
-    let adaptData = data => (data && data.records ? data.records : []);
+    // 根据activeTab选择云函数操作
+    let action = 'getSendOrders';
     if (activeTab === 'receive') {
-      endpoint = '/receive-orders';
-      adaptData = data => (data && data.records ? data.records : []);
+      action = 'getReceiveOrders';
     }
 
     wx.showLoading({ title: '加载数据中...' });
-    const api = require('../../utils/api');
     return new Promise((resolve, reject) => {
-      api.request(endpoint, 'GET', filters).then(res => {
+      wx.cloud.callFunction({
+        name: 'api',
+        data: {
+          action: action,
+          ...filters
+        }
+      }).then(result => {
         wx.hideLoading();
-        let rawData = res && res.data ? res.data : res;
-        let dataArr = adaptData(rawData);
+        let rawData = result && result.result && result.result.data ? result.result.data : result.result;
+        let dataArr = rawData && rawData.records ? rawData.records : (Array.isArray(rawData) ? rawData : []);
         
         if (Array.isArray(dataArr)) {
           let processedOrders = dataArr.map(order => {
@@ -2221,35 +2224,36 @@ Page({
   
   // 加载工厂数据
   loadFactories() {
-    const orgId = wx.getStorageSync('orgId');
-    // 🔧 修复：设置足够大的pageSize确保获取所有工厂数据
-    api.request('/factories', 'GET', { 
-      orgId, 
-      pageSize: 1000  // 设置足够大的pageSize获取所有工厂
+    wx.cloud.callFunction({
+      name: 'api',
+      data: {
+        action: 'getFactories',
+        pageSize: 1000  // 设置足够大的pageSize获取所有工厂
+      }
     })
-      .then(res => {
-        if (res.success && Array.isArray(res.data)) {
+      .then(result => {
+        if (result.result && result.result.success && Array.isArray(result.result.data)) {
           // 添加"全部工厂"选项
           const factories = [
             { id: '', name: '全部工厂' },
-            ...res.data
+            ...result.result.data
           ];
           
           this.setData({ 
             factoryOptions: factories,
             // 初始化筛选工厂列表（排除"全部工厂"选项）
-            filteredFilterFactories: res.data
+            filteredFilterFactories: result.result.data
           });
           
-          console.log('工厂数据加载完成，总数:', factories.length, '筛选列表数量:', res.data.length);
+          console.log('工厂数据加载完成，总数:', factories.length, '筛选列表数量:', result.result.data.length);
           console.log('后端返回的分页信息:', {
-            totalCount: res.totalCount,
-            page: res.page,
-            pageSize: res.pageSize,
-            hasMore: res.hasMore
+            totalCount: result.result.totalCount,
+            page: result.result.page,
+            pageSize: result.result.pageSize,
+            hasMore: result.result.hasMore
           });
         } else {
-          console.warn('工厂数据格式异常:', res);
+          console.warn('工厂数据格式异常:', result.result);
         }
       })
       .catch(err => {
@@ -2264,14 +2268,18 @@ Page({
   
   // 加载工序数据
   loadProcesses() {
-    const orgId = wx.getStorageSync('orgId');
-    api.request('/processes', 'GET', { orgId })
-      .then(res => {
-        if (res.success && Array.isArray(res.data)) {
+    wx.cloud.callFunction({
+      name: 'api',
+      data: {
+        action: 'getProcesses'
+      }
+    })
+      .then(result => {
+        if (result.result && result.result.success && Array.isArray(result.result.data)) {
           // 添加"全部工序"选项
           const processes = [
             { id: '', name: '全部工序' },
-            ...res.data
+            ...result.result.data
           ];
           
           this.setData({ processOptions: processes });

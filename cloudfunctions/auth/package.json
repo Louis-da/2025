@@ -1,0 +1,13 @@
+{
+  "name": "auth",
+  "version": "1.0.0",
+  "description": "用户认证云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3",
+    "@cloudbase/node-sdk": "^2.8.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "author": "云收发技术团队",
+  "license": "MIT"
+}

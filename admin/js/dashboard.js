@@ -201,20 +201,8 @@ function formatDate(dateStr) {
   }
 }
 
-// 确保 auth.js 已加载
-function checkAuthLoaded() {
-  if (typeof checkAuth !== 'function') {
-    console.warn('Auth functions not loaded yet, retrying in 100ms...');
-    setTimeout(initPage, 100);
-    return false;
-  }
-  return true;
-}
-
 // 初始化页面
 function initPage() {
-  if (!checkAuthLoaded()) return;
-  
   // 检查登录状态
   const auth = checkAuth();
   
@@ -229,4 +217,8 @@ function initPage() {
 }
 
 // 页面加载时执行
-document.addEventListener('DOMContentLoaded', initPage); 
+// 确保所有脚本都加载完成后再初始化
+window.addEventListener('load', function() {
+  // 添加一个小延迟确保所有脚本都已执行
+  setTimeout(initPage, 50);
+});

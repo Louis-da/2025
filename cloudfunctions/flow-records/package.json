@@ -1,0 +1,11 @@
+{
+  "name": "flow-records",
+  "version": "1.0.0",
+  "description": "流水记录管理云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3",
+    "jsonwebtoken": "^9.0.0",
+    "@cloudbase/node-sdk": "^2.8.1"
+  }
+}

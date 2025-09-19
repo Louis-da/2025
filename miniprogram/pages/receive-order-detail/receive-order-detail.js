@@ -32,8 +32,15 @@ Page({
   // 获取订单详情
   fetchOrderDetail: function (id) {
     this.setData({ loading: true })
-    // 调用自建后端API获取订单详情
-    api.getOrderDetail(id).then(res => {
+    // 调用云函数获取订单详情
+    wx.cloud.callFunction({
+      name: 'api',
+      data: {
+        action: 'getOrderDetail',
+        orderId: id
+      }
+    }).then(result => {
+      const res = result.result;
       if (res && res.data) {
         // 确保证书状态可以编辑产品行项目
         const canEdit = res.data.status === 'pending' || res.data.status === 'normal'; // pending 或 normal 可编辑
@@ -129,13 +136,190 @@ Page({
 
   // 导出Excel
   exportExcel: function () {
-    wx.showToast({
-      title: '正在导出...',
-      icon: 'loading',
-      duration: 2000
-    })
-    // 实际导出逻辑
-    // TODO: 实现导出Excel功能
+    const order = this.data.order;
+    if (!order) {
+      wx.showToast({ title: '订单数据缺失', icon: 'none' });
+      return;
+    }
+
+    wx.showLoading({ title: '正在准备分享...' });
+
+    try {
+      // 构建导出所需数据结构（与 /export/excel 路由匹配）
+      const items = Array.isArray(order.items) ? order.items : [];
+      const totalQuantity = parseInt(order.totalQuantity || 0);
+      const totalWeight = parseFloat(order.totalWeight || 0);
+      const totalAmount = parseFloat(order.totalAmount || 0);
+      const paidAmount = parseFloat(order.paymentAmount || 0);
+
+      const orderDetails = (items.length > 0 ? items : [null]).map((it, idx) => {
+        const quantity = it ? parseInt(it.quantity || 0) : totalQuantity;
+        const weight = it ? parseFloat(it.weight || 0) : totalWeight;
+        const unitPrice = it ? parseFloat(it.fee || it.price || 0) : parseFloat(order.unitPrice || 0);
+        const rowAmount = it ? (parseFloat(it.fee || it.price || 0) * parseFloat(it.quantity || 0)) : totalAmount;
+        return {
+          type: '收回',
+          orderNo: order.orderNo || order.id || '',
+          date: (order.createTime || '').split(' ')[0] || order.createTime || '',
+          process: order.processName || '',
+          quantity: isNaN(quantity) ? 0 : quantity,
+          weight: isNaN(weight) ? 0 : parseFloat(weight.toFixed(2)),
+          unitPrice: isNaN(unitPrice) ? 0 : parseFloat(unitPrice.toFixed(2)),
+          totalAmount: isNaN(rowAmount) ? 0 : parseFloat(rowAmount.toFixed(2)),
+          paymentAmount: idx === 0 ? (isNaN(paidAmount) ? 0 : parseFloat(paidAmount.toFixed(2))) : '',
+          paymentMethod: order.paymentMethod || '',
+          remark: order.remark || ''
+        };
+      });
+
+      const excelData = {
+        basicInfo: {
+          companyName: wx.getStorageSync('companyName') || '公司',
+          factoryName: order.factoryName || '',
+          dateRange: (order.createTime || '').split(' ')[0] || order.createTime || '',
+          generateTime: new Date().toLocaleString(),
+          totalRecords: orderDetails.length
+        },
+        summary: {
+          sendSummary: {
+            title: '发出单摘要',
+            orderCount: 0,
+            quantity: 0,
+            weight: '0.00'
+          },
+          receiveSummary: {
+            title: '收回单摘要',
+            orderCount: 1,
+            quantity: totalQuantity,
+            weight: totalWeight.toFixed(2)
+          },
+          lossSummary: {
+            title: '损耗情况',
+            productTypes: items.length || 0,
+            lossWeight: '0.00',
+            lossRate: '0.00%'
+          },
+          financialSummary: {
+            title: '财务汇总',
+            totalPayment: paidAmount.toFixed(2),
+            finalBalance: (totalAmount - paidAmount).toFixed(2)
+          }
+        },
+        productSummary: [], // 单据详情页可不提供
+        paymentSummary: {
+          totalAmount: totalAmount.toFixed(2),
+          totalPayment: paidAmount.toFixed(2),
+          finalBalance: (totalAmount - paidAmount).toFixed(2)
+        },
+        paymentRecords: [], // 无需提供记录，保留空数组
+        orderDetails
+      };
+
+      const request = require('../../utils/request');
+      request.post('/export/excel', excelData)
+        .then((res) => {
+          // 云函数代理：返回本地临时文件路径
+          if (res && res.filePath) {
+            wx.hideLoading();
+            this.shareExcelFileDirectly(res.filePath);
+            return;
+          }
+
+          // 兼容老返回：downloadUrl
+          if (res && res.success && res.data && res.data.downloadUrl) {
+            const downloadUrl = res.data.downloadUrl;
+            wx.downloadFile({
+              url: downloadUrl,
+              header: { 'X-App-Authorization': `Bearer ${wx.getStorageSync('token')}` },
+              success: (downloadRes) => {
+                wx.hideLoading();
+                if (downloadRes.statusCode === 200) {
+                  this.shareExcelFileDirectly(downloadRes.tempFilePath);
+                } else {
+                  console.error('文件下载失败，状态码:', downloadRes.statusCode);
+                  wx.showToast({ title: '文件准备失败，请重试', icon: 'none' });
+                }
+              },
+              fail: (err) => {
+                wx.hideLoading();
+                console.error('下载失败详情:', err);
+                wx.showToast({ title: '网络异常，分享失败', icon: 'none' });
+              }
+            });
+            return;
+          }
+
+          // 其他返回
+          wx.hideLoading();
+          if (res && res.message) {
+            wx.showToast({ title: res.message, icon: 'none' });
+          } else {
+            wx.showToast({ title: '生成失败，请重试', icon: 'none' });
+          }
+        })
+        .catch((error) => {
+          wx.hideLoading();
+          console.error('Excel导出失败:', error);
+          const msg = (error && error.getUserMessage && error.getUserMessage()) || (error && error.message) || '网络异常，请检查网络连接';
+          wx.showToast({ title: msg, icon: 'none' });
+        });
+    } catch (e) {
+      wx.hideLoading();
+      console.error('构建导出数据失败:', e);
+      wx.showToast({ title: '数据处理失败，请重试', icon: 'none' });
+    }
+  },
+
+  // 直接分享Excel文件
+  shareExcelFileDirectly(filePath) {
+    const fileName = this.generateExcelFileName();
+    wx.shareFileMessage({
+      filePath,
+      fileName,
+      success: () => {
+        wx.showToast({ title: '表格分享成功', icon: 'success', duration: 2000 });
+      },
+      fail: (shareErr) => {
+        console.log('微信分享失败，提供备选方案:', shareErr);
+        wx.showModal({
+          title: '分享方式选择',
+          content: '微信分享失败，请选择其他方式：',
+          cancelText: '打开表格',
+          confirmText: '保存到本地',
+          success: (modalRes) => {
+            // 无论选择哪个，都尝试打开文档
+            this.openExcelDocument(filePath);
+          },
+          fail: () => {
+            this.openExcelDocument(filePath);
+          }
+        });
+      }
+    });
+  },
+
+  // 打开Excel文档
+  openExcelDocument(filePath) {
+    wx.openDocument({
+      filePath,
+      fileType: 'xlsx',
+      success: () => {
+        wx.showToast({ title: '表格已打开', icon: 'success', duration: 2000 });
+      },
+      fail: (openErr) => {
+        console.log('打开文档失败:', openErr);
+        wx.showToast({ title: '表格已生成，请在文件管理中查看', icon: 'success', duration: 3000 });
+      }
+    });
+  },
+
+  // 生成文件名
+  generateExcelFileName() {
+    const order = this.data.order || {};
+    const factoryName = order.factoryName || '工厂';
+    const orderNo = order.orderNo || order.id || '';
+    const ts = Date.now().toString().slice(-6);
+    return `${factoryName}_收回单_${orderNo}_${ts}.xlsx`;
   },
 
   // 🔒 编辑整个订单 - 已禁用以保证数据一致性
@@ -169,8 +353,16 @@ Page({
       title: '正在删除...',
       mask: true
     });
-    // 调用自建后端API删除订单
-    api.deleteOrder(this.data.orderId, 'receive').then(res => {
+    // 调用云函数删除订单
+    wx.cloud.callFunction({
+      name: 'api',
+      data: {
+        action: 'deleteOrder',
+        orderId: this.data.orderId,
+        orderType: 'receive'
+      }
+    }).then(result => {
+      const res = result.result;
       wx.hideLoading();
       if (res && res.success) {
         wx.showToast({
@@ -235,9 +427,17 @@ Page({
         if (res.confirm) {
           wx.showLoading({ title: '处理中...', mask: true });
           
-          // === 使用 HTTP API 而不是云函数 ===
-          api.request(`/orders/${this.data.orderId}/cancel`, 'POST', { type: 'receive' }) // 添加type参数指定为收回单
-            .then(apiRes => {
+          // === 使用云函数 ===
+          wx.cloud.callFunction({
+            name: 'api',
+            data: {
+              action: 'cancelOrder',
+              orderId: this.data.orderId,
+              orderType: 'receive'
+            }
+          })
+            .then(result => {
+              const apiRes = result.result;
               wx.hideLoading();
               if (apiRes && apiRes.success) {
                 // 更新本地状态
@@ -348,4 +548,4 @@ Page({
       path: `/pages/receive-order-detail/receive-order-detail?id=${this.data.orderId}`
     }
   }
-}) 
+})

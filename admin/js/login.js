@@ -2,8 +2,22 @@ document.addEventListener('DOMContentLoaded', function() {
   const loginForm = document.getElementById('loginForm');
   const loginMessage = document.getElementById('loginMessage');
   
-  // API基础URL配置
-  const API_BASE_URL = 'https://aiyunsf.com';
+  // API基础URL配置 - 云开发环境适配
+  const API_BASE_URL = (() => {
+    // 检查是否有云开发配置
+    if (window.ADMIN_CLOUD_CONFIG && window.ADMIN_CLOUD_CONFIG.ENV_ID) {
+      console.log('[LOGIN] 使用云开发环境API');
+      return window.ADMIN_CLOUD_CONFIG.getLoginUrl();
+    }
+    
+    // 开发环境
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:3000';
+    }
+    
+    // 默认生产环境
+    return 'https://aiyunsf.com';
+  })();
   
   loginForm.addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -155,4 +169,4 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 500);
     }, 4000); // 4秒后开始淡出
   }
-}); 
+});

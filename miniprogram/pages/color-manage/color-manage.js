@@ -97,7 +97,7 @@ Page({
     this.setData({ isLoading: true });
     wx.showNavigationBarLoading();
     const orgId = wx.getStorageSync('orgId');
-    api.request('/colors', 'GET', { orgId })
+    api.cloudFunctionRequest('/colors', 'GET', { orgId })
       .then(res => {
         console.log('api.request返回的res', res); // 新增日志
         // 直接用res.data
@@ -236,15 +236,23 @@ Page({
         if (res) {
           loading('启用中');
           
-          // 使用真实API更新状态
+          // 使用云函数更新状态
           const orgId = wx.getStorageSync('orgId');
-          api.request(`/colors/${id}/status`, 'PUT', {
-            orgId,
-            status: 1 // 1表示启用
+          wx.cloud.callFunction({
+            name: 'updateColorStatus',
+            data: {
+              colorId: id,
+              orgId,
+              status: 1 // 1表示启用
+            }
           })
             .then(res => {
-              this.fetchColorList();
-              toast('启用成功', 'success');
+              if (res.result && res.result.success) {
+                this.fetchColorList();
+                toast('启用成功', 'success');
+              } else {
+                throw new Error(res.result?.message || '启用失败');
+              }
             })
             .catch(err => {
               console.error('启用失败', err);
@@ -324,7 +332,7 @@ Page({
     
     // 使用真实API添加颜色
     const orgId = wx.getStorageSync('orgId');
-    api.request('/colors', 'POST', {
+    api.cloudFunctionRequest('/colors', 'POST', {
       orgId,
       name: name.trim(),
       orderNum: Number(order),
@@ -353,17 +361,25 @@ Page({
     
     loading('更新中');
     
-    // 使用真实API更新颜色
+    // 使用云函数更新颜色
     const orgId = wx.getStorageSync('orgId');
-    api.request(`/colors/${currentEditId}`, 'PUT', {
-      orgId,
-      name: name.trim(),
-      orderNum: Number(order)
+    wx.cloud.callFunction({
+      name: 'updateColor',
+      data: {
+        colorId: currentEditId,
+        orgId,
+        name: name.trim(),
+        orderNum: Number(order)
+      }
     })
       .then(res => {
-        this.fetchColorList();
-        this.setData({ showModal: false });
-        toast('更新成功', 'success');
+        if (res.result && res.result.success) {
+          this.fetchColorList();
+          this.setData({ showModal: false });
+          toast('更新成功', 'success');
+        } else {
+          throw new Error(res.result?.message || '更新失败');
+        }
       })
       .catch(err => {
         console.error('更新颜色失败', err);
@@ -388,15 +404,23 @@ Page({
         if (res) {
           loading(`${statusText}中`);
           
-          // 使用真实API更新状态
+          // 使用云函数更新状态
           const orgId = wx.getStorageSync('orgId');
-          api.request(`/colors/${id}/status`, 'PUT', {
-            orgId,
-            status: newStatus
+          wx.cloud.callFunction({
+            name: 'updateColorStatus',
+            data: {
+              colorId: id,
+              orgId,
+              status: newStatus
+            }
           })
             .then(res => {
-              this.fetchColorList();
-              toast(`${statusText}成功`, 'success');
+              if (res.result && res.result.success) {
+                this.fetchColorList();
+                toast(`${statusText}成功`, 'success');
+              } else {
+                throw new Error(res.result?.message || '操作失败');
+              }
             })
             .catch(err => {
               console.error('更新状态失败', err);
@@ -444,4 +468,4 @@ Page.prototype.fetchColorList = function(...args) {
   }
   this._lastFetchTime = Date.now();
   return originalFetchColorList.apply(this, args);
-}; 
+};

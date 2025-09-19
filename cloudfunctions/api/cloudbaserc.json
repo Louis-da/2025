@@ -1,0 +1,20 @@
+{
+  "functions": {
+    "api": {
+      "timeout": 60,
+      "runtime": "Nodejs18.15",
+      "memorySize": 256,
+      "installDependency": true,
+      "triggers": [
+        {
+          "name": "httpTrigger",
+          "type": "http",
+          "config": {
+            "path": "/*",
+            "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          }
+        }
+      ]
+    }
+  }
+}

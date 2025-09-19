@@ -1,11 +1,30 @@
 // app.js
 // 直接在顶部导入request模块，避免requestTool为null的情况
 const requestTool = require('./utils/request');
+// 新增：从 envList.js 动态读取云环境ID，保留原始ID作为回退
+const { envList } = require('./envList');
+const DEFAULT_ENV_ID = 'cloud1-3gwlq66232d160ab';
+const ENV_ID = (envList && envList[0] && envList[0].envId) || DEFAULT_ENV_ID;
 
 // Force reload comment
 
 App({
   onLaunch: function () {
+    // 初始化云开发
+    if (wx.cloud) {
+      wx.cloud.init({
+        // 由 envList.js 提供，默认回退到历史值，确保行为不变
+        env: ENV_ID, // 云开发环境ID（集中配置）
+        traceUser: true
+      })
+      console.log('云开发初始化成功')
+      
+      // 设置全局云开发实例
+      this.globalData.cloud = wx.cloud
+    } else {
+      console.warn('当前微信版本不支持云开发')
+    }
+    
     // 初始化全局请求工具
     const requestTool = require('./utils/request');
     this.globalData.request = requestTool;
@@ -23,6 +42,8 @@ App({
 
     // 新增：初始化会话管理
     this.initSessionManagement();
+
+    // 数据库初始化检查已移除
 
     // 登录
     wx.login({
@@ -221,7 +242,9 @@ App({
   
   globalData: {
     userInfo: null,
-    version: '3.0.0', // 更新版本号
+    version: '3.3.0', // 更新版本号
+    cloud: null, // 云开发实例
+    // 数据库初始化状态已移除
     
     // 环境配置管理 - 支持多环境自动检测和手动切换
     environment: (() => {
@@ -291,8 +314,11 @@ App({
     }
   },
 
+  // 检查数据库初始化状态
+  // 数据库初始化检查方法已移除
+
   // 新增获取request工具的方法 - 确保始终返回requestTool
   getRequest: function() {
     return requestTool;
   }
-}) 
+})

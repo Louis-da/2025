@@ -1,0 +1,83 @@
+{
+  "envId": "cloud1-3gwlq66232d160ab",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "api",
+      "timeout": 60,
+      "envVariables": {},
+      "runtime": "Nodejs18.15",
+      "memorySize": 256
+    },
+    {
+      "name": "auth",
+      "timeout": 30,
+      "envVariables": {},
+      "runtime": "Nodejs18.15",
+      "memorySize": 128
+    },
+    {
+      "name": "login",
+      "timeout": 30,
+      "envVariables": {},
+      "runtime": "Nodejs18.15",
+      "memorySize": 128
+    },
+    {
+      "name": "orders",
+      "timeout": 60,
+      "envVariables": {},
+      "runtime": "Nodejs18.15",
+      "memorySize": 256
+    },
+    {
+      "name": "upload",
+      "timeout": 60,
+      "envVariables": {},
+      "runtime": "Nodejs18.15",
+      "memorySize": 256
+    },
+    {
+      "name": "ai-analysis",
+      "timeout": 60,
+      "envVariables": {},
+      "runtime": "Nodejs18.15",
+      "memorySize": 256
+    },
+    {
+      "name": "ai-reports",
+      "timeout": 60,
+      "envVariables": {},
+      "runtime": "Nodejs18.15",
+      "memorySize": 256
+    },
+    {
+      "name": "cache",
+      "timeout": 30,
+      "envVariables": {},
+      "runtime": "Nodejs18.15",
+      "memorySize": 128
+    },
+    {
+      "name": "flow-records",
+      "timeout": 60,
+      "envVariables": {},
+      "runtime": "Nodejs18.15",
+      "memorySize": 256
+    },
+    {
+      "name": "monitoring",
+      "timeout": 30,
+      "envVariables": {},
+      "runtime": "Nodejs18.15",
+      "memorySize": 128
+    },
+    {
+      "name": "statements",
+      "timeout": 60,
+      "envVariables": {},
+      "runtime": "Nodejs18.15",
+      "memorySize": 256
+    }
+  ]
+}
