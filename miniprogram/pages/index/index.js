@@ -426,9 +426,9 @@ Page({
     // 检查是否已包含_thumb后缀，避免重复添加
     if (localPath.includes('_thumb')) {
       console.log('[Index] 图片已包含_thumb后缀:', localPath);
-      const fullUrl = `https://aiyunsf.com${localPath}`;
-      console.log('[Index] 最终图片URL:', fullUrl);
-      return fullUrl;
+      // 纯云开发环境，本地静态图片直接返回相对路径
+    console.log('[Index] 本地静态图片路径:', localPath);
+    return localPath;
     }
     
     // 为没有_thumb后缀的图片添加_thumb
@@ -439,9 +439,9 @@ Page({
       localPath = `${basePath}_thumb.${extension}`;
     }
     
-    const fullUrl = `https://aiyunsf.com${localPath}`;
-    console.log('[Index] 处理后的图片URL:', fullUrl);
-    return fullUrl;
+    // 纯云开发环境，本地静态图片直接返回相对路径
+    console.log('[Index] 处理后的图片路径:', localPath);
+    return localPath;
   },
 
   fetchSendList: function(isRefresh = false) {

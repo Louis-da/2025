@@ -1,5 +1,5 @@
-// 统一图片URL处理
-const BASE_URL = 'https://aiyunsf.com';
+// 统一图片URL处理 - 纯云开发环境
+// 不再使用外部服务器，所有图片都通过云存储访问
 
 function getFullImageUrl(img) {
   // 显示处理前的图片路径
@@ -17,18 +17,8 @@ function getFullImageUrl(img) {
     return img;
   }
   
-  // 如果已经是完整的 http/https URL，检查是否有域名重复问题
+  // 如果已经是完整的 http/https URL，直接返回
   if (/^https?:\/\//.test(img)) {
-    // 检查是否存在域名重复问题
-    if (img.includes('aiyunsf.com/https://aiyunsf.com/') || 
-        img.includes('aiyunsf.com/http://aiyunsf.com/') ||
-        img.includes('aiyunsf.com//aiyunsf.com/')) {
-      // 修复重复域名问题
-      console.warn('[getFullImageUrl] 检测到重复域名，修正URL');
-      const fixedUrl = img.replace(/https?:\/\/aiyunsf\.com\/[\/]?https?:\/\/aiyunsf\.com\//, 'https://aiyunsf.com/');
-      console.log(`[getFullImageUrl] 修复后的URL: ${fixedUrl}`);
-      return fixedUrl;
-    }
     console.log(`[getFullImageUrl] 完整HTTP(S)路径: ${img}`);
     return img;
   }
@@ -70,20 +60,33 @@ function getFullImageUrl(img) {
     console.log('[getFullImageUrl] 处理/images/路径的图片');
   }
   
-  let fullUrl = BASE_URL + localImg;
-  
-  // 对于上传路径的图片，添加时间戳防止缓存问题
+  // 对于上传路径的图片，尝试从云存储获取临时链接
   if (localImg.startsWith('/uploads/')) {
-    // 直接使用完整路径，不要截取文件名，因为路径可能包含orgId目录
-    const timestamp = new Date().getTime();
-    fullUrl = `${BASE_URL}${localImg}?_t=${timestamp}`;
-    console.log(`[getFullImageUrl] 为上传图片添加时间戳: ${fullUrl}`);
+    console.log(`[getFullImageUrl] 检测到上传图片路径，尝试获取云存储链接: ${localImg}`);
+    
+    // 构建云存储文件ID
+    const cloudPath = localImg.substring(1); // 移除开头的 /
+    const fileID = `cloud://cloud1-3gwlq66232d160ab.636c-cloud1-3gwlq66232d160ab-1327583269/${cloudPath}`;
+    
+    console.log(`[getFullImageUrl] 构建的云存储文件ID: ${fileID}`);
+    
+    // 返回云存储的HTTP访问链接
+    const cloudUrl = `https://636c-cloud1-3gwlq66232d160ab-1327583269.tcb.qcloud.la/${cloudPath}`;
+    console.log(`[getFullImageUrl] 使用云存储HTTP链接: ${cloudUrl}`);
+    return cloudUrl;
   }
   
-  console.log(`[getFullImageUrl] 转换后的完整URL: ${fullUrl}`);
-  return fullUrl;
+  // 对于本地静态图片（/images/），直接返回相对路径
+  if (localImg.startsWith('/images/')) {
+    console.log(`[getFullImageUrl] 本地静态图片，返回相对路径: ${localImg}`);
+    return localImg;
+  }
+  
+  // 其他情况返回空字符串，避免无效请求
+  console.warn(`[getFullImageUrl] 未知图片路径类型: ${localImg}`);
+  return '';
 }
 
 module.exports = {
   getFullImageUrl
-}; 
+};

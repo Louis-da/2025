@@ -1,4 +1,5 @@
-var BASE_URL = 'https://aiyunsf.com';
+// 纯云开发环境，不使用外部服务器
+// var BASE_URL = '';  // 已移除外部服务器依赖
 
 function getFullImageUrl(img) {
   // 1. Handle empty or null values
@@ -18,21 +19,24 @@ function getFullImageUrl(img) {
     return img;
   }
 
-  // 4. Handle relative paths (Assume JS pre-processing added /uploads/ if needed)
-  //    We just need to prepend the BASE_URL.
-  //    Ensure the path starts with a single '/'.
+  // 4. Handle relative paths - 纯云开发环境
+  //    对于/images/路径，直接返回相对路径
+  //    对于/uploads/路径，应该通过云存储访问（由JS处理）
   var finalPath = img;
   if (img.indexOf('/') !== 0) {
-    // If it doesn't start with '/', add it.
     finalPath = '/' + img;
   } 
-  // Avoid double slashes if img already started with '/'
   else if (img.indexOf('//') === 0) {
-      finalPath = img.substring(1); // Remove one leading slash
+      finalPath = img.substring(1);
   }
   
-  // Prepend BASE_URL
-  return BASE_URL + finalPath;
+  // 只处理本地静态图片，其他返回原路径
+  if (finalPath.indexOf('/images/') === 0) {
+    return finalPath;
+  }
+  
+  // 其他情况返回原路径，让上层处理
+  return finalPath;
 }
 
 var utils = {
@@ -59,4 +63,4 @@ var utils = {
 module.exports = {
   getFullImageUrl: getFullImageUrl,
   stringify: utils.stringify
-}; 
+};

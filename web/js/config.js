@@ -19,12 +19,9 @@ const CONFIG = {
             return window.CLOUD_CONFIG.getApiUrl('api');
         }
         
-        // 生产环境使用同域API路径
-        if (hostname === 'aiyunsf.com' || hostname === 'www.aiyunsf.com') {
-            console.log('[CONFIG] 检测为生产环境(aiyunsf.com)，使用同域API');
-            return `${window.location.protocol}//${hostname}`;
-        }
+        // 纯云开发环境，API通过云函数调用，无需外部服务器
         
+        // 纯云开发环境，API通过云函数调用，无需外部服务器
         // 其他生产环境使用相对路径
         console.log('[CONFIG] 检测为生产环境，使用相对路径');
         return '';  // 强制空字符串表示使用相对路径

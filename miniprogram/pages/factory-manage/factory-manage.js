@@ -1855,14 +1855,15 @@ Page({
         }
 
         // 上传图片到服务器
+        // 使用云函数上传图片
         console.log('[uploadRemarkImage] 开始上传图片:', {
-          url: api.getBaseUrl() + '/upload/remark-image',
           filePath: compressRes.tempFilePath,
           token: wx.getStorageSync('token') ? '有token' : '无token'
         });
         
+        // TODO: 替换为云函数上传
         wx.uploadFile({
-          url: api.getBaseUrl() + '/upload/remark-image',
+          url: 'https://your-cloud-domain.com/upload/remark-image', // 临时占位符，需要配置实际的云函数上传地址
           filePath: compressRes.tempFilePath,
           name: 'file',
           header: {
@@ -1981,7 +1982,7 @@ Page({
       if (url.startsWith('http')) {
         return url;
       } else {
-        return api.getBaseUrl() + url; // 补全相对路径
+        return 'https://your-cloud-domain.com' + url; // 补全相对路径，需要配置实际的云存储域名
       }
     });
     

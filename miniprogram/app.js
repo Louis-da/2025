@@ -283,14 +283,10 @@ App({
       return this.environment === 'production';
     },
     
-    // API配置 - 根据环境自动选择
+    // API配置 - 纯云开发环境，使用云函数
     get apiBaseUrl() {
-      const configs = {
-        development: 'https://aiyunsf.com/api',  // 开发环境
-        staging: 'https://aiyunsf.com/api',      // 测试环境
-        production: 'https://aiyunsf.com/api'    // 生产环境
-      };
-      return configs[this.environment] || configs.development;
+      // 云开发环境不需要外部API服务器，直接使用云函数
+      return '';
     },
     
     // API服务器URL（兼容旧代码）

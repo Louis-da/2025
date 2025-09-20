@@ -1610,18 +1610,23 @@ Page({
   fetchFactories() {
     wx.showLoading({ title: '正在加载...', mask: true });
     
+    // 获取orgId
+    const orgId = wx.getStorageSync('orgId') || getApp().globalData.userInfo?.orgId;
+    console.log('[receive-order fetchFactories] 使用的orgId:', orgId);
+    
     // 使用云函数调用
     wx.cloud.callFunction({
       name: 'api',
       data: {
-        action: 'getFactories'
+        action: 'getFactories',
+        orgId: orgId
       }
     })
       .then(result => {
         const factories = result.result?.data || [];
         
-        // 过滤掉已停用的工厂（status = 'inactive'），只显示启用的工厂（status = 'active'）
-        const enabledFactories = factories.filter(f => f.status === 'active');
+        // 过滤掉已停用的工厂，只显示启用的工厂（支持字符串'active'和数字1）
+    const enabledFactories = factories.filter(f => f.status === 'active' || f.status === 1);
         console.log('[receive-order.js fetchFactories] 获取到工厂数量:', factories.length, '过滤后启用的工厂数量:', enabledFactories.length);
         
         const updateObj = { 

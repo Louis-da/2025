@@ -65,7 +65,7 @@ Page({
       return;
     }
     
-    api.getFactories()
+    api.getFactories(orgId)
       .then(res => {
         console.log('[statement.js fetchFactories] API调用成功');
         const factories = res.data || [];
@@ -2077,7 +2077,7 @@ Page({
     if (product.originalImageUrl && 
         product.originalImageUrl !== product.imageUrl && 
         !product.originalImageUrl.includes('default-product') &&
-        !product.originalImageUrl.includes('aiyunsf.com/uploads/default-product')) {
+        !product.originalImageUrl.includes('/uploads/default-product')) {
       
       console.log(`[handleImageError] 尝试使用原图(重试${retryCount + 1}次): ${product.originalImageUrl}`);
       this.setData({

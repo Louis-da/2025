@@ -11,201 +11,109 @@ const DEFAULT_ENV_ID = 'cloud1-3gwlq66232d160ab';
 const ENV_ID = (envList && envList[0] && envList[0].envId) || DEFAULT_ENV_ID;
 const cloudRequest = require('./cloudRequest');
 
-// 获取API基础URL
-const getBaseUrl = () => {
-  // 开发环境可以通过config设置API地址
-  if (appConfig.apiBaseUrl) {
-    console.log('使用配置的API地址:', appConfig.apiBaseUrl);
-    return appConfig.apiBaseUrl;
-  }
-  
-  // 使用云函数HTTP触发器地址（集中化ENV_ID）
-  return `https://${ENV_ID}.service.tcloudbase.com/web`;
-}
+
 
 // 通用请求方法
 const request = (url, method, data = {}, options = {}) => {
-  // 自动补充orgId参数（某些API除外，因为后端强制使用登录用户的orgId）
-  const storedOrgId = wx.getStorageSync('orgId');
-  const secureApis = ['/statement', '/factories/', '/payments'];
-  const isSecureApi = secureApis.some(api => url.includes(api));
-  
-  if (storedOrgId && !isSecureApi) {
-    // 确保orgId字段存在，用于API兼容性
-    data.orgId = storedOrgId;
-    console.log(`API请求自动添加组织ID: ${storedOrgId}`);
-  } else if (isSecureApi) {
-    console.log('安全API不添加orgId参数，后端会自动使用登录用户的orgId');
-  } else {
-    // 如果没有组织ID，记录警告但不阻止请求（某些公共接口可能不需要orgId）
-    console.warn('API请求缺少组织ID，请检查登录状态');
-  }
-  
-  const baseUrl = getBaseUrl();
-  const fullUrl = `${baseUrl}${url}`;
-  
-  // 打印实际请求的URL和参数
-  console.log('请求URL:', fullUrl);
-  console.log('请求方法:', method);
-  console.log('请求参数:', data);
-  
-  // 设置请求头
-  const headers = options.headers || {};
-  const token = wx.getStorageSync('token');
-  
-  // 添加授权Token和小程序标识（使用自定义头避免与 CloudBase 冲突）
-  if (token) {
-    headers['X-App-Authorization'] = `Bearer ${token}`;
-  }
-  
-  headers['x-from-miniprogram'] = 'true';
-  
-  return new Promise((resolve, reject) => {
-    // 超时计时器
-    let timeoutTimer;
-    
-    // 请求配置
-    const requestConfig = {
-      url: fullUrl,
-      method: method,
-      data: data,
-      header: headers,
-      timeout: options.timeout || 30000, // 默认30秒超时
-      success: res => {
-        // 清除超时计时器
-        if (timeoutTimer) clearTimeout(timeoutTimer);
-        
-        console.log('API响应状态码:', res.statusCode);
-        console.log('API响应数据:', res.data);
-        
-        if (res.statusCode === 200 || res.statusCode === 201) {
-          // 处理服务器返回的不同格式数据
-          if (typeof res.data === 'object') {
-            // 如果服务器返回的是成功格式的对象
-            if (res.data.success === true || res.data.code === 0 || res.data.code === 200) {
-              resolve(res.data);
-            } 
-            // 如果直接返回了数据数组或对象，没有包装
-            else if (Array.isArray(res.data) || (res.data && !res.data.error && !res.data.message && res.data.success !== false)) {
-              resolve(res.data);
-            } 
-            // 如果服务器明确返回了失败
-            else if (res.data.success === false || res.data.code === -1 || res.data.error) {
-              const errorMsg = res.data.message || res.data.error || '服务器返回错误';
-              console.error('API响应错误:', errorMsg);
-              reject({
-                error: errorMsg,
-                statusCode: res.statusCode,
-                response: res.data
-              });
-            } else {
-              // 不确定的格式，但状态码正常，尝试返回
-              resolve(res.data);
-            }
-          } else {
-            // 不是对象格式，可能是字符串或其他
-            resolve(res.data);
-          }
-        } else {
-          // 处理错误状态码
-          console.error('API错误:', res.statusCode, res.data);
-          reject({
-            error: (res.data && res.data.error) || (res.data && res.data.message) || '请求失败',
-            statusCode: res.statusCode,
-            response: res.data
-          });
-        }
-      },
-      fail: err => {
-        // 清除超时计时器
-        if (timeoutTimer) clearTimeout(timeoutTimer);
-        
-        console.error('请求失败:', err);
-        
-        // 处理不同类型的错误
-        let errorMessage = '网络请求失败';
-        if (err.errMsg) {
-          if (err.errMsg.indexOf('timeout') > -1) {
-            errorMessage = '请求超时，请检查网络';
-          } else if (err.errMsg.indexOf('fail') > -1) {
-            errorMessage = '网络连接失败，请检查网络设置';
-          }
-        }
-        
-        reject({
-          error: errorMessage,
-          detail: err,
-          url: fullUrl
-        });
-      }
-    };
-    
-    // 附加额外选项
-    if (options.filePath) {
-      requestConfig.filePath = options.filePath;
-    }
-    
-    // 设置超时处理
-    if (options.timeout !== 0) { // 如果timeout为0则禁用超时
-      timeoutTimer = setTimeout(() => {
-        timeoutTimer = null;
-        reject({
-          error: '请求超时',
-          url: fullUrl
-        });
-      }, options.timeout || 30000); // 默认30秒
-    }
-    
-    // 发起请求
-    wx.request(requestConfig);
-  });
+  // 优先使用云函数调用
+  return cloudFunctionRequest(url, method, data, options);
 }
 
 // 云函数请求函数 - 用于替代 HTTP 请求避免网关拦截
 const cloudFunctionRequest = async (url, method, data = {}, options = {}) => {
-  try {
-    // 根据 URL 路径映射到对应的云函数和 action
-    const pathMapping = {
-      '/products': { cloudFunction: 'api', action: method === 'GET' ? 'getProducts' : 'addProduct' },
-      '/products/stats': { cloudFunction: 'api', action: 'getProductStats' },
-      '/colors': { cloudFunction: 'api', action: method === 'GET' ? 'getColors' : 'addColor' },
-      '/sizes': { cloudFunction: 'api', action: method === 'GET' ? 'getSizes' : 'addSize' },
-      '/processes': { cloudFunction: 'api', action: method === 'GET' ? 'getProcesses' : 'addProcess' },
-      '/factories': { cloudFunction: 'api', action: method === 'GET' ? 'getFactories' : 'addFactory' },
-      '/factories/stats': { cloudFunction: 'api', action: 'getFactoryStats' },
-      '/statement': { cloudFunction: 'api', action: 'getStatement' },
-      '/orders': { cloudFunction: 'api', action: method === 'GET' ? 'getOrders' : 'addOrder' },
-      '/stats': { cloudFunction: 'api', action: 'getStats' },
-      '/send-orders': { cloudFunction: 'api', action: 'addSendOrder' },
-      '/receive-orders': { cloudFunction: 'api', action: 'addReceiveOrder' },
-      '/flow-records': { cloudFunction: 'api', action: 'getFlowRecords' },
-      '/flow-records/stats': { cloudFunction: 'api', action: 'getFlowStats' },
-      '/flow-records/anomalies': { cloudFunction: 'api', action: 'getFlowAnomalies' },
-      '/flow-records/detailed': { cloudFunction: 'api', action: 'getDetailedFlowRecords' }
-    };
+  // 根据 URL 路径映射到对应的云函数和 action
+  const pathMapping = {
+    '/products': { cloudFunction: 'api', action: method === 'GET' ? 'getProducts' : 'addProduct' },
+    '/products/stats': { cloudFunction: 'api', action: 'getProductStats' },
+    '/colors': { cloudFunction: 'api', action: method === 'GET' ? 'getColors' : 'addColor' },
+    '/sizes': { cloudFunction: 'api', action: method === 'GET' ? 'getSizes' : 'addSize' },
+    '/processes': { cloudFunction: 'api', action: method === 'GET' ? 'getProcesses' : 'addProcess' },
+    '/factories': { cloudFunction: 'api', action: method === 'GET' ? 'getFactories' : 'addFactory' },
+    '/factories/stats': { cloudFunction: 'api', action: 'getFactoryStats' },
+    '/statement': { cloudFunction: 'api', action: 'getStatement' },
+    '/orders': { cloudFunction: 'api', action: method === 'GET' ? 'getOrders' : 'addOrder' },
+    '/stats': { cloudFunction: 'api', action: 'getStats' },
+    '/send-orders': { cloudFunction: 'api', action: 'addSendOrder' },
+    '/receive-orders': { cloudFunction: 'api', action: 'addReceiveOrder' },
+    '/flow-records': { cloudFunction: 'api', action: 'getFlowRecords' },
+    '/flow-records/stats': { cloudFunction: 'api', action: 'getFlowStats' },
+    '/flow-records/anomalies': { cloudFunction: 'api', action: 'getFlowAnomalies' },
+    '/flow-records/detailed': { cloudFunction: 'api', action: 'getDetailedFlowRecords' }
+  };
 
-    // 处理带查询参数的 URL
-    const cleanUrl = url.split('?')[0];
-    const mapping = pathMapping[cleanUrl];
-    
-    if (!mapping) {
-      console.warn('未找到对应的云函数映射:', url);
-      // 回退到原始 HTTP 请求
-      return request(url, method, data, options);
+  // 处理带查询参数的 URL 和动态路径参数
+  let cleanUrl = url.split('?')[0];
+  let mapping = pathMapping[cleanUrl];
+  
+  // 处理动态路径，如 /factories/{id}、/factories/{id}/accounts 等
+  if (!mapping) {
+    // 匹配 /factories/{id} 模式
+    if (cleanUrl.match(/^\/factories\/[^/]+$/)) {
+      mapping = { cloudFunction: 'api', action: method === 'GET' ? 'getFactory' : method === 'PUT' ? 'updateFactory' : 'deleteFactory' };
+      // 提取factoryId
+      const factoryId = cleanUrl.split('/')[2];
+      data.factoryId = factoryId;
     }
-
-    // 调用云函数
-    const result = await cloudRequest.callCloudFunction(mapping.cloudFunction, {
-      action: mapping.action,
-      ...data
-    });
-
-    return result;
-  } catch (error) {
-    console.error('云函数请求失败:', error);
-    throw error;
+    // 匹配 /factories/{id}/accounts 模式
+    else if (cleanUrl.match(/^\/factories\/[^/]+\/accounts$/)) {
+      mapping = { cloudFunction: 'api', action: 'getFactoryAccounts' };
+      const factoryId = cleanUrl.split('/')[2];
+      data.factoryId = factoryId;
+    }
+    // 匹配 /factories/{id}/payments 模式
+    else if (cleanUrl.match(/^\/factories\/[^/]+\/payments$/)) {
+      mapping = { cloudFunction: 'api', action: 'addFactoryPayment' };
+      const factoryId = cleanUrl.split('/')[2];
+      data.factoryId = factoryId;
+    }
+    // 匹配 /factories/{id}/status 模式
+    else if (cleanUrl.match(/^\/factories\/[^/]+\/status$/)) {
+      mapping = { cloudFunction: 'api', action: 'updateFactoryStatus' };
+      const factoryId = cleanUrl.split('/')[2];
+      data.factoryId = factoryId;
+    }
+    // 匹配 /products/{id} 模式
+    else if (cleanUrl.match(/^\/products\/[^/]+$/)) {
+      mapping = { cloudFunction: 'api', action: method === 'GET' ? 'getProduct' : method === 'PUT' ? 'updateProduct' : 'deleteProduct' };
+      const productId = cleanUrl.split('/')[2];
+      data.productId = productId;
+    }
+    // 匹配 /orders/{id} 模式
+    else if (cleanUrl.match(/^\/orders\/[^/]+$/)) {
+      mapping = { cloudFunction: 'api', action: method === 'GET' ? 'getOrder' : method === 'PUT' ? 'updateOrder' : 'deleteOrder' };
+      const orderId = cleanUrl.split('/')[2];
+      data.orderId = orderId;
+    }
+    // 匹配 /send-orders/{id} 模式
+    else if (cleanUrl.match(/^\/send-orders\/[^/]+$/)) {
+      mapping = { cloudFunction: 'api', action: method === 'GET' ? 'getSendOrder' : method === 'PUT' ? 'updateSendOrder' : 'deleteSendOrder' };
+      const orderId = cleanUrl.split('/')[2];
+      data.orderId = orderId;
+    }
+    // 匹配 /receive-orders/{id} 模式
+    else if (cleanUrl.match(/^\/receive-orders\/[^/]+$/)) {
+      mapping = { cloudFunction: 'api', action: method === 'GET' ? 'getReceiveOrder' : method === 'PUT' ? 'updateReceiveOrder' : 'deleteReceiveOrder' };
+      const orderId = cleanUrl.split('/')[2];
+      data.orderId = orderId;
+    }
   }
+  
+  if (!mapping) {
+    throw new Error(`未找到对应的云函数映射: ${url}`);
+  }
+
+  console.log('使用云函数调用:', mapping.cloudFunction, mapping.action, data);
+  
+  // 调用云函数
+  const result = await cloudRequest.callCloudFunction(mapping.cloudFunction, {
+    action: mapping.action,
+    ...data
+  });
+
+  return result;
 };
+
+
 
 // 获取订单列表
 const getOrders = (params) => {
@@ -263,9 +171,11 @@ const getReceiveOrderDetail = (orderId) => {
 }
 
 // 获取工厂列表
-const getFactories = () => {
+const getFactories = (orgId) => {
+  // 如果没有传递orgId，尝试从存储中获取
+  const finalOrgId = orgId || (typeof wx !== 'undefined' ? wx.getStorageSync('orgId') : null);
   // 设置足够大的pageSize，确保获取所有工厂
-  return cloudFunctionRequest('/factories', 'GET', { pageSize: 1000 })
+  return cloudFunctionRequest('/factories', 'GET', { pageSize: 1000, orgId: finalOrgId })
 }
 
 // 获取产品列表
@@ -464,106 +374,92 @@ const getFlowAnomalies = (params) => {
   return cloudFunctionRequest('/flow-records/anomalies', 'GET', params);
 }
 
-// 上传文件
-const uploadFile = (path, filePath) => {
+// 上传文件（使用云函数）
+const uploadFile = (path, filePath, formData = {}) => {
   return new Promise((resolve, reject) => {
-    const baseUrl = getBaseUrl();
-    const fullUrl = `${baseUrl}${path}`;
-    const orgId = wx.getStorageSync('orgId');
-    const token = wx.getStorageSync('token');
-    
     console.log('[uploadFile] 开始上传图片，路径:', filePath);
-    console.log('[uploadFile] 上传URL:', fullUrl);
-    console.log('[uploadFile] 使用token:', token ? token.substring(0, 10) + '...' : '无');
+    console.log('[uploadFile] 使用小程序直接上传到云存储');
 
-    wx.uploadFile({
-      url: fullUrl,
+    // 获取token和orgId
+    const token = wx.getStorageSync('token');
+    const orgId = wx.getStorageSync('orgId');
+    console.log('[uploadFile] 认证信息检查:', {
+      hasToken: !!token,
+      tokenLength: token ? token.length : 0,
+      hasOrgId: !!orgId,
+      orgId: orgId
+    });
+    
+    if (!token || !orgId) {
+      console.error('[uploadFile] 缺少认证信息:', { token: !!token, orgId: !!orgId });
+      reject({
+        error: '未登录，请先登录',
+        detail: 'No token or orgId found'
+      });
+      return;
+    }
+
+    // 生成云存储路径
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substr(2, 8);
+    let fileExtension = 'jpg';
+    
+    if (formData.fileName) {
+      fileExtension = formData.fileName.split('.').pop() || 'jpg';
+    } else if (filePath.includes('.')) {
+      fileExtension = filePath.split('.').pop() || 'jpg';
+    }
+    
+    const folder = formData.folder || 'uploads';
+    const cloudPath = `${folder}/${orgId}/${timestamp}_${randomStr}.${fileExtension}`;
+
+    // 直接使用小程序云存储上传
+    wx.cloud.uploadFile({
+      cloudPath: cloudPath,
       filePath: filePath,
-      name: 'file',
-      formData: {
-        orgId: orgId  // 使用统一的orgId字段
-      },
-      header: {
-        'X-App-Authorization': token ? `Bearer ${token}` : '',
-        'x-from-miniprogram': 'true'
-      },
-      success: (res) => {
-        console.log('[uploadFile] 上传响应状态码:', res.statusCode);
-        let responseData;
-
-        try {
-          // wx.uploadFile 的结果中 res.data 是字符串，需要解析
-          responseData = JSON.parse(res.data);
-          console.log('[uploadFile] 解析后的响应数据:', responseData);
-        } catch (error) {
-          console.error('[uploadFile] 解析响应数据失败:', error, '原始数据:', res.data);
-          return reject({
-            error: '服务器响应格式错误',
-            detail: error,
-            originalData: res.data
-          });
-        }
-
-        if (res.statusCode === 200 || res.statusCode === 201) {
-          // 处理不同的响应格式，尝试找到文件路径
-          if (responseData.success === true) {
-            // 标准格式：{success: true, data: {filePath: '/uploads/xxx.jpg'}}
-            if (responseData.data && responseData.data.filePath) {
-              resolve({
-                success: true,
-                data: {
-                  filePath: responseData.data.filePath
-                }
-              });
-            } 
-            // 其他格式：{success: true, data: {url: '/uploads/xxx.jpg'}} 或 {success: true, url: '/uploads/xxx.jpg'}
-            else if ((responseData.data && responseData.data.url) || responseData.url || responseData.path || 
-                     (responseData.data && (responseData.data.path || responseData.data.file))) {
-              const filePath = (responseData.data && responseData.data.url) || 
-                              responseData.url || 
-                              responseData.path || 
-                              (responseData.data && responseData.data.path) || 
-                              (responseData.data && responseData.data.file);
-              resolve({
-                success: true,
-                data: {
-                  filePath: filePath
-                }
-              });
-            } else {
-              // 找不到具体路径，返回整个响应
-              resolve(responseData);
-            }
-          } else if (responseData.code === 0 || responseData.code === 200) {
-            // 使用code表示成功的格式
+      success: (uploadRes) => {
+        console.log('[uploadFile] 上传成功:', uploadRes);
+        
+        // 获取下载链接
+        wx.cloud.getTempFileURL({
+          fileList: [uploadRes.fileID],
+          success: (urlRes) => {
+            const downloadUrl = urlRes.fileList && urlRes.fileList[0] ? urlRes.fileList[0].tempFileURL : '';
+            
+            // 生成相对路径
+            const relativePath = `/${folder}/${orgId}/${timestamp}_${randomStr}.${fileExtension}`;
+            
             resolve({
               success: true,
               data: {
-                filePath: responseData.data && responseData.data.filePath || 
-                          responseData.data && responseData.data.url || 
-                          responseData.url || ''
+                url: relativePath,
+                filePath: relativePath,
+                fileId: uploadRes.fileID,
+                downloadUrl: downloadUrl
               }
             });
-          } else {
-            // 其他情况，可能是失败或格式不标准
-            console.warn('[uploadFile] 非标准成功响应:', responseData);
-            resolve(responseData);
+          },
+          fail: (urlErr) => {
+            console.error('[uploadFile] 获取下载链接失败:', urlErr);
+            // 即使获取下载链接失败，也返回成功，因为文件已上传
+            const relativePath = `/${folder}/${orgId}/${timestamp}_${randomStr}.${fileExtension}`;
+            resolve({
+              success: true,
+              data: {
+                url: relativePath,
+                filePath: relativePath,
+                fileId: uploadRes.fileID,
+                downloadUrl: ''
+              }
+            });
           }
-        } else {
-          // 处理错误状态码
-          console.error('[uploadFile] 上传失败，状态码:', res.statusCode);
-          reject({
-            error: responseData.message || '上传失败',
-            statusCode: res.statusCode,
-            response: responseData
-          });
-        }
+        });
       },
-      fail: (err) => {
-        console.error('[uploadFile] 请求失败:', err);
+      fail: (uploadErr) => {
+        console.error('[uploadFile] 上传失败:', uploadErr);
         reject({
-          error: '网络请求失败',
-          detail: err
+          error: '文件上传失败: ' + (uploadErr.errMsg || '未知错误'),
+          detail: uploadErr
         });
       }
     });
@@ -606,7 +502,6 @@ const deleteReceiveOrder = (orderId) => {
 module.exports = {
   request,
   cloudFunctionRequest,
-  getBaseUrl,
   getOrders,
   getStats,
   updateOrderStatus,

@@ -159,10 +159,15 @@ Page({
     console.log('[fetchFactories] 开始获取工厂列表...');
     wx.showLoading({ title: '加载工厂列表...', mask: true });
     
+    // 使用云函数调用
+    const orgId = wx.getStorageSync('orgId') || getApp().globalData.userInfo?.orgId;
+    console.log('[fetchFactories] 使用的orgId:', orgId);
+    
     wx.cloud.callFunction({
       name: 'api',
       data: {
-        action: 'getFactories'
+        action: 'getFactories',
+        orgId: orgId
       }
     })
       .then(result => {
@@ -170,9 +175,10 @@ Page({
         const factories = result.result && result.result.data ? result.result.data : [];
         console.log('[fetchFactories] 获取到工厂数量:', factories.length);
         
-        // 过滤掉已停用的工厂（status = 'inactive'），只显示启用的工厂（status = 'active'）
-        const enabledFactories = factories.filter(f => f.status === 'active');
+        // 过滤掉已停用的工厂，只显示启用的工厂（支持字符串'active'和数字1）
+        const enabledFactories = factories.filter(f => f.status === 'active' || f.status === 1);
         console.log('[fetchFactories] 过滤后启用的工厂数量:', enabledFactories.length);
+        console.log('[fetchFactories] 工厂状态详情:', factories.map(f => ({ name: f.name, status: f.status, type: typeof f.status })));
         
         this.setData({ 
           factories: enabledFactories,

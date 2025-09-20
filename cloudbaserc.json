@@ -37,13 +37,7 @@
       "runtime": "Nodejs18.15",
       "memorySize": 256
     },
-    {
-      "name": "ai-analysis",
-      "timeout": 60,
-      "envVariables": {},
-      "runtime": "Nodejs18.15",
-      "memorySize": 256
-    },
+
     {
       "name": "ai-reports",
       "timeout": 60,

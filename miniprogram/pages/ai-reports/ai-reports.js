@@ -338,9 +338,11 @@ Page({
       return cleanPath;
     }
     
-    // 服务器相对路径
+    // 服务器相对路径 - 云存储图片通过云存储访问
     if (cleanPath.startsWith('/uploads/')) {
-      return `https://aiyunsf.com${cleanPath}`;
+      // 构建云存储HTTP访问链接
+      const cloudPath = cleanPath.substring(1); // 移除开头的 /
+      return `https://636c-cloud1-3gwlq66232d160ab-1327583269.tcb.qcloud.la/${cloudPath}`;
     }
     
     // 本地相对路径

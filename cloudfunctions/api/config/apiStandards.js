@@ -25,6 +25,7 @@ const HttpStatus = {
  */
 const BusinessErrorCodes = {
   // 通用错误 (1000-1999)
+  GENERAL_ERROR: 1000,
   INVALID_PARAMETER: 1001,
   MISSING_PARAMETER: 1002,
   PARAMETER_FORMAT_ERROR: 1003,
@@ -81,6 +82,7 @@ const BusinessErrorCodes = {
  * 错误码对应的消息
  */
 const ErrorMessages = {
+  [BusinessErrorCodes.GENERAL_ERROR]: '系统错误',
   [BusinessErrorCodes.INVALID_PARAMETER]: '参数无效',
   [BusinessErrorCodes.MISSING_PARAMETER]: '缺少必需参数',
   [BusinessErrorCodes.PARAMETER_FORMAT_ERROR]: '参数格式错误',

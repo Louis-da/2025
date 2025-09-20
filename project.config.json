@@ -55,9 +55,6 @@
   "uploadToCloudFunction": true,
   "serveDomain": {
     "request": [
-      "https://aiyunsf.com",
-      "https://www.aiyunsf.com",
-      "https://admin.aiyunsf.com",
       "https://cloud1-3gwlq66232d160ab.service.tcloudbase.com"
     ],
     "socket": [],

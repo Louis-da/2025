@@ -164,9 +164,9 @@ Page({
           // 映射字段，确保兼容
           const mappedData = res.data.map(item => ({
             ...item,
-            _id: item.id,           // 兼容旧版使用_id的地方
-            processName: item.name,  // 添加processName字段供前端使用
-            order: item.order || 1,  // 保持order字段
+            _id: item._id || item.id,  // 保持原有的_id字段，兼容可能的id字段
+            processName: item.name,    // 添加processName字段供前端使用
+            order: item.order || 1,    // 保持order字段
             status: typeof item.status === 'number' ? item.status : (item.status ? 1 : 0)  // 确保status是数字类型
           }));
           

@@ -2,7 +2,7 @@
   "functions": {
     "api": {
       "timeout": 60,
-      "runtime": "Nodejs18.15",
+      "runtime": "Nodejs16.13",
       "memorySize": 256,
       "installDependency": true,
       "triggers": [

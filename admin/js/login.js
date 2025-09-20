@@ -15,8 +15,8 @@ document.addEventListener('DOMContentLoaded', function() {
       return 'http://localhost:3000';
     }
     
-    // 默认生产环境
-    return 'https://aiyunsf.com';
+    // 纯云开发环境，API通过云函数调用，无需外部服务器
+    return '';
   })();
   
   loginForm.addEventListener('submit', async function(e) {

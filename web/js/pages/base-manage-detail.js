@@ -981,7 +981,7 @@ class BaseManageDetail {
         try {
             Utils.loading.show('上传中...');
             
-            const response = await API.upload('/upload/image', file);
+            const response = await API.upload(file);
             
             if (response.success) {
                 const imageUrl = response.data.url;
@@ -1096,4 +1096,4 @@ function initBaseDetailPage(type) {
 }
 
 // 导出类
-window.BaseManageDetail = BaseManageDetail; 
+window.BaseManageDetail = BaseManageDetail;

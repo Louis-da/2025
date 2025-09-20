@@ -226,7 +226,43 @@ const API = {
     /**
      * 文件上传 - 组织隔离版
      */
-    upload: async (url, file, options = {}) => {
+    // 云函数调用方法
+    callCloudFunction: async (functionName, data = {}) => {
+        try {
+            const authStatus = Auth.checkAuthStatus();
+            if (!authStatus.isValid) {
+                Auth.forceRelogin(authStatus.error);
+                throw new Error('认证失败: ' + authStatus.error);
+            }
+
+            const url = CLOUD_CONFIG.getCloudFunctionUrl(functionName);
+            const config = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-App-Authorization': `Bearer ${authStatus.token}`,
+                    'token': authStatus.token,
+                    'X-Org-Id': authStatus.orgId
+                },
+                body: JSON.stringify({
+                    action: data.action || 'uploadFromMiniprogram',
+                    ...data
+                })
+            };
+
+            const response = await fetch(url, config);
+            if (!response.ok) {
+                throw new Error(`云函数调用失败: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            Utils.log.error('云函数调用失败:', error);
+            throw error;
+        }
+    },
+
+    upload: async (file, options = {}) => {
         try {
             // 强制验证组织认证状态
             const authStatus = Auth.checkAuthStatus();
@@ -234,49 +270,34 @@ const API = {
                 Auth.forceRelogin(authStatus.error);
                 throw new Error('认证失败: ' + authStatus.error);
             }
-            
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('orgId', authStatus.orgId); // 强制添加组织ID
-            
-            // 构建完整URL
-            let fullUrl;
-            if (url.startsWith('http')) {
-                fullUrl = url;
-            } else {
-                if (API.currentBaseUrl === '') {
-                    fullUrl = `/api${url.startsWith('/') ? url : '/' + url}`;
-                } else {
-                    fullUrl = `${API.currentBaseUrl}/api${url.startsWith('/') ? url : '/' + url}`;
-                }
-            }
-            
-            const config = {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-App-Authorization': `Bearer ${authStatus.token}`, // 使用自定义头避免被 CloudBase 网关拦截
-                    'token': authStatus.token,
-                    'X-Org-Id': authStatus.orgId,
-                    ...options.headers
-                }
-            };
-            
-            const response = await fetch(fullUrl, config);
-            
-            if (!response.ok) {
-                throw new Error(`上传失败: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
+
+            // 将文件转换为base64
+            const fileBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64 = reader.result.split(',')[1]; // 移除data:image/jpeg;base64,前缀
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+
+            // 调用file-upload云函数
+            const result = await API.callCloudFunction('upload', {
+                action: 'uploadFromMiniprogram',
+                fileContent: fileBase64,
+                fileName: file.name,
+                fileType: file.type,
+                orgId: authStatus.orgId
+            });
+
             // 验证上传结果的组织归属
             if (result.data && result.data.orgId && result.data.orgId !== authStatus.orgId) {
                 throw new Error('文件上传组织隔离违规');
             }
-            
+
             return result;
-            
+
         } catch (error) {
             Utils.log.error('文件上传失败:', error);
             throw error;
